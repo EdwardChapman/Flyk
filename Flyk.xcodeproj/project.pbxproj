@@ -18,6 +18,7 @@
 		927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64424AD5DFD002445B9 /* FourthViewController.swift */; };
 		927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64624AD5E23002445B9 /* MyProfile.swift */; };
 		927BB64D24AD7A76002445B9 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64C24AD7A76002445B9 /* Carousel.swift */; };
+		928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242C924BAAEAE0000C44A /* TextEditorView.swift */; };
 		929AE76324B00A22002FC64D /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76224B00A22002FC64D /* Content.swift */; };
 		929AE76724B00CFD002FC64D /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76624B00CFD002FC64D /* Home.swift */; };
 		92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28724B6710500A71950 /* TakeVideoViewController.swift */; };
@@ -59,6 +60,7 @@
 		927BB64424AD5DFD002445B9 /* FourthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FourthViewController.swift; sourceTree = "<group>"; };
 		927BB64624AD5E23002445B9 /* MyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfile.swift; sourceTree = "<group>"; };
 		927BB64C24AD7A76002445B9 /* Carousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
+		928242C924BAAEAE0000C44A /* TextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorView.swift; sourceTree = "<group>"; };
 		929AE76224B00A22002FC64D /* Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Content.swift; sourceTree = "<group>"; };
 		929AE76624B00CFD002FC64D /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		92DAA28724B6710500A71950 /* TakeVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TakeVideoViewController.swift; sourceTree = "<group>"; };
@@ -114,14 +116,12 @@
 			isa = PBXGroup;
 			children = (
 				927BB61224AD590D002445B9 /* AppDelegate.swift */,
-				927BB61424AD590D002445B9 /* FirstViewController.swift */,
-				929AE76624B00CFD002FC64D /* Home.swift */,
-				92DAA28724B6710500A71950 /* TakeVideoViewController.swift */,
-				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
-				927BB64424AD5DFD002445B9 /* FourthViewController.swift */,
-				927BB64624AD5E23002445B9 /* MyProfile.swift */,
-				927BB61624AD590D002445B9 /* SecondViewController.swift */,
 				927BB61824AD590D002445B9 /* Main.storyboard */,
+				928242C224BAAD550000C44A /* Home */,
+				928242C724BAAD8F0000C44A /* Discover */,
+				928242C624BAAD8D0000C44A /* Create */,
+				928242C324BAAD800000C44A /* Notifications */,
+				928242C824BAADAA0000C44A /* My Profile */,
 				929AE76424B00A36002FC64D /* components */,
 				927BB61D24AD590F002445B9 /* LaunchScreen.storyboard */,
 				927BB62024AD590F002445B9 /* Info.plist */,
@@ -146,6 +146,49 @@
 				927BB63624AD590F002445B9 /* Info.plist */,
 			);
 			path = FlykUITests;
+			sourceTree = "<group>";
+		};
+		928242C224BAAD550000C44A /* Home */ = {
+			isa = PBXGroup;
+			children = (
+				929AE76624B00CFD002FC64D /* Home.swift */,
+				927BB61424AD590D002445B9 /* FirstViewController.swift */,
+			);
+			path = Home;
+			sourceTree = "<group>";
+		};
+		928242C324BAAD800000C44A /* Notifications */ = {
+			isa = PBXGroup;
+			children = (
+				927BB64424AD5DFD002445B9 /* FourthViewController.swift */,
+			);
+			path = Notifications;
+			sourceTree = "<group>";
+		};
+		928242C624BAAD8D0000C44A /* Create */ = {
+			isa = PBXGroup;
+			children = (
+				92DAA28724B6710500A71950 /* TakeVideoViewController.swift */,
+				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
+				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
+			);
+			path = Create;
+			sourceTree = "<group>";
+		};
+		928242C724BAAD8F0000C44A /* Discover */ = {
+			isa = PBXGroup;
+			children = (
+				927BB61624AD590D002445B9 /* SecondViewController.swift */,
+			);
+			path = Discover;
+			sourceTree = "<group>";
+		};
+		928242C824BAADAA0000C44A /* My Profile */ = {
+			isa = PBXGroup;
+			children = (
+				927BB64624AD5E23002445B9 /* MyProfile.swift */,
+			);
+			path = "My Profile";
 			sourceTree = "<group>";
 		};
 		929AE76424B00A36002FC64D /* components */ = {
@@ -296,6 +339,7 @@
 				929AE76724B00CFD002FC64D /* Home.swift in Sources */,
 				927BB64D24AD7A76002445B9 /* Carousel.swift in Sources */,
 				927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */,
+				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,
 				92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */,
 			);
