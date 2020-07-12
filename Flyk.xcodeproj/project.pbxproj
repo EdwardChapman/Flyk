@@ -19,6 +19,8 @@
 		927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64624AD5E23002445B9 /* MyProfile.swift */; };
 		927BB64D24AD7A76002445B9 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64C24AD7A76002445B9 /* Carousel.swift */; };
 		928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242C924BAAEAE0000C44A /* TextEditorView.swift */; };
+		928242CC24BADE200000C44A /* VideoOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242CB24BADE200000C44A /* VideoOverlayView.swift */; };
+		928242CF24BB6F7C0000C44A /* BasketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242CE24BB6F7C0000C44A /* BasketView.swift */; };
 		929AE76324B00A22002FC64D /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76224B00A22002FC64D /* Content.swift */; };
 		929AE76724B00CFD002FC64D /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76624B00CFD002FC64D /* Home.swift */; };
 		92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28724B6710500A71950 /* TakeVideoViewController.swift */; };
@@ -61,6 +63,8 @@
 		927BB64624AD5E23002445B9 /* MyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfile.swift; sourceTree = "<group>"; };
 		927BB64C24AD7A76002445B9 /* Carousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
 		928242C924BAAEAE0000C44A /* TextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorView.swift; sourceTree = "<group>"; };
+		928242CB24BADE200000C44A /* VideoOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoOverlayView.swift; sourceTree = "<group>"; };
+		928242CE24BB6F7C0000C44A /* BasketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasketView.swift; sourceTree = "<group>"; };
 		929AE76224B00A22002FC64D /* Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Content.swift; sourceTree = "<group>"; };
 		929AE76624B00CFD002FC64D /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		92DAA28724B6710500A71950 /* TakeVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TakeVideoViewController.swift; sourceTree = "<group>"; };
@@ -169,8 +173,7 @@
 			isa = PBXGroup;
 			children = (
 				92DAA28724B6710500A71950 /* TakeVideoViewController.swift */,
-				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
-				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
+				928242CD24BB6F2B0000C44A /* VideoEditor */,
 			);
 			path = Create;
 			sourceTree = "<group>";
@@ -189,6 +192,17 @@
 				927BB64624AD5E23002445B9 /* MyProfile.swift */,
 			);
 			path = "My Profile";
+			sourceTree = "<group>";
+		};
+		928242CD24BB6F2B0000C44A /* VideoEditor */ = {
+			isa = PBXGroup;
+			children = (
+				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
+				928242CB24BADE200000C44A /* VideoOverlayView.swift */,
+				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
+				928242CE24BB6F7C0000C44A /* BasketView.swift */,
+			);
+			path = VideoEditor;
 			sourceTree = "<group>";
 		};
 		929AE76424B00A36002FC64D /* components */ = {
@@ -332,6 +346,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				92DAA28A24B6714800A71950 /* EditVideoViewController.swift in Sources */,
+				928242CC24BADE200000C44A /* VideoOverlayView.swift in Sources */,
+				928242CF24BB6F7C0000C44A /* BasketView.swift in Sources */,
 				927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */,
 				927BB61724AD590D002445B9 /* SecondViewController.swift in Sources */,
 				927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */,
