@@ -11,13 +11,13 @@ import Foundation
 class VideoOverlayView : UIView, UIGestureRecognizerDelegate {
     init(){
         super.init(frame: CGRect())
-        self.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleTextViewTap(tapGesture:))))
         self.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleBasketItemPan(panGesture:))))
         self.addGestureRecognizer(UIPinchGestureRecognizer(target: self, action: #selector(self.handleBasketItemPinch(pinchGesture:))))
         self.addGestureRecognizer(UIRotationGestureRecognizer(target: self, action: #selector(self.handleBasketItemRotation(rotationGesture:))))
         for ges in self.gestureRecognizers!{
             ges.delegate = self
         }
+        self.clipsToBounds = true
     }
     
     required init?(coder aDecoder: NSCoder) {
@@ -107,26 +107,4 @@ class VideoOverlayView : UIView, UIGestureRecognizerDelegate {
         }
     }
     
-    
-    @objc func handleTextViewTap(tapGesture: UITapGestureRecognizer) {
-        print("BEGINNING")
-        let loc = tapGesture.location(in: tapGesture.view)
-        let targetView = tapGesture.view?.presentationHitTest(pointLoc: loc, withinDepth: 1)
-        if(targetView === self){return}
-        
-        
-        //        targetView?.window?.makeKeyAndVisible()
-        MenuTargetView.shared.myTargetView = targetView
-        
-        UIMenuController.shared.menuItems = [
-            UIMenuItem(title: "Timing", action: #selector(MenuTargetView.shared.changeMyTargetViewDuration)),
-            UIMenuItem(title: "Edit", action: #selector(MenuTargetView.shared.editMyTargetView))
-        ]
-        MenuTargetView.shared.becomeFirstResponder()
-        
-        UIMenuController.shared.setMenuVisible(true, animated: true)
-        
-        
-        
-    }
 }

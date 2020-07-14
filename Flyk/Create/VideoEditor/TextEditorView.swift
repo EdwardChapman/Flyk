@@ -9,7 +9,7 @@ import UIKit
 import Foundation
 
 class TextEditor : UIView, UITextFieldDelegate{
-    static var view:TextEditor?
+//    static var view:TextEditor?
     
     var textField: UITextField?
     var textFieldTransform: CGAffineTransform?
@@ -43,8 +43,12 @@ class TextEditor : UIView, UITextFieldDelegate{
         super.init(frame: CGRect())
         self.isHidden = true
         self.alpha = 0
-        self.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.4)
-        TextEditor.view = self
+        self.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
+        self.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleDismissTap(tapGesture:))))
+    }
+    
+    @objc func handleDismissTap(tapGesture: UITapGestureRecognizer) {
+        finishEditing()
     }
     
     func beginEditing(textField: UITextField){
@@ -76,17 +80,19 @@ class TextEditor : UIView, UITextFieldDelegate{
             print("guard failure at finishEditing()")
             return
         }
-        UIView.animate(withDuration: 0.2, animations: {
-            textField.removeFromSuperview()
-            textField.transform = textFieldTransform
-//            textField.frame = CGRect(origin: textFieldFrame.origin, size: textField.frame.size)
-            textField.center = textFieldCenter
-            textFieldSuperview.addSubview(textField)
-            textField.isUserInteractionEnabled = false
-            self.isHidden = true
-        }, completion: { finished in
-            
-        })
+        textField.removeFromSuperview()
+        self.isHidden = true
+        
+        if textField.text?.count != 0 {
+            UIView.animate(withDuration: 0.2, animations: {
+                textField.transform = textFieldTransform
+                textField.center = textFieldCenter
+                textFieldSuperview.addSubview(textField)
+                textField.isUserInteractionEnabled = false
+            }, completion: { finished in
+                
+            })
+        }
         
         self.textField = nil
         self.textFieldFrame = nil

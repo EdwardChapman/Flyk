@@ -10,144 +10,202 @@ import UIKit
 import AVFoundation
 
 
-
-class MenuTargetView : UIView {
-    static let shared = MenuTargetView()
-    var myTargetView: UIView! {
-        didSet{
-            MenuTargetView.shared.frame = myTargetView.frame
-            UIMenuController.shared.setTargetRect(myTargetView.frame, in: myTargetView.superview!)
-            MenuTargetView.shared.isHidden = false
-        }
+class TriangleView : UIView {
+    
+    override init(frame: CGRect) {
+        super.init(frame: frame)
     }
     
-    private init() {
-        super.init(frame: CGRect())
-    }
     required init?(coder aDecoder: NSCoder) {
-        fatalError("init(coder:) has not been implemented")
-    }
-    override var canBecomeFirstResponder: Bool{
-        return true
+        super.init(coder: aDecoder)
     }
     
-    @objc func menuWasDismissed(){
-        self.isHidden = true
-    }
-    
-    override func becomeFirstResponder() -> Bool {
-        if super.becomeFirstResponder() {
-            NotificationCenter.default.addObserver(
-                self,
-                selector: #selector(menuWasDismissed),
-                name: UIMenuController.didHideMenuNotification,
-                object: nil)
-            return true
-        }else{
-            return false
-        }
-    }
-    override func resignFirstResponder() -> Bool {
-        if super.resignFirstResponder() {
-            NotificationCenter.default.removeObserver(self, name: UIMenuController.didHideMenuNotification, object: nil)
-            return true
-        }else{
-            return false
-        }
-    }
-    
-    @objc func changeMyTargetViewDuration(){
-        print("CHANGE MY TARGETVIEW DURATINO")
-        MenuTargetView.shared.isHidden = true
-    }
-    @objc func editMyTargetView(){
-//        shared.resignFirstResponder()
-//        myTargetView.isUserInteractionEnabled = true
-//        myTargetView.becomeFirstResponder()
-//        MenuTargetView.shared.isHidden = true
-        TextEditor.view?.beginEditing(textField: myTargetView as! UITextField)
+    override func draw(_ rect: CGRect) {
         
-    }
-    
-    override func canPerformAction(_ action: Selector, withSender sender: Any?) -> Bool {
-        let origInteractionValue = myTargetView.isUserInteractionEnabled
-        myTargetView.isUserInteractionEnabled = true
-        if action == #selector(changeMyTargetViewDuration) {
-            myTargetView.isUserInteractionEnabled = origInteractionValue
-            return true
-        }else if action == #selector(editMyTargetView) && myTargetView.canBecomeFirstResponder {
-            myTargetView.isUserInteractionEnabled = origInteractionValue
-            return true
-        }
-        myTargetView.isUserInteractionEnabled = origInteractionValue
-        return false
+        guard let context = UIGraphicsGetCurrentContext() else { return }
+        
+     
+        context.beginPath()
+        context.move(to: CGPoint(x: rect.minX, y: rect.minY))
+        context.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY/2))
+        context.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
+        context.closePath()
+        
+        context.setFillColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+
+        context.fillPath()
     }
 }
-
-extension UIView {
-    func presentationHitTest(pointLoc: CGPoint, withinDepth: Int) -> UIView? {
-        if withinDepth == 0 && self.point(inside: pointLoc, with: nil) { return self }
-        for subView in self.subviews.reversed() {
-            if subView.layer.presentation()!.opacity > Float(0.1){
-                let convertedPoint = self.convert(pointLoc, to: subView)
-                if subView.point(inside: convertedPoint, with: nil) {
-                    return subView.presentationHitTest(pointLoc: convertedPoint, withinDepth: withinDepth-1)
-                }
-            }
-        }
-        if self.point(inside: pointLoc, with: nil) {
-            return self
-        }else{
-            return nil
-        }
-    }
-}
-
 
 
 class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
+    var recordingUrlList : [URL] = []
     let videoPlaybackView = UIView()
     let videoPlaybackPlayer = AVPlayer()
     
-    var basketContainer : UIView?
-    
-    var returnToForegroundObserver : NSObjectProtocol?
-    
-    
+    var basketContainer : BasketView?
     var videoOverlayView = VideoOverlayView()
-    
-    var videoDidEndObserver: NSObjectProtocol?
+    let textEditorView = TextEditor()
     
     var visibilityDurationStartTime = [UIView: Double]()
-//    visibilityDurationStartTime[self.view] = 5
     var visibilityDurationEndTime = [UIView: Double]()
     
-    let textEditorView = TextEditor()
-
+    var UrlRecordingStartTimes = [UIView: Double]()
+    var UrlRecordingEndTimes = [UIView: Double]()
     
-    var recordingUrlList : [URL] = [] {
-        didSet{
-//            createComposition()
+    var returnToForegroundObserver : NSObjectProtocol?
+    var videoDidEndObserver: NSObjectProtocol?
+    
+    var currentDurationEditTarget: UIView?
+    
+    
+    lazy var setDurationView : SetDurationView = {
+        let durationView = SetDurationView(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.maxY, width: self.view.frame.width, height: 200))
+        self.view.addSubview(durationView)
+        
+        durationView.rightTabDragger.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleRightDraggerPan(panGesture:))))
+        
+        durationView.leftTabDragger.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleLeftDraggerPan(panGesture:))))
+        
+        durationView.timeCursor.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleCursorPan(panGesture:))))
+        return durationView
+    }()
+    
+    @objc func handleCursorPan(panGesture: UIPanGestureRecognizer){
+        if panGesture.state == .began{
+            self.videoPlaybackPlayer.pause()
+        }else if panGesture.state == .ended {
+            self.videoPlaybackPlayer.play()
+        }
+        let trans = panGesture.translation(in: setDurationView.thumbnailView).x
+        let panPercentage = trans/setDurationView.thumbnailView.frame.width
+        let seekDif = Double(panPercentage) * (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+        
+        let seekTime = seekDif+((self.videoPlaybackPlayer.currentItem?.currentTime().seconds)!)
+//        print(trans, seekTime)
+        setDurationView.currentPlayPercentage = seekTime / (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+        self.videoPlaybackPlayer.seek(to: CMTime(seconds: seekTime, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceBefore: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceAfter: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+        
+        panGesture.setTranslation(CGPoint(x: 0,y: 0), in: setDurationView.thumbnailView)
+    }
+    
+    
+    @objc func handleLeftDraggerPan(panGesture: UIPanGestureRecognizer){
+        
+        if panGesture.state == .began{
+            self.videoPlaybackPlayer.pause()
+        }else if panGesture.state == .ended {
+            self.videoPlaybackPlayer.play()
+        }
+        
+        let trans = panGesture.translation(in: setDurationView.thumbnailView).x
+        let per = trans/setDurationView.thumbnailView.frame.width
+        setDurationView.leftDragPercentage += per
+        
+        panGesture.setTranslation(CGPoint(x: 0,y: 0), in: setDurationView.leftTabDragger.superview!)
+        
+        self.videoPlaybackPlayer.seek(to: CMTime(seconds: (self.videoPlaybackPlayer.currentItem?.duration.seconds)! * Double(setDurationView.leftDragPercentage), preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceBefore: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceAfter: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+        
+        if let currentDurationEditTarget = self.currentDurationEditTarget {
+            self.visibilityDurationStartTime[currentDurationEditTarget] = Double(self.setDurationView.leftDragPercentage) * (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+        }
+    
+    }
+    
+    
+    @objc func handleRightDraggerPan(panGesture: UIPanGestureRecognizer){
+        if panGesture.state == .began{
+            self.videoPlaybackPlayer.pause()
+        }else if panGesture.state == .ended {
+            self.videoPlaybackPlayer.play()
+        }
+        
+        let trans = panGesture.translation(in: setDurationView.thumbnailView).x
+        let per = trans/setDurationView.thumbnailView.frame.width
+        setDurationView.rightDragPercentage += per
+        
+        
+        panGesture.setTranslation(CGPoint(x: 0,y: 0), in: panGesture.view?.superview)
+        
+        self.videoPlaybackPlayer.seek(to: CMTime(seconds: (self.videoPlaybackPlayer.currentItem?.duration.seconds)! * Double(setDurationView.rightDragPercentage), preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceBefore: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)), toleranceAfter: CMTime(seconds: 0.1, preferredTimescale: CMTimeScale(NSEC_PER_SEC)))
+        
+        
+        if let currentDurationEditTarget = self.currentDurationEditTarget {
+            self.visibilityDurationEndTime[currentDurationEditTarget] = Double(self.setDurationView.rightDragPercentage) * (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
         }
     }
     
     
-  
+    
+    var timeObserverToken: Any?
+    func addPeriodicTimeObserver() {
+        // Notify every half second
+        let timeScale = CMTimeScale(NSEC_PER_SEC)
+        let time = CMTime(seconds: 0.03, preferredTimescale: timeScale)
+        
+        timeObserverToken = videoPlaybackPlayer.addPeriodicTimeObserver(forInterval: time, queue: .main)
+        { [weak self] time in
+            // update player transport UI
+            
+            if let currentDurationEditTarget = self?.currentDurationEditTarget{
+                self!.setDurationView.currentPlayPercentage = time.seconds / (self?.videoPlaybackPlayer.currentItem?.duration.seconds)!
+            }
+            
+            for element in self!.videoOverlayView.subviews{
+                if MenuTargetView.shared.myTargetView === element
+                && !MenuTargetView.shared.isHidden{
+                    element.isHidden = false
+                }else{
+                    if let elementStartTime = self!.visibilityDurationStartTime[element], let elementEndTime = self!.visibilityDurationEndTime[element] {
+                        if time.seconds >= elementStartTime && time.seconds <= elementEndTime {
+                            element.isHidden = false
+                        } else {
+                            element.isHidden = true
+                        }
+                    }else if let elementStartTime = self!.visibilityDurationStartTime[element] {
+                        if time.seconds >= elementStartTime {
+                            element.isHidden = false
+                        }else{
+                            element.isHidden = true
+                        }
+                    }else if let elementEndTime = self!.visibilityDurationEndTime[element] {
+                        if time.seconds <= elementEndTime {
+                            element.isHidden = false
+                        }else{
+                            element.isHidden = true
+                        }
+                    } else {
+                        element.isHidden = false
+                    }
+                }
+            }
+            
+        }
+    }
+    
+    func removePeriodicTimeObserver() {
+        if let timeObserverToken = timeObserverToken {
+            videoPlaybackPlayer.removeTimeObserver(timeObserverToken)
+            self.timeObserverToken = nil
+        }
+    }
     func setupPlaybackView(){
         
         let playerLayer = AVPlayerLayer(player: videoPlaybackPlayer)
         //        playerLayer.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
-        self.view.layer.addSublayer(playerLayer)
+//        self.view.layer.addSublayer(playerLayer)
         
         self.view.addSubview(videoPlaybackView)
-        videoPlaybackView.translatesAutoresizingMaskIntoConstraints = false
-        videoPlaybackView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        videoPlaybackView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        videoPlaybackView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        videoPlaybackView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-        //        videoPlaybackView.heightAnchor.constraint(equalToConstant: self.view.frame.height + (self.tabBarController?.tabBar.frame.height)!).isActive = true
-        updateViewConstraints()
+        videoPlaybackView.layer.addSublayer(playerLayer)
+        videoPlaybackView.frame = self.view.frame
+//        videoPlaybackView.translatesAutoresizingMaskIntoConstraints = false
+//        videoPlaybackView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+//        videoPlaybackView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+//        videoPlaybackView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+//        videoPlaybackView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+//                videoPlaybackView.heightAnchor.constraint(equalToConstant: self.view.frame.height + (self.tabBarController?.tabBar.frame.height)!).isActive = true
+//        updateViewConstraints()
         self.view.layoutSubviews()
         
         playerLayer.frame = CGRect(x: 0, y: 0, width: videoPlaybackView.frame.width, height: videoPlaybackView.frame.height)
@@ -159,27 +217,6 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         videoDidEndObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object:   videoPlaybackPlayer.currentItem, queue: .main) { [weak self] _ in
             self?.videoPlaybackPlayer.seek(to: CMTime.zero)
             
-            
-            let curVideoPlayerLength = (self!.videoPlaybackPlayer.currentItem?.duration.seconds)!
-            UIView.animateKeyframes(withDuration: curVideoPlayerLength, delay: 0, options: .allowUserInteraction, animations: {
-
-                for element in self!.videoOverlayView.subviews{
-                    if let elementStartTime = self!.visibilityDurationStartTime[element] {
-                        UIView.addKeyframe(withRelativeStartTime: (elementStartTime/curVideoPlayerLength), relativeDuration: 0, animations: {
-                            element.alpha = 1
-                        })
-                    } else {
-                        element.alpha = 1
-                    }
-                    if let elementEndTime = self!.visibilityDurationEndTime[element] {
-                        UIView.addKeyframe(withRelativeStartTime: (elementEndTime/curVideoPlayerLength), relativeDuration: 0, animations: {
-                            element.alpha = 0.0
-                        })
-                    }
-                }
-            }, completion: { finished in
-                
-            })
             self?.videoPlaybackPlayer.play()
         }
         
@@ -199,6 +236,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         if let videoDidEndObserver = videoDidEndObserver {
             NotificationCenter.default.removeObserver(videoDidEndObserver)
         }
+        removePeriodicTimeObserver()
     }
     
     
@@ -254,8 +292,6 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         videoPlaybackPlayer.replaceCurrentItem(with: AVPlayerItem(asset: composition))
 //        let videoPlaybackPlayer = AVPlayer(playerItem: AVPlayerItem(asset: composition))
         
-        
-
     }
     
     
@@ -273,22 +309,41 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
     }
     
+    @objc func handleGoBackTap(tapGesture: UITapGestureRecognizer) {
+        navigationController?.popViewController(animated: true)
+    }
+    
+    
+    
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    // ViewDidLoad ////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
     
     override func viewDidLoad() {
+        self.view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
         super.viewDidLoad()
         setupPlaybackView()
         createComposition()
         
         
         self.view.addSubview(videoOverlayView)
-        videoOverlayView.translatesAutoresizingMaskIntoConstraints = false
-        videoOverlayView.leadingAnchor.constraint(equalTo: videoPlaybackView.leadingAnchor).isActive = true
-        videoOverlayView.trailingAnchor.constraint(equalTo: videoPlaybackView.trailingAnchor).isActive = true
-        videoOverlayView.topAnchor.constraint(equalTo: videoPlaybackView.topAnchor).isActive = true
-        videoOverlayView.bottomAnchor.constraint(equalTo: videoPlaybackView.bottomAnchor).isActive = true
+        videoOverlayView.frame = self.view.frame
+//        videoOverlayView.translatesAutoresizingMaskIntoConstraints = false
+//        videoOverlayView.leadingAnchor.constraint(equalTo: videoPlaybackView.leadingAnchor).isActive = true
+//        videoOverlayView.trailingAnchor.constraint(equalTo: videoPlaybackView.trailingAnchor).isActive = true
+//        videoOverlayView.topAnchor.constraint(equalTo: videoPlaybackView.topAnchor).isActive = true
+//        videoOverlayView.bottomAnchor.constraint(equalTo: videoPlaybackView.bottomAnchor).isActive = true
 
         
-        basketContainer = BasketView(viewController: self)
+        basketContainer = BasketView(superview: self.view)
+        self.view.addSubview(basketContainer!)
+        self.view.addSubview((basketContainer?.getBasketButton())!)
+        for bskItem in (basketContainer?.getBasketItems())! {
+            bskItem.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleBasketItemTap(tapGesture:))))
+            basketContainer?.addSubview(bskItem)
+        }
+        
         
         
         let goBack = UIImageView(image: UIImage(named: "X"))
@@ -302,6 +357,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
      
         
         self.view.addSubview(MenuTargetView.shared)
+        MenuTargetView.shared.viewController = self
         MenuTargetView.shared.isHidden = true
         
         
@@ -309,17 +365,168 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
         self.view.addSubview(textEditorView)
         textEditorView.frame = self.view.bounds
+        
+        
+        
+        
+        
+        videoOverlayView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleTextViewTap(tapGesture:))))
+        
+        
+        addPeriodicTimeObserver()
+        
+        
+        let triView = TriangleView(frame: CGRect(x: self.view.frame.maxX - 80, y: self.view.frame.maxY - 80, width: 45, height: 35))
+        self.view.addSubview(triView)
     }
+    
+    
+    
+    
+    
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    @objc func handleBasketItemTap(tapGesture: UITapGestureRecognizer) {
+        basketContainer!.isHidden = true
+        if(tapGesture.view!.layer.name == "addText"){
+            let textField = basketContainer!.createTextField()
+            textField.center.x = self.videoOverlayView.center.x
+            self.videoOverlayView.addSubview(textField)
+            textField.delegate = self.textEditorView
+            self.textEditorView.beginEditing(textField: textField)
+        }
+        
+    }
+
+    
+    
+    @objc func handleTextViewTap(tapGesture: UITapGestureRecognizer) {
+        if !basketContainer!.isHidden {basketContainer?.isHidden = true}
+        let loc = tapGesture.location(in: tapGesture.view)
+        let targetView = tapGesture.view?.presentationHitTest(pointLoc: loc, withinDepth: 1)
+        if(targetView === self.videoOverlayView){return}
+        
+        if let oldDurationEditTarget = self.currentDurationEditTarget{
+            self.currentDurationEditTarget = targetView
+            setDurationView.replaceBothPercentValuesWithValidNumbers(
+                left: CGFloat(visibilityDurationStartTime[self.currentDurationEditTarget!] ?? 0),
+                right: CGFloat(visibilityDurationEndTime[self.currentDurationEditTarget!] ?? 1)
+            )
+            
+            if let visStartTime = visibilityDurationStartTime[self.currentDurationEditTarget!] {
+                setDurationView.replaceLeftPercentWithValidNumber(
+                    left: CGFloat(visStartTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                )
+            }else{
+                setDurationView.replaceLeftPercentWithValidNumber(
+                    left: 0
+                )
+            }
+            if let visEndTime = visibilityDurationEndTime[self.currentDurationEditTarget!] {
+                setDurationView.replaceRightPercentWithValidNumber(
+                    right: CGFloat(visEndTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                )
+            }else{
+                setDurationView.replaceRightPercentWithValidNumber(
+                    right: 1
+                )
+            }
+            setDurationView.updateLeftSlider()
+            setDurationView.updateRightSlider()
+            
+            
+        }else{
+            MenuTargetView.shared.myTargetView = targetView
+            UIMenuController.shared.menuItems = [
+                UIMenuItem(title: "Timing", action: #selector(self.changeMyTargetViewDuration)),
+                UIMenuItem(title: "Edit", action: #selector(self.editMyTargetView)),
+                UIMenuItem(title: "🗑", action: #selector(deleteMyTargetView))
+            ]
+            
+            if MenuTargetView.shared.becomeFirstResponder() {
+                UIMenuController.shared.setMenuVisible(true, animated: true)
+            }
+        }
+    }
+    
+    @objc func changeMyTargetViewDuration(){
+        print("CHANGE MY TARGETVIEW DURATINO")
+        MenuTargetView.shared.isHidden = true
+        currentDurationEditTarget = MenuTargetView.shared.myTargetView
+        if let visibilityStart = visibilityDurationStartTime[currentDurationEditTarget!] {
+            setDurationView.leftDragPercentage = CGFloat(visibilityStart / (self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+        }
+        if let visibilityEnd = visibilityDurationEndTime[currentDurationEditTarget!] {
+            setDurationView.leftDragPercentage = CGFloat(visibilityEnd / (self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+        }
+        activateSetDuration()
+        
+    }
+    @objc func editMyTargetView(){
+        MenuTargetView.shared.isHidden = true
+        textEditorView.beginEditing(textField: MenuTargetView.shared.myTargetView as! UITextField)
+    }
+    @objc func deleteMyTargetView(){
+        MenuTargetView.shared.isHidden = true
+        MenuTargetView.shared.myTargetView.removeFromSuperview()
+    }
+    
     
 
     
-    @objc func handleGoBackTap(tapGesture: UITapGestureRecognizer) {
-        navigationController?.popViewController(animated: true)
-    }
-    
-    
+    func activateSetDuration(){
+        if self.videoPlaybackView.transform == CGAffineTransform.identity {
+            
+            self.videoPlaybackView.layer.anchorPoint = CGPoint(x: 0.5,y: 0)
+            self.videoPlaybackView.layer.position = CGPoint(x: self.videoPlaybackView.frame.midX, y: 0)
+            
+            self.videoOverlayView.layer.anchorPoint = CGPoint(x: 0.5,y: 0)
+            self.videoOverlayView.layer.position = CGPoint(x: self.videoOverlayView.frame.midX, y: 0)
+            
+            let xScaleFactor : CGFloat = (self.videoPlaybackView.frame.height - self.view.safeAreaInsets.top - self.setDurationView.frame.height)/self.videoPlaybackView.frame.height
+            let yScaleFactor: CGFloat = xScaleFactor
+            
+            setDurationView.isHidden = false
+            setDurationView.activate(player: self.videoPlaybackPlayer)
+            UIView.animate(withDuration: 0.3) {
+                
+                let fr = self.videoPlaybackView.frame
+                let topCenter = CGPoint(x: fr.midX, y: self.view.safeAreaInsets.top)
+//                self.videoPlaybackView.layer.anchorPoint = CGPoint(x: 0.5,y: 0)
+                self.videoPlaybackView.layer.position = topCenter
+                self.videoPlaybackView.transform =  self.videoPlaybackView.transform.scaledBy(x: xScaleFactor, y: yScaleFactor)
+                
+                let oFr = self.videoOverlayView.frame
+                let oTopCenter = CGPoint(x: oFr.midX, y:  self.view.safeAreaInsets.top)
+//                self.videoOverlayView.layer.anchorPoint = CGPoint(x: 0.5,y: 0)
+                self.videoOverlayView.layer.position = oTopCenter
+                self.videoOverlayView.transform =  self.videoOverlayView.transform.scaledBy(x: xScaleFactor, y: yScaleFactor)
+                
+            }
+        }else{
+            setDurationView.isHidden = true
+            UIView.animate(withDuration: 0.3, animations: {
+                let vpvFr = self.videoPlaybackView.frame
+                self.videoPlaybackView.transform = CGAffineTransform.identity
+                self.videoPlaybackView.layer.position = CGPoint(x: vpvFr.midX, y: 0)
+                
+                
+                let vovFr = self.videoPlaybackView.frame
+                self.videoOverlayView.transform = CGAffineTransform.identity
+                self.videoOverlayView.layer.position = CGPoint(x: vovFr.midX, y: 0)
+                
+                
+                
+            }, completion: { finished in
+                self.setDurationView.deactivate()
+                
+            })
 
-    
+        }
+    }
 
     
 }
