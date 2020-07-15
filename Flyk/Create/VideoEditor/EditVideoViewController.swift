@@ -32,8 +32,9 @@ class TriangleView : UIView {
         context.closePath()
         
         context.setFillColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
-
         context.fillPath()
+        self.backgroundColor = .clear
+        
     }
 }
 
@@ -69,9 +70,14 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         durationView.leftTabDragger.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleLeftDraggerPan(panGesture:))))
         
         durationView.timeCursor.addGestureRecognizer(UIPanGestureRecognizer(target: self, action: #selector(self.handleCursorPan(panGesture:))))
+        
+        durationView.doneButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(setDurationViewDoneButtonTap)))
         return durationView
     }()
-    
+    @objc func setDurationViewDoneButtonTap(tapGesture: UITapGestureRecognizer){
+        currentDurationEditTarget = nil
+        activateSetDuration()
+    }
     @objc func handleCursorPan(panGesture: UIPanGestureRecognizer){
         if panGesture.state == .began{
             self.videoPlaybackPlayer.pause()
@@ -328,7 +334,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
         
         self.view.addSubview(videoOverlayView)
-        videoOverlayView.frame = self.view.frame
+        videoOverlayView.frame = videoPlaybackView.frame
 //        videoOverlayView.translatesAutoresizingMaskIntoConstraints = false
 //        videoOverlayView.leadingAnchor.constraint(equalTo: videoPlaybackView.leadingAnchor).isActive = true
 //        videoOverlayView.trailingAnchor.constraint(equalTo: videoPlaybackView.trailingAnchor).isActive = true
@@ -375,18 +381,205 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
         addPeriodicTimeObserver()
         
+
+        let finishVideoEditingView = UIView(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 40, height: 40))
+        finishVideoEditingView.layer.borderWidth = 1
+        finishVideoEditingView.layer.cornerRadius = finishVideoEditingView.frame.height/2
+        finishVideoEditingView.layer.borderColor = UIColor.white.cgColor
+        finishVideoEditingView.alpha = 0.5
         
-        let triView = TriangleView(frame: CGRect(x: self.view.frame.maxX - 80, y: self.view.frame.maxY - 80, width: 45, height: 35))
-        self.view.addSubview(triView)
+        self.view.addSubview(finishVideoEditingView)
+        
+        finishVideoEditingView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleFinishEditingTap(tapGesture:))))
+    }
+
+    
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    ///////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    private func compositionLayerInstruction(for track: AVAssetTrack, assetTrack: AVAssetTrack) -> AVMutableVideoCompositionLayerInstruction {
+
+        let instruction = AVMutableVideoCompositionLayerInstruction(assetTrack: track)
+        let transform = assetTrack.preferredTransform
+        
+        instruction.setTransform(transform, at: .zero)
+        
+        return instruction
     }
     
-    
-    
-    
-    
-    
-    ///////////////////////////////////////////////////////////////////////////////////////////////
-    ///////////////////////////////////////////////////////////////////////////////////////////////
+    @objc func handleFinishEditingTap(tapGesture: UITapGestureRecognizer){
+        
+        //
+        self.removePeriodicTimeObserver()
+        self.videoPlaybackPlayer.pause()
+        self.videoPlaybackPlayer.seek(to: .zero)
+        
+        let curVideoPlayerLength = (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+        
+        
+        
+        for element in self.videoOverlayView.subviews{
+            element.isHidden = false
+            element.layer.opacity = 1
+            let opacityAnimation = CAKeyframeAnimation(keyPath: "opacity")
+            
+            var opacityValues : [Float] = []
+            var opacityKeyTimes : [NSNumber] = []
+            
+            if let elementStartTime = self.visibilityDurationStartTime[element] {
+                opacityValues.append(0)
+                opacityKeyTimes.append(0)
+                
+                opacityValues.append(0)
+                opacityKeyTimes.append(
+                    NSNumber(value: elementStartTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                    )
+                opacityValues.append(1)
+                opacityKeyTimes.append(
+                    NSNumber(value: elementStartTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                )
+            }
+            if let elementEndTime = self.visibilityDurationEndTime[element] {
+                opacityValues.append(1)
+                opacityKeyTimes.append(
+                    NSNumber(value: elementEndTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                )
+                opacityValues.append(0)
+                opacityKeyTimes.append(
+                    NSNumber(value: elementEndTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+                )
+            }
+            
+            if opacityKeyTimes.count > 0 {
+                opacityAnimation.values = opacityValues
+                opacityAnimation.keyTimes = opacityKeyTimes
+                opacityAnimation.duration = (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+                opacityAnimation.beginTime = AVCoreAnimationBeginTimeAtZero
+                opacityAnimation.isRemovedOnCompletion = false
+                element.layer.add(opacityAnimation, forKey: "opacity")
+            }
+        }
+        
+        
+        var natTrackSize = self.videoPlaybackPlayer.currentItem?.asset.tracks(withMediaType: .video).first?.naturalSize
+        
+        if natTrackSize!.height < natTrackSize!.width {
+            natTrackSize = CGSize(width: natTrackSize!.height, height: natTrackSize!.width)
+        }
+        let videoLayer = CALayer()
+        videoLayer.frame = CGRect(origin: .zero, size: natTrackSize!)
+        
+//        self.videoOverlayView.backgroundColor = .blue
+        let overlayLayerView = self.videoOverlayView
+        let overlayLayer = overlayLayerView.layer
+        
+        func swapYCoordinateOfSublayer(superlayer: CALayer){
+            for sublayer in superlayer.sublayers!{
+                let curY = sublayer.frame.minY
+                let newOrigin = CGPoint(x: sublayer.frame.minX, y: superlayer.frame.height-curY - sublayer.frame.height)
+                sublayer.frame = CGRect(origin: newOrigin, size: sublayer.frame.size)
+            }
+        }
+        
+        swapYCoordinateOfSublayer(superlayer: overlayLayer)
+        
+        print(overlayLayer.transform)
+        overlayLayer.transform = CATransform3DMakeScale(
+            videoLayer.frame.height/overlayLayerView.frame.height,
+            videoLayer.frame.height/overlayLayerView.frame.height,
+            1
+        );
+
+//        overlayLayer.transform = CATransform3DConcat(overlayScale, overlayLayer.transform)
+
+//        overlayLayer.sublayerTransform = CATransform3DMakeScale(1, -1, 1)
+//        overlayLayer.sublayerTransform = CATransform3DConcat(overlayLayer.sublayerTransform, CATransform3DMakeScale(1, -1, 1))
+        
+//        overlayLayer.backgroundColor = UIColor.blue.cgColor
+//        let oldSize = overlayLayer.frame.size
+        
+        overlayLayer.frame = CGRect(origin: CGPoint(x: (videoLayer.frame.width - overlayLayer.frame.width)/2, y: videoLayer.frame.minY), size: overlayLayer.frame.size)
+//        overlayLayer.frame = CGRect(origin: .zero, size: overlayLayer.frame.size)
+        
+        
+        let outputLayer = CALayer()
+        outputLayer.frame = CGRect(origin: .zero, size: natTrackSize!)
+        outputLayer.addSublayer(videoLayer)
+        outputLayer.addSublayer(overlayLayer)
+        
+        let finalVideoComposition = AVMutableVideoComposition()
+        finalVideoComposition.renderSize = natTrackSize!
+        finalVideoComposition.frameDuration = CMTime(value: 1, timescale: 30)
+        finalVideoComposition.animationTool = AVVideoCompositionCoreAnimationTool(
+            postProcessingAsVideoLayer: videoLayer,
+            in: outputLayer)
+        
+        let instruction = AVMutableVideoCompositionInstruction()
+        instruction.timeRange = CMTimeRange(
+            start: .zero,
+            duration: self.videoPlaybackPlayer.currentItem!.duration)
+        finalVideoComposition.instructions = [instruction]
+        let videoLayerInstructions = compositionLayerInstruction(
+            for: (self.videoPlaybackPlayer.currentItem?.asset.tracks(withMediaType: .video).first)!,
+            assetTrack: (self.videoPlaybackPlayer.currentItem?.asset.tracks(withMediaType: .video).first)!)
+
+        instruction.layerInstructions = [videoLayerInstructions]
+//        instruction.backgroundColor = UIColor.clear.cgColor
+        
+        
+        
+        guard let export = AVAssetExportSession(
+            asset: self.videoPlaybackPlayer.currentItem!.asset,
+            presetName: AVAssetExportPresetHighestQuality)
+            else {
+                print("Cannot create export session.")
+                return
+        }
+        
+        let videoName = UUID().uuidString
+        let exportURL = URL(fileURLWithPath: NSTemporaryDirectory())
+            .appendingPathComponent(videoName)
+            .appendingPathExtension("mov")
+        
+        export.videoComposition = finalVideoComposition
+        export.outputFileType = .mov
+        export.outputURL = exportURL
+        
+        
+        export.exportAsynchronously {
+            DispatchQueue.main.async {
+                switch export.status {
+                case .completed:
+                    let finishedVideoVC = FInishedViewViewController()
+                    finishedVideoVC.finishedViewURL = exportURL
+                    self.navigationController?.pushViewController(finishedVideoVC, animated: true)
+                default:
+                    print("Something went wrong during export.")
+                    print(export.error ?? "unknown error")
+                    
+                    break
+                }
+            }
+        }
+        
+//        let layerInstruction = compositionLayerInstruction(
+//            for: compositionTrack,
+//            assetTrack: assetTrack)
+//        instruction.layerInstructions = [layerInstruction]
+        
+        
+        
+//        for element in self.videoOverlayView.subviews{
+//            element.layer.removeAllAnimations()
+//        }
+        
+//
+//        let finishedVideoVC = FInishedViewViewController()
+//        finishedVideoVC.finishedViewURL = URL(string: "HI")
+//        navigationController?.pushViewController(finishedVideoVC, animated: true)
+
+    }
     
     
     @objc func handleBasketItemTap(tapGesture: UITapGestureRecognizer) {

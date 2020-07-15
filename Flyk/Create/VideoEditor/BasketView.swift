@@ -79,7 +79,6 @@ class BasketView : UIView{
     
     func createTextField() -> UITextField {
         let textField = UITextField()
-        textField.layer.opacity = 1
         textField.backgroundColor = .red
         textField.text = "TEXT"
         textField.font = textField.font!.withSize(50)

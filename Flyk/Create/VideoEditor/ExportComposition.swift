@@ -24,6 +24,9 @@ class ExportCompositionController: UIViewController {
     var videoDidEndObserver: NSObjectProtocol?
     
     
+    
+    
+    
     func setupPlaybackView(){
         
         let playerLayer = AVPlayerLayer(player: videoPlaybackPlayer)

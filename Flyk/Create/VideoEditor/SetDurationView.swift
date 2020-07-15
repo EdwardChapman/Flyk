@@ -18,6 +18,16 @@ class SetDurationView : UIView{
     private var _leftDrag_per :CGFloat = 0
     private var _rightDrag_per :CGFloat = 1
     
+    lazy var doneButton: UIView = {
+        let doneB = UIView(frame: CGRect(x: self.bounds.maxX - 60, y: self.bounds.maxY - 60, width: 45, height: 45))
+        doneB.layer.cornerRadius = doneB.frame.height/2
+        doneB.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        doneB.layer.borderWidth = 1
+        doneB.layer.borderColor = UIColor.white.cgColor
+        self.addSubview(doneB)
+        return doneB
+    }()
+    
     
     lazy var timeCursor: UIView = {
         let cursor = UIView(frame: CGRect(x: CGFloat(currentPlayPercentage) * (thumbnailView.frame.width - 5) + draggerWidth,
