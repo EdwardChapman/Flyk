@@ -10,33 +10,7 @@ import UIKit
 import AVFoundation
 
 
-class TriangleView : UIView {
-    
-    override init(frame: CGRect) {
-        super.init(frame: frame)
-    }
-    
-    required init?(coder aDecoder: NSCoder) {
-        super.init(coder: aDecoder)
-    }
-    
-    override func draw(_ rect: CGRect) {
-        
-        guard let context = UIGraphicsGetCurrentContext() else { return }
-        
-     
-        context.beginPath()
-        context.move(to: CGPoint(x: rect.minX, y: rect.minY))
-        context.addLine(to: CGPoint(x: rect.maxX, y: rect.maxY/2))
-        context.addLine(to: CGPoint(x: rect.minX, y: rect.maxY))
-        context.closePath()
-        
-        context.setFillColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
-        context.fillPath()
-        self.backgroundColor = .clear
-        
-    }
-}
+
 
 
 class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
@@ -475,10 +449,12 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         let overlayLayer = overlayLayerView.layer
         
         func swapYCoordinateOfSublayer(superlayer: CALayer){
-            for sublayer in superlayer.sublayers!{
-                let curY = sublayer.frame.minY
-                let newOrigin = CGPoint(x: sublayer.frame.minX, y: superlayer.frame.height-curY - sublayer.frame.height)
-                sublayer.frame = CGRect(origin: newOrigin, size: sublayer.frame.size)
+            if let sublayers = superlayer.sublayers{
+                for sublayer in sublayers{
+                    let curY = sublayer.frame.minY
+                    let newOrigin = CGPoint(x: sublayer.frame.minX, y: superlayer.frame.height-curY - sublayer.frame.height)
+                    sublayer.frame = CGRect(origin: newOrigin, size: sublayer.frame.size)
+                }
             }
         }
         

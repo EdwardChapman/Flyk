@@ -10,7 +10,7 @@
 		922B226E24AFB41000914FD4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 922B226D24AFB40F00914FD4 /* Assets.xcassets */; };
 		927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61224AD590D002445B9 /* AppDelegate.swift */; };
 		927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61424AD590D002445B9 /* FirstViewController.swift */; };
-		927BB61724AD590D002445B9 /* SecondViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61624AD590D002445B9 /* SecondViewController.swift */; };
+		927BB61724AD590D002445B9 /* DiscoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61624AD590D002445B9 /* DiscoverViewController.swift */; };
 		927BB61A24AD590D002445B9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 927BB61824AD590D002445B9 /* Main.storyboard */; };
 		927BB61F24AD590F002445B9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 927BB61D24AD590F002445B9 /* LaunchScreen.storyboard */; };
 		927BB62A24AD590F002445B9 /* DripDropTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB62924AD590F002445B9 /* DripDropTests.swift */; };
@@ -30,6 +30,7 @@
 		929AE76724B00CFD002FC64D /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76624B00CFD002FC64D /* Home.swift */; };
 		92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28724B6710500A71950 /* TakeVideoViewController.swift */; };
 		92DAA28A24B6714800A71950 /* EditVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28924B6714700A71950 /* EditVideoViewController.swift */; };
+		92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F87D0624BFB1B1002F75FD /* VideoCell.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -54,7 +55,7 @@
 		927BB60F24AD590D002445B9 /* Flyk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flyk.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		927BB61224AD590D002445B9 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = "<group>"; };
 		927BB61424AD590D002445B9 /* FirstViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirstViewController.swift; sourceTree = "<group>"; };
-		927BB61624AD590D002445B9 /* SecondViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SecondViewController.swift; sourceTree = "<group>"; };
+		927BB61624AD590D002445B9 /* DiscoverViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverViewController.swift; sourceTree = "<group>"; };
 		927BB61924AD590D002445B9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/Main.storyboard; sourceTree = "<group>"; };
 		927BB61E24AD590F002445B9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		927BB62024AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -79,6 +80,7 @@
 		929AE76624B00CFD002FC64D /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		92DAA28724B6710500A71950 /* TakeVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TakeVideoViewController.swift; sourceTree = "<group>"; };
 		92DAA28924B6714700A71950 /* EditVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditVideoViewController.swift; sourceTree = "<group>"; };
+		92F87D0624BFB1B1002F75FD /* VideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -166,6 +168,7 @@
 			isa = PBXGroup;
 			children = (
 				929AE76624B00CFD002FC64D /* Home.swift */,
+				92F87D0624BFB1B1002F75FD /* VideoCell.swift */,
 				927BB61424AD590D002445B9 /* FirstViewController.swift */,
 			);
 			path = Home;
@@ -192,7 +195,7 @@
 		928242C724BAAD8F0000C44A /* Discover */ = {
 			isa = PBXGroup;
 			children = (
-				927BB61624AD590D002445B9 /* SecondViewController.swift */,
+				927BB61624AD590D002445B9 /* DiscoverViewController.swift */,
 			);
 			path = Discover;
 			sourceTree = "<group>";
@@ -365,7 +368,7 @@
 				928242D324BBB4670000C44A /* PresentationHitTest.swift in Sources */,
 				928242CF24BB6F7C0000C44A /* BasketView.swift in Sources */,
 				927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */,
-				927BB61724AD590D002445B9 /* SecondViewController.swift in Sources */,
+				927BB61724AD590D002445B9 /* DiscoverViewController.swift in Sources */,
 				927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */,
 				929AE76324B00A22002FC64D /* Content.swift in Sources */,
 				929AE76724B00CFD002FC64D /* Home.swift in Sources */,
@@ -373,6 +376,7 @@
 				927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */,
 				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
+				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,
 				928242D524BBD6BE0000C44A /* SetDurationView.swift in Sources */,
 				928242D124BBB3EB0000C44A /* MenuTargetView.swift in Sources */,

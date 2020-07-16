@@ -80,7 +80,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     //DID FINISH RECORDING //I thought this wasn't on main thread but it seems to be?
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?){
 //        print("DID FINSIH RECORDING", error)
-        self.recordButton.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.7)
+        self.recordButton.backgroundColor = .clear
         self.tabBarController!.showTabBarView()
         recordingUrlList.append(outputFileURL)
         recordingLengthList.append(output.recordedDuration.seconds)
@@ -159,7 +159,9 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     func overlaySetup(){
         
         let widthAndHeight = CGFloat(85)
-        recordButton.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.7)
+//        recordButton.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.7)
+        recordButton.layer.borderWidth = 3
+        recordButton.layer.borderColor = UIColor.white.cgColor
         recordButton.layer.cornerRadius = widthAndHeight/2
         self.view.addSubview(recordButton)
         recordButton.translatesAutoresizingMaskIntoConstraints = false
@@ -175,17 +177,39 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         progressBar.progressViewStyle = .bar
         self.view.addSubview(progressBar)
         
-        goToEdit.frame = CGRect(x: 250, y: 625, width: 80, height: 40)
-        goToEdit.backgroundColor = .gray
+        goToEdit.frame = CGRect(x: 300, y: 625, width: 40, height: 40)
+        self.view.addSubview(goToEdit)
+        goToEdit.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        goToEdit.translatesAutoresizingMaskIntoConstraints = false
+        goToEdit.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor).isActive = true
+        goToEdit.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40).isActive = true
+        goToEdit.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        goToEdit.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        
+        goToEdit.layer.borderWidth = 1
+        goToEdit.layer.borderColor = UIColor.white.cgColor
+        goToEdit.layer.cornerRadius = goToEdit.frame.height/2
         goToEdit.isHidden = true
         goToEdit.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleGoToEditTap)))
-        self.view.addSubview(goToEdit)
         
-        deleteLast.frame = CGRect(x: 30, y: 625, width: 80, height: 40)
-        deleteLast.backgroundColor = .red
-        deleteLast.isHidden = true
-        deleteLast.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleDeleteTap)))
+        
+
+        
+        deleteLast.frame = CGRect(x: 30, y: 625, width: 40, height: 40)
         self.view.addSubview(deleteLast)
+        deleteLast.translatesAutoresizingMaskIntoConstraints = false
+        deleteLast.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40).isActive = true
+        deleteLast.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor).isActive = true
+        deleteLast.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        deleteLast.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        
+        deleteLast.backgroundColor = .red
+        deleteLast.layer.borderColor = UIColor.white.cgColor
+        deleteLast.layer.borderWidth = 1
+        deleteLast.isHidden = true
+        deleteLast.layer.cornerRadius = deleteLast.frame.height/2
+        deleteLast.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleDeleteTap)))
+        
     }
     
     override func viewWillAppear(_ animated: Bool) {
