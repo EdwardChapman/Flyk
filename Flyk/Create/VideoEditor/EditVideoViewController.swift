@@ -173,19 +173,11 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     func setupPlaybackView(){
         
         let playerLayer = AVPlayerLayer(player: videoPlaybackPlayer)
-        //        playerLayer.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
-//        self.view.layer.addSublayer(playerLayer)
+
         
         self.view.addSubview(videoPlaybackView)
         videoPlaybackView.layer.addSublayer(playerLayer)
         videoPlaybackView.frame = self.view.frame
-//        videoPlaybackView.translatesAutoresizingMaskIntoConstraints = false
-//        videoPlaybackView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-//        videoPlaybackView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-//        videoPlaybackView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-//        videoPlaybackView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
-//                videoPlaybackView.heightAnchor.constraint(equalToConstant: self.view.frame.height + (self.tabBarController?.tabBar.frame.height)!).isActive = true
-//        updateViewConstraints()
         self.view.layoutSubviews()
         
         playerLayer.frame = CGRect(x: 0, y: 0, width: videoPlaybackView.frame.width, height: videoPlaybackView.frame.height)
@@ -210,6 +202,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     
     deinit {
+        print("EDIT VIDEO VIEW CONTROLLER DEINIT")
         if let returnToForegroundObserver = returnToForegroundObserver {
             NotificationCenter.default.removeObserver(returnToForegroundObserver)
         }
@@ -285,6 +278,9 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     }
     override func viewWillDisappear(_ animated: Bool) {
         //STOP PLAYING audio/video
+        for subview in self.view.subviews{
+            
+        }
         videoPlaybackPlayer.pause()
         
     }
@@ -301,7 +297,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     ///////////////////////////////////////////////////////////////////////////////////////////////
     
     override func viewDidLoad() {
-        self.view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        self.view.backgroundColor = UIColor.flykDarkGrey
         super.viewDidLoad()
         setupPlaybackView()
         createComposition()
@@ -382,17 +378,51 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         return instruction
     }
     
+    func createOverlayLayer(naturalVideoSize: CGSize) -> CALayer {
+        let overlayLayer = CALayer()
+        overlayLayer.frame = self.videoOverlayView.frame
+        for subview in self.videoOverlayView.subviews {
+            if let textField = subview as? UITextField{
+                let textLayer = CATextLayer()
+                textLayer.string = textField.attributedText
+                textLayer.shouldRasterize = true
+                textLayer.rasterizationScale = UIScreen.main.scale
+                textLayer.backgroundColor = textField.backgroundColor?.cgColor
+                textLayer.cornerRadius = textField.layer.cornerRadius
+                textLayer.alignmentMode = .center
+                
+                let textFieldTransform = textField.layer.transform
+                textField.layer.transform = CATransform3DIdentity
+                let preTransformFrame = textField.frame
+                textField.layer.transform = textFieldTransform
+                
+                overlayLayer.isGeometryFlipped = true
+                textLayer.frame = preTransformFrame
+                textLayer.transform = textField.layer.transform
+                overlayLayer.addSublayer(textLayer)
+                textLayer.contentsScale = UIScreen.main.scale
+                print(UIScreen.main.scale)
+                
+            }
+        }
+        overlayLayer.transform = CATransform3DMakeScale(naturalVideoSize.height / self.videoOverlayView.frame.height, naturalVideoSize.height / self.videoOverlayView.frame.height, 1)
+        overlayLayer.frame.origin = CGPoint(x: (naturalVideoSize.width/2)-overlayLayer.frame.width/2, y: .zero)
+        return overlayLayer
+    }
+    
     @objc func handleFinishEditingTap(tapGesture: UITapGestureRecognizer){
         
-        //
+        
+        let finishedVideoVC = FinishedVideoViewController()
+        self.navigationController?.pushViewController(finishedVideoVC, animated: true)
+        
         self.removePeriodicTimeObserver()
         self.videoPlaybackPlayer.pause()
         self.videoPlaybackPlayer.seek(to: .zero)
         
         let curVideoPlayerLength = (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
         
-        
-        
+        /*
         for element in self.videoOverlayView.subviews{
             element.isHidden = false
             element.layer.opacity = 1
@@ -434,7 +464,8 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
                 element.layer.add(opacityAnimation, forKey: "opacity")
             }
         }
-        
+ 
+         */
         
         var natTrackSize = self.videoPlaybackPlayer.currentItem?.asset.tracks(withMediaType: .video).first?.naturalSize
         
@@ -444,9 +475,8 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         let videoLayer = CALayer()
         videoLayer.frame = CGRect(origin: .zero, size: natTrackSize!)
         
-//        self.videoOverlayView.backgroundColor = .blue
-        let overlayLayerView = self.videoOverlayView
-        let overlayLayer = overlayLayerView.layer
+
+        let overlayLayer = createOverlayLayer(naturalVideoSize: natTrackSize!)
         
         func swapYCoordinateOfSublayer(superlayer: CALayer){
             if let sublayers = superlayer.sublayers{
@@ -458,31 +488,13 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             }
         }
         
-        swapYCoordinateOfSublayer(superlayer: overlayLayer)
-        
-        print(overlayLayer.transform)
-        overlayLayer.transform = CATransform3DMakeScale(
-            videoLayer.frame.height/overlayLayerView.frame.height,
-            videoLayer.frame.height/overlayLayerView.frame.height,
-            1
-        );
 
-//        overlayLayer.transform = CATransform3DConcat(overlayScale, overlayLayer.transform)
-
-//        overlayLayer.sublayerTransform = CATransform3DMakeScale(1, -1, 1)
-//        overlayLayer.sublayerTransform = CATransform3DConcat(overlayLayer.sublayerTransform, CATransform3DMakeScale(1, -1, 1))
-        
-//        overlayLayer.backgroundColor = UIColor.blue.cgColor
-//        let oldSize = overlayLayer.frame.size
-        
-        overlayLayer.frame = CGRect(origin: CGPoint(x: (videoLayer.frame.width - overlayLayer.frame.width)/2, y: videoLayer.frame.minY), size: overlayLayer.frame.size)
-//        overlayLayer.frame = CGRect(origin: .zero, size: overlayLayer.frame.size)
-        
-        
         let outputLayer = CALayer()
-        outputLayer.frame = CGRect(origin: .zero, size: natTrackSize!)
         outputLayer.addSublayer(videoLayer)
         outputLayer.addSublayer(overlayLayer)
+        
+        
+
         
         let finalVideoComposition = AVMutableVideoComposition()
         finalVideoComposition.renderSize = natTrackSize!
@@ -501,10 +513,14 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             assetTrack: (self.videoPlaybackPlayer.currentItem?.asset.tracks(withMediaType: .video).first)!)
 
         instruction.layerInstructions = [videoLayerInstructions]
-//        instruction.backgroundColor = UIColor.clear.cgColor
+
         
-        
-        
+        exportVideo(finalVideoComposition: finalVideoComposition)
+    }
+    
+
+    
+    func exportVideo(finalVideoComposition: AVMutableVideoComposition){
         guard let export = AVAssetExportSession(
             asset: self.videoPlaybackPlayer.currentItem!.asset,
             presetName: AVAssetExportPresetHighestQuality)
@@ -527,10 +543,13 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             DispatchQueue.main.async {
                 switch export.status {
                 case .completed:
-                    let finishedVideoVC = FInishedViewViewController()
-                    finishedVideoVC.finishedViewURL = exportURL
-                    self.navigationController?.pushViewController(finishedVideoVC, animated: true)
+                    print("EXPORT SUCCESSFUL")
+                    
+//                    let finishedVideoVC = FinishedVideoViewController()
+                    (self.navigationController?.topViewController as! FinishedVideoViewController).finishedViewURL = exportURL
+//                    self.navigationController?.pushViewController(finishedVideoVC, animated: true)
                 default:
+                    self.navigationController?.popViewController(animated: true)
                     print("Something went wrong during export.")
                     print(export.error ?? "unknown error")
                     
@@ -538,23 +557,6 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
                 }
             }
         }
-        
-//        let layerInstruction = compositionLayerInstruction(
-//            for: compositionTrack,
-//            assetTrack: assetTrack)
-//        instruction.layerInstructions = [layerInstruction]
-        
-        
-        
-//        for element in self.videoOverlayView.subviews{
-//            element.layer.removeAllAnimations()
-//        }
-        
-//
-//        let finishedVideoVC = FInishedViewViewController()
-//        finishedVideoVC.finishedViewURL = URL(string: "HI")
-//        navigationController?.pushViewController(finishedVideoVC, animated: true)
-
     }
     
     
@@ -564,7 +566,6 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             let textField = basketContainer!.createTextField()
             textField.center.x = self.videoOverlayView.center.x
             self.videoOverlayView.addSubview(textField)
-            textField.delegate = self.textEditorView
             self.textEditorView.beginEditing(textField: textField)
         }
         

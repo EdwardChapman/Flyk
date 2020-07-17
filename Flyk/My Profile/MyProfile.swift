@@ -83,7 +83,7 @@ class MyProfile: UIViewController {
         profileImage = UIImageView(frame: CGRect(x: 25, y: 50, width: 100, height: 100))
         profileImage.layer.cornerRadius = profileImage.frame.width/2;
         profileImage.layer.masksToBounds = true;
-        profileImage.backgroundColor = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 1)
+        profileImage.backgroundColor = UIColor.flykLoadingGrey
         self.view.addSubview(profileImage)
         
         usernameTextView = UITextView(frame: CGRect(x: 25, y: 170, width: self.view.frame.width - 100, height: 30))

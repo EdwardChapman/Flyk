@@ -47,13 +47,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        do {
-            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
-            try AVAudioSession.sharedInstance().setActive(true)
-        } catch let error as NSError {
-            // report error
-            print(error)
-        }
+
         
         
         fetchVideoList()
@@ -65,7 +59,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
         collectionView.register(VideoCell.self, forCellWithReuseIdentifier: "videoCell")
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.backgroundColor = UIColor.cyan
+        collectionView.backgroundColor = UIColor.flykDarkGrey
         self.view.addSubview(collectionView)
         
         
@@ -79,8 +73,8 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
         collectionView.decelerationRate = .fast
-        self.view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        collectionView.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        self.view.backgroundColor = UIColor.flykDarkGrey
+        
         
         
     }

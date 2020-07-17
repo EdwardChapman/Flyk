@@ -40,7 +40,7 @@ class BasketView : UIView{
             width: superFrame.width,
             height: superFrame.maxY - superFrame.maxY * 0.55)
         )
-        self.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        self.backgroundColor = UIColor.flykDarkGrey
         self.layer.cornerRadius = 38
         super.isHidden = true
         

@@ -99,13 +99,10 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]){
 //        print("DID START RECORDING")
-        self.recordButton.backgroundColor = UIColor(red: 1, green: 0, blue: 0, alpha: 0.7)
+        self.recordButton.backgroundColor = UIColor.flykRecordRed
         self.tabBarController!.hideTabBarView()
         deleteLast.isHidden = true
         goToEdit.isHidden = true
-//        DispatchQueue.main.async{
-//            self.recordButton.backgroundColor = UIColor(red: 1, green: 0, blue: 0, alpha: 0.7)
-//        }
         
     }
 
@@ -159,7 +156,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     func overlaySetup(){
         
         let widthAndHeight = CGFloat(85)
-//        recordButton.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.7)
+
         recordButton.layer.borderWidth = 3
         recordButton.layer.borderColor = UIColor.white.cgColor
         recordButton.layer.cornerRadius = widthAndHeight/2
@@ -179,7 +176,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         
         goToEdit.frame = CGRect(x: 300, y: 625, width: 40, height: 40)
         self.view.addSubview(goToEdit)
-        goToEdit.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        goToEdit.backgroundColor = UIColor.flykBlue
         goToEdit.translatesAutoresizingMaskIntoConstraints = false
         goToEdit.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor).isActive = true
         goToEdit.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40).isActive = true
@@ -222,7 +219,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     override func viewDidLoad() {
         super.viewDidLoad()
 
-        self.view.backgroundColor = UIColor(red: 0.086, green: 0.086, blue: 0.086, alpha: 1)
+        self.view.backgroundColor = UIColor.flykLightBlack
 
         cameraSetup()
         microphonesSetup()

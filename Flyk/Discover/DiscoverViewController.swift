@@ -31,7 +31,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "discoverCell")
         collectionView.delegate = self
         collectionView.dataSource = self
-        collectionView.backgroundColor = UIColor.cyan
+        
         self.view.addSubview(collectionView)
         
         
@@ -44,8 +44,8 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
 //        collectionView.decelerationRate = .fast
-        self.view.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
-        collectionView.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        self.view.backgroundColor = UIColor.flykDarkGrey
+        collectionView.backgroundColor = UIColor.flykDarkGrey
         
         
     }
@@ -85,7 +85,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
 //        ]
 //        let rand = arc4random_uniform(UInt32(colours.count))
 //        cell.backgroundColor = colours[Int(rand)]
-        cell.backgroundColor = UIColor.lightGray
+        cell.backgroundColor = UIColor.flykLightGrey
         cell.layer.borderColor = UIColor.white.cgColor
         cell.layer.borderWidth = 1
         

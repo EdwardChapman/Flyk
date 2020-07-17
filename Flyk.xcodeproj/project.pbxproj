@@ -26,10 +26,12 @@
 		928242D524BBD6BE0000C44A /* SetDurationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242D424BBD6BE0000C44A /* SetDurationView.swift */; };
 		928242D724BC29B30000C44A /* ExportComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242D624BC29B30000C44A /* ExportComposition.swift */; };
 		9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */; };
+		9298485024C18D8F005AA6F0 /* SwipeBackNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */; };
 		929AE76324B00A22002FC64D /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76224B00A22002FC64D /* Content.swift */; };
 		929AE76724B00CFD002FC64D /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76624B00CFD002FC64D /* Home.swift */; };
 		92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28724B6710500A71950 /* TakeVideoViewController.swift */; };
 		92DAA28A24B6714800A71950 /* EditVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28924B6714700A71950 /* EditVideoViewController.swift */; };
+		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
 		92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F87D0624BFB1B1002F75FD /* VideoCell.swift */; };
 /* End PBXBuildFile section */
 
@@ -76,10 +78,12 @@
 		928242D424BBD6BE0000C44A /* SetDurationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SetDurationView.swift; sourceTree = "<group>"; };
 		928242D624BC29B30000C44A /* ExportComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportComposition.swift; sourceTree = "<group>"; };
 		9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishedVideoViewController.swift; sourceTree = "<group>"; };
+		9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeBackNavigationController.swift; sourceTree = "<group>"; };
 		929AE76224B00A22002FC64D /* Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Content.swift; sourceTree = "<group>"; };
 		929AE76624B00CFD002FC64D /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
 		92DAA28724B6710500A71950 /* TakeVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TakeVideoViewController.swift; sourceTree = "<group>"; };
 		92DAA28924B6714700A71950 /* EditVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditVideoViewController.swift; sourceTree = "<group>"; };
+		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		92F87D0624BFB1B1002F75FD /* VideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
@@ -132,7 +136,9 @@
 			isa = PBXGroup;
 			children = (
 				927BB61224AD590D002445B9 /* AppDelegate.swift */,
+				9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */,
 				927BB61824AD590D002445B9 /* Main.storyboard */,
+				92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */,
 				928242C224BAAD550000C44A /* Home */,
 				928242C724BAAD8F0000C44A /* Discover */,
 				928242C624BAAD8D0000C44A /* Create */,
@@ -186,8 +192,8 @@
 			isa = PBXGroup;
 			children = (
 				92DAA28724B6710500A71950 /* TakeVideoViewController.swift */,
-				9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */,
 				928242CD24BB6F2B0000C44A /* VideoEditor */,
+				9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */,
 			);
 			path = Create;
 			sourceTree = "<group>";
@@ -212,13 +218,13 @@
 			isa = PBXGroup;
 			children = (
 				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
+				928242CB24BADE200000C44A /* VideoOverlayView.swift */,
+				928242CE24BB6F7C0000C44A /* BasketView.swift */,
+				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
 				928242D624BC29B30000C44A /* ExportComposition.swift */,
 				928242D424BBD6BE0000C44A /* SetDurationView.swift */,
-				928242D224BBB4670000C44A /* PresentationHitTest.swift */,
-				928242CB24BADE200000C44A /* VideoOverlayView.swift */,
 				928242D024BBB3EB0000C44A /* MenuTargetView.swift */,
-				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
-				928242CE24BB6F7C0000C44A /* BasketView.swift */,
+				928242D224BBB4670000C44A /* PresentationHitTest.swift */,
 			);
 			path = VideoEditor;
 			sourceTree = "<group>";
@@ -378,6 +384,8 @@
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,
+				9298485024C18D8F005AA6F0 /* SwipeBackNavigationController.swift in Sources */,
+				92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */,
 				928242D524BBD6BE0000C44A /* SetDurationView.swift in Sources */,
 				928242D124BBB3EB0000C44A /* MenuTargetView.swift in Sources */,
 				92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */,

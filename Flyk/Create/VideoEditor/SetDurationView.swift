@@ -21,7 +21,7 @@ class SetDurationView : UIView{
     lazy var doneButton: UIView = {
         let doneB = UIView(frame: CGRect(x: self.bounds.maxX - 60, y: self.bounds.maxY - 60, width: 45, height: 45))
         doneB.layer.cornerRadius = doneB.frame.height/2
-        doneB.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        doneB.backgroundColor = UIColor.flykBlue
         doneB.layer.borderWidth = 1
         doneB.layer.borderColor = UIColor.white.cgColor
         self.addSubview(doneB)
@@ -162,7 +162,7 @@ class SetDurationView : UIView{
     override init(frame: CGRect){
         super.init(frame: frame)
         super.isHidden = true
-        self.backgroundColor = UIColor(red: 0.1, green: 0.1, blue: 0.1, alpha: 1)
+        self.backgroundColor = UIColor.flykDarkGrey
 
         trackView.frame = CGRect(x: leftPadding, y: self.bounds.midY - (trackViewHeight/2), width: self.frame.width - (leftPadding*2), height: trackViewHeight)
         self.addSubview(trackView)
@@ -176,7 +176,7 @@ class SetDurationView : UIView{
         windowDragger.layer.cornerRadius = 4
         windowDragger.frame = trackView.bounds
         windowDragger.layer.borderWidth = 1
-        windowDragger.layer.borderColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1).cgColor
+        windowDragger.layer.borderColor = UIColor.flykBlue.cgColor
         
         setupLeftDragger()
         setupRightDragger()
@@ -193,7 +193,7 @@ class SetDurationView : UIView{
         windowDragger.addSubview(leftTabDragger)
         
         
-        leftTabDragger.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        leftTabDragger.backgroundColor = UIColor.flykBlue
         leftTabDragger.layer.cornerRadius = 4
         leftTabDragger.layer.maskedCorners = [.layerMinXMinYCorner, .layerMinXMaxYCorner]
         
@@ -222,7 +222,7 @@ class SetDurationView : UIView{
     
     func setupRightDragger(){
         rightTabDragger.frame = CGRect(x: windowDragger.bounds.width - draggerWidth, y: 0, width: draggerWidth, height: windowDragger.frame.height)
-        rightTabDragger.backgroundColor = UIColor(red: 0.2, green: 0.5, blue: 0.8, alpha: 1)
+        rightTabDragger.backgroundColor = UIColor.flykBlue
         rightTabDragger.layer.cornerRadius = 4
         rightTabDragger.layer.maskedCorners = [.layerMaxXMinYCorner, .layerMaxXMaxYCorner]
         windowDragger.addSubview(rightTabDragger)

@@ -54,11 +54,12 @@ class TextEditor : UIView, UITextFieldDelegate{
     func beginEditing(textField: UITextField){
         self.isHidden = false
         self.textField = textField
+        textField.delegate = self
         self.textFieldTransform = textField.transform
         self.textFieldSuperview = textField.superview
         self.textFieldFrame = textField.frame
         self.textFieldCenter = textField.center
-        textField.layer.removeAllAnimations()
+        
         textField.removeFromSuperview()
         self.addSubview(textField)
         
@@ -81,6 +82,7 @@ class TextEditor : UIView, UITextFieldDelegate{
             return
         }
         textField.removeFromSuperview()
+        textField.delegate = nil
         self.isHidden = true
         
         if textField.text?.count != 0 {
@@ -134,7 +136,7 @@ class TextEditor : UIView, UITextFieldDelegate{
         let updatedString = (textField.text as NSString?)?.replacingCharacters(in: range, with: string)
         textField.text = updatedString
         var newSize = textField.attributedText!.size()
-        print(updatedString?.count)
+        
         if updatedString?.count == 0 {
             newSize.width = 2
             newSize.height = textField.frame.height

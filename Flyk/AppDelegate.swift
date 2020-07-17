@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import AVFoundation
 
 extension FileManager {
     func clearTmpDirectory() {
@@ -30,7 +31,12 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
-        
+        do {
+            try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
+            try AVAudioSession.sharedInstance().setActive(true)
+        } catch let error as NSError {
+            print(error)
+        }
         FileManager.default.clearTmpDirectory()
         
         return true
