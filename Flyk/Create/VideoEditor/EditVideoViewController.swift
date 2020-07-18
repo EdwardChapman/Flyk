@@ -545,9 +545,10 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
                 case .completed:
                     print("EXPORT SUCCESSFUL")
                     
-//                    let finishedVideoVC = FinishedVideoViewController()
-                    (self.navigationController?.topViewController as! FinishedVideoViewController).finishedViewURL = exportURL
-//                    self.navigationController?.pushViewController(finishedVideoVC, animated: true)
+                    if let finVC = self.navigationController?.topViewController as? FinishedVideoViewController {
+                        finVC.finishedViewURL = exportURL
+                    }
+                    
                 default:
                     self.navigationController?.popViewController(animated: true)
                     print("Something went wrong during export.")

@@ -175,13 +175,14 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func fetchVideoList(){
 
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/list/videos")!) { data, response, error in
+        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/list/")!) { data, response, error in
 
             if error != nil || data == nil {
                 print("Client error!")
                 return
             }
-
+            
+            
             guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
                 print("Server error!")
                 return
@@ -195,9 +196,10 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
             do {
                 let videoNameList : NSArray = try JSONSerialization.jsonObject(with: data!, options: []) as! NSArray
                 //                let imgNameList = ["1.jpg", "2.png", "3.png"]
+                print(videoNameList)
                 let optionalVidURLs = videoNameList.map({ (vidName) -> URL? in
                     if let vidNameString: String = vidName as? String {
-                        if let vidStrURL = URL(string:"https://swiftytest.uc.r.appspot.com/videos/" + vidNameString){
+                        if let vidStrURL = URL(string:"https://swiftytest.uc.r.appspot.com/video/" + vidNameString){
                             return vidStrURL
                         }
                     }

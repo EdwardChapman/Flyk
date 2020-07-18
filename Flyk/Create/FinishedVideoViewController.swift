@@ -10,6 +10,7 @@ import UIKit
 import AVFoundation
 
 
+
 class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     var finishedViewURL: URL? {
         didSet{
@@ -31,7 +32,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     
     lazy var videoPlaybackView : UIView = {
         let videoPlaybackView = UIView()
-        self.playerLayer.backgroundColor = UIColor.flykLightGrey.cgColor
+        self.playerLayer.backgroundColor = UIColor.flykLightDarkGrey.cgColor
         videoPlaybackView.layer.cornerRadius = 8
         videoPlaybackView.clipsToBounds = true
         videoPlaybackView.layer.addSublayer(playerLayer)
@@ -83,13 +84,16 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.flykDarkGrey
-        let uploadButton = UIView(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY-60, width: 45, height: 45))
-        uploadButton.layer.cornerRadius = 45/2
-        uploadButton.layer.borderColor = UIColor.white.cgColor
-        uploadButton.layer.borderWidth = 1
-        uploadButton.backgroundColor = UIColor.flykBlue
-        self.view.addSubview(uploadButton)
-        uploadButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleUploadTap(tapGesture:))))
+        let backButton = UIView(frame: CGRect(x: self.view.frame.minX + 15, y: self.view.frame.maxY-60, width: 45, height: 45))
+        backButton.layer.cornerRadius = 45/2
+        backButton.layer.borderColor = UIColor.white.cgColor
+        backButton.layer.borderWidth = 1
+        backButton.backgroundColor = UIColor.flykMediumGrey
+        self.view.addSubview(backButton)
+        backButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleBackButtonTap(tapGesture:))))
+        
+        setupSwitches()
+        setupUploadButtons()
         
         
         descriptionInput.backgroundColor = .clear
@@ -109,7 +113,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         descriptionLabel.frame = CGRect(x: descriptionInput.textContainerInset.left, y: descriptionInput.textContainerInset.top, width: 80, height: 30)
         descriptionLabel.text = "Description"
         descriptionLabel.font = descriptionLabel.font.withSize(17)
-        descriptionLabel.textColor = .gray
+        descriptionLabel.textColor = .flykGrey
         descriptionLabel.frame.size = descriptionLabel.attributedText!.size()
         descriptionInput.addSubview(descriptionLabel)
         
@@ -123,10 +127,198 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         descriptionInput.addSubview(characterCounter)
         
         
+        
         videoPlaybackView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleVideoPlaybackViewTap(tapGesture:))))
         
         
         self.view.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleMainViewTap(tapGesture:))))
+        
+        
+        
+        
+    }
+    
+    func setupUploadButtons(){
+        let uploadLater = UIView()
+        self.view.addSubview(uploadLater)
+        uploadLater.backgroundColor = .flykDarkWhite
+        uploadLater.layer.cornerRadius = 12
+        uploadLater.translatesAutoresizingMaskIntoConstraints = false
+        uploadLater.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 8).isActive = true
+        uploadLater.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
+        uploadLater.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.5, constant: -12).isActive = true
+        uploadLater.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        let uploadLaterText = UILabel()
+        uploadLaterText.text = "Upload Later"
+        uploadLaterText.font = UIFont.boldSystemFont(ofSize: 16.0)
+        uploadLaterText.textColor = .flykDarkGrey
+        uploadLaterText.textAlignment = .center
+        uploadLater.addSubview(uploadLaterText)
+        uploadLaterText.translatesAutoresizingMaskIntoConstraints = false
+        uploadLaterText.leadingAnchor.constraint(equalTo: uploadLater.leadingAnchor).isActive = true
+        uploadLaterText.trailingAnchor.constraint(equalTo: uploadLater.trailingAnchor).isActive = true
+        uploadLaterText.topAnchor.constraint(equalTo: uploadLater.topAnchor).isActive = true
+        uploadLaterText.bottomAnchor.constraint(equalTo: uploadLater.bottomAnchor).isActive = true
+        
+        
+        let uploadNow = UIView()
+        uploadNow.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleUploadTap)))
+        self.view.addSubview(uploadNow)
+        uploadNow.backgroundColor = .flykBlue
+        uploadNow.layer.cornerRadius = 12
+        uploadNow.translatesAutoresizingMaskIntoConstraints = false
+        uploadNow.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -8).isActive = true
+        uploadNow.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
+        uploadNow.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.5, constant: -12).isActive = true
+        uploadNow.heightAnchor.constraint(equalToConstant: 60).isActive = true
+        
+        let uploadNowText = UILabel()
+        uploadNowText.text = "Upload Now"
+        uploadNowText.font = UIFont.boldSystemFont(ofSize: 16.0)
+        uploadNowText.textColor = .white
+        uploadNowText.textAlignment = .center
+        uploadNow.addSubview(uploadNowText)
+        uploadNowText.translatesAutoresizingMaskIntoConstraints = false
+        uploadNowText.leadingAnchor.constraint(equalTo: uploadNow.leadingAnchor).isActive = true
+        uploadNowText.trailingAnchor.constraint(equalTo: uploadNow.trailingAnchor).isActive = true
+        uploadNowText.topAnchor.constraint(equalTo: uploadNow.topAnchor).isActive = true
+        uploadNowText.bottomAnchor.constraint(equalTo: uploadNow.bottomAnchor).isActive = true
+    }
+    
+    @objc func handleUploadTap(tapGesture: UITapGestureRecognizer){
+        
+
+        
+        // server endpoint
+//        let endpoint = "https://swiftytest.uc.r.appspot.com/upload/"
+//
+//        guard let endpointUrl = URL(string: endpoint) else {
+//            return
+//        }
+        
+        let url = "https://swiftytest.uc.r.appspot.com/upload/"
+//        let img = UIImage(contentsOfFile: fullPath)
+        var data: NSData;
+        do {
+            try data = NSData(contentsOf: finishedViewURL!)
+        }catch{
+            print("URL FAIL")
+            return
+        }
+        
+//        MultiPartPost.sendFile(url,
+//                               fileName: "one.jpg",
+//                               data: data,
+//                               completionHandler:
+//            {(result:Bool, isNoInternetConnection:Bool) -> Void in
+//
+//            NSLog("Complete: \(result)")
+//            }
+//        )
+        
+        //Make JSON to send to send to server
+//        var json = [String:Any]()
+//
+//        json[SKUser.PropertyKey.UUID] = user.UUID
+//        json[SKUser.PropertyKey.projectID] = user.projectID
+//        json[SKUser.PropertyKey.countryCode] = user.countryCode
+//        json[SKUser.PropertyKey.deviceType] = user.deviceType
+//        json[SKEvent.PropertyKey.type] = eventType.rawValue
+//        json[SKEvent.PropertyKey.stickerID] = sticker?.id ?? ""
+        
+        
+        do {
+//            let data = Data(contentsOf: finishedViewURL)
+//            let data = try JSONSerialization.data(withJSONObject: json, options: [])
+            let boundary = "?????"
+            var request = URLRequest(url: URL(string: url)!)
+            request.httpMethod = "POST"
+            request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video") as Data
+//            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+            request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
+                              forHTTPHeaderField: "Content-Type")
+            request.addValue("video/mp4", forHTTPHeaderField: "mimeType")
+            request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
+            
+            request.addValue("text/plain", forHTTPHeaderField: "Accept")
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                
+                if error != nil || data == nil {
+                    print("Client error!")
+                    return
+                }
+                
+                guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
+                    print("Server error!")
+                    print(data, response, error)
+                    return
+                }
+                
+                print(response)
+            }
+            
+            task.resume()
+            
+            
+            
+            
+        }catch{}
+    }
+    
+    func setupSwitches(){
+        let tandemSwitch = UISwitch(frame: .zero)
+        self.view.addSubview(tandemSwitch)
+        tandemSwitch.translatesAutoresizingMaskIntoConstraints = false
+        tandemSwitch.frame.size = tandemSwitch.intrinsicContentSize
+        tandemSwitch.tintColor = .flykLightDarkGrey
+        
+        let superWidth = self.view.frame.width
+        let videoPlayerBottom = 0.4*superWidth*(16/9)+8
+        let topConst = videoPlayerBottom+40
+        tandemSwitch.onTintColor = .flykBlue
+        tandemSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(topConst)).isActive = true
+        tandemSwitch.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
+        tandemSwitch.widthAnchor.constraint(equalToConstant: tandemSwitch.intrinsicContentSize.width).isActive = true
+        tandemSwitch.heightAnchor.constraint(equalToConstant: tandemSwitch.intrinsicContentSize.height).isActive = true
+        
+        let tandemSwitchLabel = UILabel(frame: .zero)
+        tandemSwitchLabel.textColor = .flykDarkWhite
+        self.view.addSubview(tandemSwitchLabel)
+        tandemSwitchLabel.translatesAutoresizingMaskIntoConstraints = false
+        tandemSwitchLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
+        tandemSwitchLabel.trailingAnchor.constraint(equalTo: tandemSwitch.leadingAnchor, constant: -8).isActive = true
+        tandemSwitchLabel.centerYAnchor.constraint(equalTo: tandemSwitch.centerYAnchor).isActive = true
+        tandemSwitchLabel.text = "Allow Tandem"
+        tandemSwitchLabel.adjustsFontSizeToFitWidth = true
+        
+        
+        
+        let commentsSwitch = UISwitch(frame: .zero)
+        commentsSwitch.tintColor = .flykLightDarkGrey
+        self.view.addSubview(commentsSwitch)
+        commentsSwitch.translatesAutoresizingMaskIntoConstraints = false
+        commentsSwitch.frame.size = commentsSwitch.intrinsicContentSize
+        
+//        let superWidth = self.view.frame.width
+//        let videoPlayerBottom = 0.4*superWidth*(16/9)+8
+//        let topConst = videoPlayerBottom+40
+        commentsSwitch.onTintColor = .flykBlue
+        commentsSwitch.topAnchor.constraint(equalTo: tandemSwitch.bottomAnchor, constant: 35).isActive = true
+        commentsSwitch.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
+        commentsSwitch.widthAnchor.constraint(equalToConstant: commentsSwitch.intrinsicContentSize.width).isActive = true
+        commentsSwitch.heightAnchor.constraint(equalToConstant: commentsSwitch.intrinsicContentSize.height).isActive = true
+        
+        let commentsSwitchLabel = UILabel(frame: .zero)
+        commentsSwitchLabel.textColor = .flykDarkWhite
+        self.view.addSubview(commentsSwitchLabel)
+        commentsSwitchLabel.translatesAutoresizingMaskIntoConstraints = false
+        commentsSwitchLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
+        commentsSwitchLabel.trailingAnchor.constraint(equalTo: commentsSwitch.leadingAnchor, constant: -8).isActive = true
+        commentsSwitchLabel.centerYAnchor.constraint(equalTo: commentsSwitch.centerYAnchor).isActive = true
+        commentsSwitchLabel.text = "Allow Comments"
+        commentsSwitchLabel.adjustsFontSizeToFitWidth = true
+        
         
     }
     
@@ -134,7 +326,6 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         self.view.endEditing(true)
     }
     func textViewShouldBeginEditing(_ textView: UITextView) -> Bool {
-        print("TEXTFIELDSHOULDBEGINEDITING")
         return true
     }
     func textViewDidBeginEditing(_ textView: UITextView) {
@@ -177,7 +368,10 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         }
     }
     
-    @objc func handleUploadTap(tapGesture: UITapGestureRecognizer){
-        print("UPLOAD TAPPED")
+    @objc func handleBackButtonTap(tapGesture: UITapGestureRecognizer){
+        if (self.navigationController?.viewControllers.contains(self))! {
+            self.navigationController?.popViewController(animated: true)
+        }
+        print(self.navigationController?.viewControllers.contains(self))
     }
 }

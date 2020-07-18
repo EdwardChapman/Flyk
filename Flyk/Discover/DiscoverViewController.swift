@@ -85,7 +85,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
 //        ]
 //        let rand = arc4random_uniform(UInt32(colours.count))
 //        cell.backgroundColor = colours[Int(rand)]
-        cell.backgroundColor = UIColor.flykLightGrey
+        cell.backgroundColor = UIColor.flykLightDarkGrey
         cell.layer.borderColor = UIColor.white.cgColor
         cell.layer.borderWidth = 1
         
