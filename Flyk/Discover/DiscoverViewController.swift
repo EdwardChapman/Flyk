@@ -7,12 +7,13 @@
 //
 
 import UIKit
+import AVFoundation
 
 class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
     
     
-    var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+    let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     var videoURLs : [URL] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
     
     
@@ -22,11 +23,11 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        fetchVideoList()
+//        fetchVideoList() // THIS IS DISABLED FOR TESTING
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .vertical
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 0
+        flowLayout.minimumLineSpacing = 0.5
+        flowLayout.minimumInteritemSpacing = 0.5
         
         collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "discoverCell")
         collectionView.delegate = self
@@ -36,11 +37,14 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
         
 //        collectionView.contentInsetAdjustmentBehavior = .never
+        let searchBar = DiscoverSearchBar()
+        self.view.addSubview(searchBar)
+        searchBar.setupConstraints()
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+        collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor).isActive = true
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
 //        collectionView.decelerationRate = .fast
@@ -48,6 +52,58 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         collectionView.backgroundColor = UIColor.flykDarkGrey
         
         
+        collectionView.refreshControl = UIRefreshControl()
+        collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
+        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
+        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        
+        loadingPlaceholderSetup()
+    }
+    
+    func loadingPlaceholderSetup(){
+        let placeholderView = UIView()
+        self.view.addSubview(placeholderView)
+        placeholderView.translatesAutoresizingMaskIntoConstraints = false
+        placeholderView.leadingAnchor.constraint(equalTo: self.collectionView.leadingAnchor).isActive = true
+        placeholderView.trailingAnchor.constraint(equalTo: self.collectionView.trailingAnchor).isActive = true
+        placeholderView.topAnchor.constraint(equalTo: self.collectionView.topAnchor).isActive = true
+        placeholderView.bottomAnchor.constraint(equalTo: self.collectionView.bottomAnchor).isActive = true
+        self.view.layoutIfNeeded()
+        let cellSize = CGSize(width: (self.view.frame.width/3)-1, height: (self.view.frame.width/3)*(16/9))
+        var itemOriginY: CGFloat = 0
+        while itemOriginY < self.view.frame.height - (self.tabBarController?.tabBar.frame.height)! {
+            for i in 0...2 {
+                let p = UIView(frame: CGRect(origin: CGPoint(x: (CGFloat(i)*cellSize.width)+(0.5*CGFloat(i)), y: itemOriginY), size: cellSize))
+                placeholderView.addSubview(p)
+                p.backgroundColor = .flykLightDarkGrey
+//                let loadingBar = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 5, height: cellSize.height)))
+//                p.addSubview(loadingBar)
+//                loadingBar.backgroundColor = .flykLoadingGrey
+//                UIView.animate(withDuration: 0.9, delay: 0.1, options: [.repeat, .curveEaseInOut], animations: {
+//                    loadingBar.frame.origin = CGPoint(x: (loadingBar.superview?.bounds.width)!, y: 0)
+//                }) { (finished) in
+//
+//                }
+            }
+            itemOriginY += cellSize.height + 0.5
+        }
+        let loadingBar = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 4, height: placeholderView.bounds.height)))
+        loadingBar.backgroundColor = .flykBlue
+        loadingBar.alpha = 0.4
+        placeholderView.addSubview(loadingBar)
+        UIView.animate(withDuration: 1.4, delay: 0, options: [.repeat, .curveEaseInOut], animations: {
+            loadingBar.frame.origin = CGPoint(x: (loadingBar.superview?.bounds.width)!, y: 0)
+        }) { (finished) in
+
+        }
+    }
+    @objc func handleRefreshControl() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.impactOccurred()
+        fetchVideoList()
+        // Dismiss the refresh control.
+        DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -66,35 +122,26 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
 //        return videoURLs.count
-        return 50
+        return videoURLs.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "discoverCell", for: indexPath)
 
-//        cell.player.replaceCurrentItem(with: AVPlayerItem(url: videoURLs[indexPath.row]))
-//        let colours = [
-//            UIColor.blue,
-//            UIColor.red,
-//            UIColor.green,
-//            UIColor.lightGray,
-//            UIColor.black,
-//            UIColor.yellow,
-//            UIColor.darkGray,
-//            UIColor.white
-//        ]
-//        let rand = arc4random_uniform(UInt32(colours.count))
-//        cell.backgroundColor = colours[Int(rand)]
-        cell.backgroundColor = UIColor.flykLightDarkGrey
-        cell.layer.borderColor = UIColor.white.cgColor
-        cell.layer.borderWidth = 1
+        let remoteAsset = AVAsset(url: videoURLs[indexPath.row])
+        let newPlayer = AVPlayer(playerItem: AVPlayerItem(asset: remoteAsset))
+        let playerLayer = AVPlayerLayer()
+        playerLayer.player = newPlayer
+        playerLayer.videoGravity = .resizeAspectFill
+        playerLayer.frame = cell.layer.bounds
+        cell.layer.addSublayer(playerLayer)
         
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
 //        return CGSize(width: self.view.frame.width, height: self.view.frame.height-self.view.safeAreaInsets.bottom)
-        return CGSize(width: self.view.frame.width/3, height: (self.view.frame.width/3)*(16/9))
+        return CGSize(width: (self.view.frame.width/3)-1, height: (self.view.frame.width/3)*(16/9))
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -190,10 +237,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
                     return nil
                 })
                 
-                self.videoURLs.append(contentsOf:optionalVidURLs.filter({ (maybeNill) -> Bool in return maybeNill != nil}) as! [URL])
-                //                DispatchQueue.main.async {
-                //                    self.collectionView.reloadData()
-                //                }
+              self.videoURLs = optionalVidURLs.filter({ (maybeNill) -> Bool in return maybeNill != nil}) as! [URL]
             } catch {
                 print("JSON error: \(error.localizedDescription)")
             }

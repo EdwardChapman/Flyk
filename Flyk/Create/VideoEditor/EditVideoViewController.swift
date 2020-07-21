@@ -382,6 +382,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         let overlayLayer = CALayer()
         overlayLayer.frame = self.videoOverlayView.frame
         for subview in self.videoOverlayView.subviews {
+            var newLayer: CALayer?
             if let textField = subview as? UITextField{
                 let textLayer = CATextLayer()
                 textLayer.string = textField.attributedText
@@ -396,18 +397,60 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
                 let preTransformFrame = textField.frame
                 textField.layer.transform = textFieldTransform
                 
-                overlayLayer.isGeometryFlipped = true
                 textLayer.frame = preTransformFrame
                 textLayer.transform = textField.layer.transform
-                overlayLayer.addSublayer(textLayer)
                 textLayer.contentsScale = UIScreen.main.scale
-                print(UIScreen.main.scale)
-                
+                newLayer = textLayer
+            }
+            overlayLayer.isGeometryFlipped = true
+            if let newLayer = newLayer {
+                overlayLayer.addSublayer(newLayer)
+                addAnimationToOverlay(fromView: subview, newLayer: newLayer)
             }
         }
         overlayLayer.transform = CATransform3DMakeScale(naturalVideoSize.height / self.videoOverlayView.frame.height, naturalVideoSize.height / self.videoOverlayView.frame.height, 1)
         overlayLayer.frame.origin = CGPoint(x: (naturalVideoSize.width/2)-overlayLayer.frame.width/2, y: .zero)
         return overlayLayer
+    }
+    
+    func addAnimationToOverlay(fromView: UIView, newLayer: CALayer){
+        let opacityAnimation = CAKeyframeAnimation(keyPath: "opacity")
+        
+        var opacityValues : [Float] = []
+        var opacityKeyTimes : [NSNumber] = []
+        
+        if let elementStartTime = self.visibilityDurationStartTime[fromView] {
+            opacityValues.append(0)
+            opacityKeyTimes.append(0)
+            
+            opacityValues.append(0)
+            opacityKeyTimes.append(
+                NSNumber(value: elementStartTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+            )
+            opacityValues.append(1)
+            opacityKeyTimes.append(
+                NSNumber(value: elementStartTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+            )
+        }
+        if let elementEndTime = self.visibilityDurationEndTime[fromView] {
+            opacityValues.append(1)
+            opacityKeyTimes.append(
+                NSNumber(value: elementEndTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+            )
+            opacityValues.append(0)
+            opacityKeyTimes.append(
+                NSNumber(value: elementEndTime/(self.videoPlaybackPlayer.currentItem?.duration.seconds)!)
+            )
+        }
+        
+        if opacityKeyTimes.count > 0 {
+            opacityAnimation.values = opacityValues
+            opacityAnimation.keyTimes = opacityKeyTimes
+            opacityAnimation.duration = (self.videoPlaybackPlayer.currentItem?.duration.seconds)!
+            opacityAnimation.beginTime = AVCoreAnimationBeginTimeAtZero
+            opacityAnimation.isRemovedOnCompletion = false
+            newLayer.add(opacityAnimation, forKey: "opacity")
+        }
     }
     
     @objc func handleFinishEditingTap(tapGesture: UITapGestureRecognizer){
