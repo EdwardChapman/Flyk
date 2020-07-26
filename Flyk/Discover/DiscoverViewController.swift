@@ -49,7 +49,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
 //        collectionView.decelerationRate = .fast
         self.view.backgroundColor = UIColor.flykDarkGrey
-        collectionView.backgroundColor = UIColor.flykDarkGrey
+        collectionView.backgroundColor = UIColor.flykDarkWhite
         
         
         collectionView.refreshControl = UIRefreshControl()
@@ -70,21 +70,14 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         placeholderView.topAnchor.constraint(equalTo: self.collectionView.topAnchor).isActive = true
         placeholderView.bottomAnchor.constraint(equalTo: self.collectionView.bottomAnchor).isActive = true
         self.view.layoutIfNeeded()
-        let cellSize = CGSize(width: (self.view.frame.width/3)-1, height: (self.view.frame.width/3)*(16/9))
+        let cellSize = CGSize(width: (self.view.frame.width/3)-0.33, height: (self.view.frame.width/3)*(16/9))
         var itemOriginY: CGFloat = 0
         while itemOriginY < self.view.frame.height - (self.tabBarController?.tabBar.frame.height)! {
             for i in 0...2 {
-                let p = UIView(frame: CGRect(origin: CGPoint(x: (CGFloat(i)*cellSize.width)+(0.5*CGFloat(i)), y: itemOriginY), size: cellSize))
+                let p = UIView(frame: CGRect(origin: CGPoint(x: (CGFloat(i)*cellSize.width)+(0.33*CGFloat(i)), y: itemOriginY), size: cellSize))
                 placeholderView.addSubview(p)
-                p.backgroundColor = .flykLightDarkGrey
-//                let loadingBar = UIView(frame: CGRect(origin: .zero, size: CGSize(width: 5, height: cellSize.height)))
-//                p.addSubview(loadingBar)
-//                loadingBar.backgroundColor = .flykLoadingGrey
-//                UIView.animate(withDuration: 0.9, delay: 0.1, options: [.repeat, .curveEaseInOut], animations: {
-//                    loadingBar.frame.origin = CGPoint(x: (loadingBar.superview?.bounds.width)!, y: 0)
-//                }) { (finished) in
-//
-//                }
+                p.backgroundColor = .flykMediumGrey
+                p.alpha = 0.9
             }
             itemOriginY += cellSize.height + 0.5
         }

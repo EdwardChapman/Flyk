@@ -17,6 +17,35 @@ class TextEditor : UIView, UITextFieldDelegate{
     var textFieldFrame: CGRect?
     var textFieldCenter : CGPoint?
     
+    var colorPickerBottomAnchor: NSLayoutConstraint?
+    
+    lazy var colorPickerView: TextColorPicker = {
+        let colorPickerView = TextColorPicker()
+        self.addSubview(colorPickerView)
+        colorPickerView.translatesAutoresizingMaskIntoConstraints = false
+        colorPickerBottomAnchor = colorPickerView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: 0)
+        colorPickerBottomAnchor!.isActive = true
+        colorPickerView.leadingAnchor.constraint(equalTo: self.leadingAnchor).isActive = true
+        colorPickerView.trailingAnchor.constraint(equalTo: self.trailingAnchor).isActive = true
+        colorPickerView.heightAnchor.constraint(equalToConstant: 59).isActive = true
+        return colorPickerView
+    }()
+    
+//    let backgroundColorButton = UIView()
+//    let textColorButton = UIView()
+    
+    var keyboardHeight: CGFloat? {
+        didSet{
+            colorPickerBottomAnchor?.constant = -(keyboardHeight ?? 300)
+//            backgroundColorButton.frame.origin = CGPoint(
+//                x: 100,
+//                y: self.frame.height - (keyboardHeight ?? 300) - backgroundColorButton.frame.height - 10
+//            )
+        }
+    }
+    
+    
+    
     override var isHidden: Bool {
         get {
             return super.isHidden
@@ -45,6 +74,8 @@ class TextEditor : UIView, UITextFieldDelegate{
         self.alpha = 0
         self.backgroundColor = UIColor(red: 0, green: 0, blue: 0, alpha: 0.5)
         self.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleDismissTap(tapGesture:))))
+        
+
     }
     
     @objc func handleDismissTap(tapGesture: UITapGestureRecognizer) {
@@ -52,6 +83,8 @@ class TextEditor : UIView, UITextFieldDelegate{
     }
     
     func beginEditing(textField: UITextField){
+        finishEditing()
+        addKeyboardObserver()
         self.isHidden = false
         self.textField = textField
         textField.delegate = self
@@ -59,6 +92,13 @@ class TextEditor : UIView, UITextFieldDelegate{
         self.textFieldSuperview = textField.superview
         self.textFieldFrame = textField.frame
         self.textFieldCenter = textField.center
+        self.colorPickerView.backgroundColorButton.backgroundColor = textField.backgroundColor
+        self.colorPickerView.textColorButton.backgroundColor = textField.textColor
+//        self.textColorButton.backgroundColor = textField.textColor
+        //        self.backgroundColorButton.backgroundColor = textField.backgroundColor
+        
+        textField.keyboardAppearance = .dark
+        
         
         textField.removeFromSuperview()
         self.addSubview(textField)
@@ -70,6 +110,19 @@ class TextEditor : UIView, UITextFieldDelegate{
         textField.becomeFirstResponder()
     }
     
+    @objc fileprivate func keyboardWillShow(notification:NSNotification) {
+        if let keyboardRectValue = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
+            let keyboardHeight = keyboardRectValue.height
+            self.keyboardHeight = keyboardHeight
+        }
+    }
+    
+    func addKeyboardObserver(){
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
+    }
+    func removeKeyboardObserver(){
+        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification , object: nil)
+    }
     
     func finishEditing(){
         guard
@@ -81,6 +134,7 @@ class TextEditor : UIView, UITextFieldDelegate{
             print("guard failure at finishEditing()")
             return
         }
+        colorPickerView.activePicker = nil
         textField.removeFromSuperview()
         textField.delegate = nil
         self.isHidden = true
@@ -118,6 +172,7 @@ class TextEditor : UIView, UITextFieldDelegate{
     
     func textFieldDidBeginEditing(_ textField: UITextField) {    //delegate method
         textField.isUserInteractionEnabled = true
+        
     }
     
     func textFieldShouldEndEditing(_ textField: UITextField) -> Bool {  //delegate method

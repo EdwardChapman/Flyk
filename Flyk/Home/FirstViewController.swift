@@ -178,7 +178,7 @@ class FirstViewController: UIViewController {
         
         screenSize = CGRect(x: UIScreen.main.bounds.minX, y: UIScreen.main.bounds.minY, width: UIScreen.main.bounds.width, height: self.view.frame.height - (tabBarController?.tabBar.frame.height)!)
 
-        Carousel()
+//        Carousel()
 //        getImages()
         getVideos()
 

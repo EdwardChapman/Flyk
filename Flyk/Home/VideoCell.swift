@@ -31,7 +31,8 @@ class VideoCell: UICollectionViewCell {
                 self.player.pause()
                 pause.isHidden = false
             }else{
-                self.player.play()
+//                self.player.play()
+                self.player.playImmediately(atRate: 1)
                 pause.isHidden = true
             }
         }
@@ -40,6 +41,7 @@ class VideoCell: UICollectionViewCell {
     
     override init(frame: CGRect){
         super.init(frame: frame)
+        player.automaticallyWaitsToMinimizeStalling = false
         playerLayer.player = player
         playerLayer.frame = self.bounds
         self.layer.addSublayer(playerLayer)
@@ -192,7 +194,7 @@ class VideoCell: UICollectionViewCell {
         print("REUSE", (self.player.currentItem?.asset as! AVURLAsset).url)
         super.prepareForReuse()
         self.removeDidEndObserver()
-        
+        self.player.replaceCurrentItem(with: nil)
     }
     
 

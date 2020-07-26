@@ -16,12 +16,12 @@ extension AVPlayer {
 }
 
 
-class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSourcePrefetching, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
 
     
     var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var videoURLs : [URL] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() }; print(videoURLs)} }
+    var videoURLs : [URL] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
     var currentCell : VideoCell? {
         didSet{
             if let curCell = currentCell {
@@ -61,6 +61,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
         collectionView.register(VideoCell.self, forCellWithReuseIdentifier: "videoCell")
         collectionView.delegate = self
         collectionView.dataSource = self
+        collectionView.prefetchDataSource = self
 //        collectionView.backgroundColor = UIColor.flykDarkGrey
         self.view.addSubview(collectionView)
         
@@ -84,11 +85,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
         collectionView.refreshControl!.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
         collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        
-//        self.view.backgroundColor = UIColor.flykDarkGrey
-        
-        
-        
+                
     }
     @objc func handleRefreshControl() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -120,6 +117,17 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // COLLECTIONVIEW DELEGATE ///////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    //PREFETCH
+    func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
+        // Begin asynchronously fetching data for the requested index paths.
+        for indexPath in indexPaths {
+            let prefetchURL = videoURLs[indexPath.row]
+//            asyncFetcher.fetchAsync(model.identifier)
+            print(indexPath)
+            
+        }
+    }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return videoURLs.count
     }
@@ -131,9 +139,11 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
         cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
         let remoteAsset = AVAsset(url: videoURLs[indexPath.row])
         
-//        print(remoteAsset.isPlayable)
+
         let newPlayer = AVPlayerItem(asset: remoteAsset)
         cell.player.replaceCurrentItem(with: newPlayer)
+//        cell.player.playImmediately(atRate: 1.0)
+        
         cell.addDidEndObserver()
         return cell
     }
@@ -179,14 +189,18 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
     //////////////////////////////////////////////////////////////////////////////////////////////////
     
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        currentCell?.isPaused = true
         let newIndex = collectionView.indexPathForItem(at: scrollView.contentOffset)
         if let newPath = newIndex {
             if let newCell = collectionView.cellForItem(at: newPath){
-                self.currentCell = newCell as! VideoCell
+                let newVideoCell = newCell as! VideoCell
+                if self.currentCell !== newVideoCell {
+                    self.currentCell!.isPaused = true
+                    self.currentCell?.player.seek(to: .zero)
+                    self.currentCell = newVideoCell
+                    self.currentCell!.isPaused = false
+                }
             }
         }
-        self.currentCell!.isPaused = false
     }
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         
@@ -195,7 +209,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDelega
 
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        print(scrollView.contentOffset)
+        
     }
     
 

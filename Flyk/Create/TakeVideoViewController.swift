@@ -10,47 +10,36 @@ import UIKit
 import AVFoundation
 
 
-extension UITabBarController{
-    func showTabBarView(){
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.tabBar.frame = CGRect(x:(self.tabBar.frame.minX), y:(self.view.frame.maxY) - (self.tabBar.frame.height), width:(self.tabBar.frame.width), height: (self.tabBar.frame.height))
-        }, completion: { finished in
-
-        })
-    }
-    
-    func hideTabBarView(){
-        UIView.animate(withDuration: 0.3, delay: 0, options: .curveEaseOut, animations: {
-            self.tabBar.frame = CGRect(x:(self.tabBar.frame.minX), y:(self.tabBar.frame.minY) + 100, width:(self.tabBar.frame.width), height: (self.tabBar.frame.height))
-        }, completion: { finished in
-            
-        })
-    }
-}
 
 
-class PreviewView: UIView {
-    override class var layerClass: AnyClass {
-        return AVCaptureVideoPreviewLayer.self
-    }
-    
-    /// Convenience wrapper to get layer as its statically known type.
-    var videoPreviewLayer: AVCaptureVideoPreviewLayer {
-        return layer as! AVCaptureVideoPreviewLayer
-    }
-}
+
+
 
 class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDelegate {
     
     let captureSession = AVCaptureSession()
+    
+    lazy var backCamVideoInput: AVCaptureDeviceInput? = {
+        let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
+        if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!) { return videoDeviceInput }
+        return nil
+    }()
+    var selfieCamVideoInput: AVCaptureDeviceInput? = {
+        let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
+        if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!) { return videoDeviceInput }
+        return nil
+    }()
+    
     let movieOutput = AVCaptureMovieFileOutput()
     
     let previewView = PreviewView()
     let progressBar = UIProgressView()
     let recordButton = UIView()
-    let goToEdit = UIView()
-    let deleteLast = UIView()
+    let goToEdit = UIImageView(image: UIImage(named: "checkNext"))
+    let deleteLast = UIImageView(image: UIImage(named: "delete"))
     
+    let bottomProgressBar = UIView()
+    var bottomProgressBarWidthAnchor: NSLayoutConstraint?
     
     var recordingUrlList : [URL] = [] {
         didSet{
@@ -75,50 +64,18 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     
     
-    
-
-    //DID FINISH RECORDING //I thought this wasn't on main thread but it seems to be?
-    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?){
-//        print("DID FINSIH RECORDING", error)
-        self.recordButton.backgroundColor = .clear
-        self.tabBarController!.showTabBarView()
-        recordingUrlList.append(outputFileURL)
-        recordingLengthList.append(output.recordedDuration.seconds)
-//        displayRecordedVideo(videoURL: outputFileURL)
-        
-        
-//        progressBar.setProgress(Float(output.recordedDuration.seconds/60), animated: true)
-        progressBar.setProgress(Float(recordingLengthList.reduce(0, +)/60), animated: true)
-        let segView = UIView(frame: CGRect(x: progressBar.frame.width * CGFloat(progressBar.progress), y: 40, width: 1, height: 5))
-        segView.backgroundColor = .white
-        recordingBlockViews.append(segView)
-        self.view.addSubview(segView)
-    }
-    
-    
-    
-    func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]){
-//        print("DID START RECORDING")
-        self.recordButton.backgroundColor = UIColor.flykRecordRed
-        self.tabBarController!.hideTabBarView()
-        deleteLast.isHidden = true
-        goToEdit.isHidden = true
-        
-    }
 
     
     
     
     func cameraSetup(){
-        captureSession.beginConfiguration()
-        let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera,
-                                                  for: .video, position: .back)
-        guard
-            let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!),
-            captureSession.canAddInput(videoDeviceInput)
-            else { return }
-        captureSession.addInput(videoDeviceInput)
-        captureSession.commitConfiguration()
+        if let backCamVideoInput = self.backCamVideoInput {
+            captureSession.beginConfiguration()
+            if captureSession.canAddInput(backCamVideoInput) {
+                captureSession.addInput(backCamVideoInput)
+            }
+            captureSession.commitConfiguration()
+        }
     }
     func microphonesSetup(){
         captureSession.beginConfiguration()
@@ -170,22 +127,19 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         recordButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleRecordButtonTap)))
         
         
-        progressBar.frame = CGRect(x: 0, y: 40, width: self.view.frame.width, height: 40)
-        progressBar.progressViewStyle = .bar
-        self.view.addSubview(progressBar)
-        
+
         goToEdit.frame = CGRect(x: 300, y: 625, width: 40, height: 40)
+        goToEdit.isUserInteractionEnabled = true
+        goToEdit.contentMode = .scaleAspectFit
         self.view.addSubview(goToEdit)
-        goToEdit.backgroundColor = UIColor.flykBlue
+
         goToEdit.translatesAutoresizingMaskIntoConstraints = false
         goToEdit.centerYAnchor.constraint(equalTo: recordButton.centerYAnchor).isActive = true
         goToEdit.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -40).isActive = true
         goToEdit.widthAnchor.constraint(equalToConstant: 40).isActive = true
         goToEdit.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
-        goToEdit.layer.borderWidth = 1
-        goToEdit.layer.borderColor = UIColor.white.cgColor
-        goToEdit.layer.cornerRadius = goToEdit.frame.height/2
+
         goToEdit.isHidden = true
         goToEdit.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleGoToEditTap)))
         
@@ -193,6 +147,9 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
 
         
         deleteLast.frame = CGRect(x: 30, y: 625, width: 40, height: 40)
+        deleteLast.contentMode = .scaleAspectFit
+        deleteLast.image = deleteLast.image?.withHorizontallyFlippedOrientation()
+        deleteLast.isUserInteractionEnabled = true
         self.view.addSubview(deleteLast)
         deleteLast.translatesAutoresizingMaskIntoConstraints = false
         deleteLast.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 40).isActive = true
@@ -200,19 +157,42 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         deleteLast.widthAnchor.constraint(equalToConstant: 40).isActive = true
         deleteLast.heightAnchor.constraint(equalToConstant: 40).isActive = true
         
-        deleteLast.backgroundColor = .red
-        deleteLast.layer.borderColor = UIColor.white.cgColor
-        deleteLast.layer.borderWidth = 1
+
         deleteLast.isHidden = true
-        deleteLast.layer.cornerRadius = deleteLast.frame.height/2
         deleteLast.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleDeleteTap)))
         
+        
+        let cameraSwitcher = UIImageView()
+        cameraSwitcher.image = UIImage(named: "selfieCam")
+        cameraSwitcher.isUserInteractionEnabled = true
+        cameraSwitcher.contentMode = .scaleAspectFit
+//        cameraSwitcher.image = UIImage(named: "frontCam")
+        self.view.addSubview(cameraSwitcher)
+        cameraSwitcher.translatesAutoresizingMaskIntoConstraints = false
+        cameraSwitcher.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -12).isActive = true
+        cameraSwitcher.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 12).isActive = true
+        cameraSwitcher.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        cameraSwitcher.heightAnchor.constraint(equalTo: cameraSwitcher.heightAnchor).isActive = true
+        cameraSwitcher.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleCameraTypeTap)))
+        
+        
+        bottomProgressBar.backgroundColor = .flykBlue
+        self.view.addSubview(bottomProgressBar)
+        bottomProgressBar.translatesAutoresizingMaskIntoConstraints = false
+        bottomProgressBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        bottomProgressBar.topAnchor.constraint(equalTo: self.previewView.bottomAnchor, constant: -2).isActive = true
+        bottomProgressBar.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        self.bottomProgressBarWidthAnchor = bottomProgressBar.widthAnchor.constraint(equalToConstant: 0)
+        self.bottomProgressBarWidthAnchor?.isActive = true
+        
     }
+    
     
     override func viewWillAppear(_ animated: Bool) {
         if(animated){
             self.tabBarController!.showTabBarView()
         }
+        captureSession.startRunning()
     }
     
     
@@ -226,7 +206,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         movieOutputSetup()
         previewViewSetup()
         overlaySetup()
-        captureSession.startRunning()
+        
         
     }
     
@@ -234,16 +214,51 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         if(!animated){
             self.tabBarController!.showTabBarView()
         }
+        self.captureSession.stopRunning()
         //PUT CLEANUP CODE HERE
         //CAMERA SHOULD TURN OFF
+    }
+    
+    // SWITCH CAMERA TAP
+    @objc func handleCameraTypeTap(tapGesture: UITapGestureRecognizer){
+        captureSession.beginConfiguration()
+        if let backCamVideoInput = self.backCamVideoInput, let selfieCamInput = self.selfieCamVideoInput {
+            if captureSession.inputs.contains(backCamVideoInput) {
+                captureSession.removeInput(backCamVideoInput)
+                if captureSession.canAddInput(selfieCamInput) {
+                    captureSession.addInput(selfieCamInput)
+                    
+                    if let tapImgView = tapGesture.view as? UIImageView {
+                        tapImgView.image = UIImage(named: "backCam")
+                    }
+                }else{
+                    captureSession.addInput(backCamVideoInput)
+                }
+            }else if captureSession.inputs.contains(selfieCamInput) {
+                captureSession.removeInput(selfieCamInput)
+                if captureSession.canAddInput(backCamVideoInput) {
+                    captureSession.addInput(backCamVideoInput)
+                    if let tapImgView = tapGesture.view as? UIImageView {
+                        tapImgView.image = UIImage(named: "selfieCam")
+                    }
+                }else{
+                    captureSession.addInput(selfieCamInput)
+                }
+            }
+        }
+        captureSession.commitConfiguration()
     }
     
     @objc func handleDeleteTap(tapGesture: UITapGestureRecognizer) {
         recordingUrlList.removeLast()
         recordingLengthList.removeLast()
         recordingBlockViews.removeLast().removeFromSuperview()
-        progressBar.setProgress(Float(recordingLengthList.reduce(0, +)/60), animated: true)
         
+        self.bottomProgressBarWidthAnchor?.constant = CGFloat(recordingLengthList.reduce(0, +)/60)*self.view.frame.width
+        self.bottomProgressBar.layer.removeAllAnimations()
+        UIView.animate(withDuration: 0.3, animations: {
+            self.view.layoutIfNeeded()
+        })
     }
 
     
@@ -255,7 +270,6 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     }
     
     @objc func handleRecordButtonTap(tapGesture: UITapGestureRecognizer) {
-        
         if movieOutput.isRecording {
             movieOutput.stopRecording()
         }else{
@@ -267,6 +281,67 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         if(tapGesture.state == UIGestureRecognizer.State.ended){ }
     }
     
+    
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // AVCaptureFileOutputRecordingDelegate ////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    //DID FINISH RECORDING //I thought this wasn't on main thread but it seems to be?
+    func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?){
+        
+        self.recordButton.backgroundColor = .clear
+        self.tabBarController!.showTabBarView()
+        recordingUrlList.append(outputFileURL)
+        recordingLengthList.append(output.recordedDuration.seconds)
+        self.bottomProgressBar.layer.removeAllAnimations()
+        self.bottomProgressBarWidthAnchor?.constant = CGFloat(recordingLengthList.reduce(0, +)/60)*self.view.frame.width
+        
+        let segView = UIView(frame: CGRect(
+            x: (self.view.frame.width * CGFloat(recordingLengthList.reduce(0, +)/60)) - 2,
+            y: 0,
+            width: 2,
+            height: bottomProgressBar.frame.height
+            )
+        )
+        segView.backgroundColor = .white
+        bottomProgressBar.addSubview(segView)
+        recordingBlockViews.append(segView)
+        
+    }
+    
+    
+    //DID START RECORDING
+    func fileOutput(_ output: AVCaptureFileOutput, didStartRecordingTo fileURL: URL, from connections: [AVCaptureConnection]){
+        self.recordButton.backgroundColor = UIColor.flykRecordRed
+        
+        self.bottomProgressBarWidthAnchor?.constant = self.view.frame.width
+        self.bottomProgressBar.layer.removeAllAnimations()
+        UIView.animate(withDuration: 60 - recordingLengthList.reduce(0, +), delay: 0, options: [.curveLinear], animations: {
+            self.view.layoutIfNeeded()
+        })
+        
+        self.tabBarController!.hideTabBarView()
+        deleteLast.isHidden = true
+        goToEdit.isHidden = true
+        
+    }
+}
+
+
+//
+// PREVIEWVIEW CUSTOM UIVIEW
+//
+class PreviewView: UIView {
+    override class var layerClass: AnyClass {
+        return AVCaptureVideoPreviewLayer.self
+    }
+    /// Convenience wrapper to get layer as its statically known type.
+    var videoPreviewLayer: AVCaptureVideoPreviewLayer {
+        return layer as! AVCaptureVideoPreviewLayer
+    }
 }
 
 

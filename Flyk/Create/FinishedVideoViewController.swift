@@ -79,17 +79,21 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         return videoPlaybackPlayer
     }()
     
-    
+    let backButton = UIView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.flykDarkGrey
-        let backButton = UIView(frame: CGRect(x: self.view.frame.minX + 15, y: self.view.frame.maxY-60, width: 45, height: 45))
         backButton.layer.cornerRadius = 45/2
         backButton.layer.borderColor = UIColor.white.cgColor
         backButton.layer.borderWidth = 1
         backButton.backgroundColor = UIColor.flykMediumGrey
         self.view.addSubview(backButton)
+        backButton.translatesAutoresizingMaskIntoConstraints = false
+        backButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 15).isActive = true
+        backButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        backButton.widthAnchor.constraint(equalToConstant: 45).isActive = true
+        backButton.heightAnchor.constraint(equalTo: backButton.widthAnchor).isActive = true
         backButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleBackButtonTap(tapGesture:))))
         
         setupSwitches()
@@ -145,7 +149,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         uploadLater.layer.cornerRadius = 12
         uploadLater.translatesAutoresizingMaskIntoConstraints = false
         uploadLater.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 8).isActive = true
-        uploadLater.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
+        uploadLater.bottomAnchor.constraint(equalTo: self.backButton.topAnchor, constant: -20).isActive = true
         uploadLater.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.5, constant: -12).isActive = true
         uploadLater.heightAnchor.constraint(equalToConstant: 60).isActive = true
         let uploadLaterText = UILabel()
@@ -159,6 +163,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         uploadLaterText.trailingAnchor.constraint(equalTo: uploadLater.trailingAnchor).isActive = true
         uploadLaterText.topAnchor.constraint(equalTo: uploadLater.topAnchor).isActive = true
         uploadLaterText.bottomAnchor.constraint(equalTo: uploadLater.bottomAnchor).isActive = true
+        uploadLater.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleLaterUpload)))
         
         
         let uploadNow = UIView()
@@ -168,7 +173,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         uploadNow.layer.cornerRadius = 12
         uploadNow.translatesAutoresizingMaskIntoConstraints = false
         uploadNow.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -8).isActive = true
-        uploadNow.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 0).isActive = true
+        uploadNow.bottomAnchor.constraint(equalTo: uploadLater.bottomAnchor, constant: 0).isActive = true
         uploadNow.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.5, constant: -12).isActive = true
         uploadNow.heightAnchor.constraint(equalToConstant: 60).isActive = true
         
@@ -185,18 +190,78 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         uploadNowText.bottomAnchor.constraint(equalTo: uploadNow.bottomAnchor).isActive = true
     }
     
+    
+    func playbackViewStoreAnimation(){
+        if (self.tabBarController?.tabBar.isHidden)! {
+            self.view.isUserInteractionEnabled = false
+            self.tabBarController?.showTabBarView()
+            
+            self.videoPlaybackViewLeadingAnchor.isActive = false
+            self.videoPlaybackViewTopAnchor.isActive = false
+            self.videoPlaybackViewWidthAnchorSmall.isActive = false
+            self.videoPlaybackViewWidthAnchorBig.isActive = false
+            let startFrame = self.videoPlaybackView.frame
+            self.videoPlaybackView.frame = self.view.convert(startFrame, to: self.tabBarController?.view)
+            self.tabBarController?.view.addSubview(videoPlaybackView)
+            
+            let newPlayBackWidth: CGFloat = 18
+            let newPlaybackSize = CGSize(width: newPlayBackWidth, height: newPlayBackWidth*(16/9))
+            UIView.animate(withDuration: 1, animations: {
+                //                self.view.layoutIfNeeded()
+                
+                self.videoPlaybackView.frame.size = newPlaybackSize
+                self.videoPlaybackView.frame.origin = CGPoint(
+                    x: (self.tabBarController?.tabBar.frame.maxX)! - 40,
+                    y: (self.tabBarController?.tabBar.frame.minY)! + 5
+                )
+                
+                //ANIMATE THE PREVIEW VIEW GOING TOWARDS USER PROFILE
+                // deactivate top anchor
+                // deactivate leading anchor
+                // deactivate width anchor
+                // deactivate height anchor
+                
+            }) { (finished) in
+                
+                //                if let takeVidVCIndex = self.navigationController?.viewControllers.firstIndex(where: { (curVc) -> Bool in
+                //                    if curVc is TakeVideoViewController {
+                //                        return true
+                //                    }else{
+                //                        return false
+                //                    }
+                //                }) {
+                //
+                //                }
+                self.videoPlaybackView.removeFromSuperview()
+                self.tabBarController!.selectedIndex = 4
+                self.navigationController?.popToRootViewController(animated: true)
+            }
+            
+        }else{
+            //            self.tabBarController?.hideTabBarView()
+            //            generator.impactOccurred()
+        }
+    }
+    
+    
+    @objc func handleLaterUpload(tapGesture: UITapGestureRecognizer){
+        if finishedViewURL == nil {return}
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.prepare()
+        generator.impactOccurred()
+        playbackViewStoreAnimation()
+        
+        
+    }
     @objc func handleUploadTap(tapGesture: UITapGestureRecognizer){
-        
+        if finishedViewURL == nil {return}
+        let generator = UIImpactFeedbackGenerator(style: .heavy)
+        generator.prepare()
+        generator.impactOccurred()
+        playbackViewStoreAnimation()
+        //HERE WE PASS THE STUFF TO ALLOW THE UPLOAD TO HAPPEN
 
-        
-        // server endpoint
-//        let endpoint = "https://swiftytest.uc.r.appspot.com/upload/"
-//
-//        guard let endpointUrl = URL(string: endpoint) else {
-//            return
-//        }
-        
-        let url = "https://swiftytest.uc.r.appspot.com/upload/"
+        let url = "https://upload-dot-swiftytest.uc.r.appspot.com/upload"
 //        let img = UIImage(contentsOfFile: fullPath)
         var data: NSData;
         do {
@@ -205,33 +270,12 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
             print("URL FAIL")
             return
         }
-        
-//        MultiPartPost.sendFile(url,
-//                               fileName: "one.jpg",
-//                               data: data,
-//                               completionHandler:
-//            {(result:Bool, isNoInternetConnection:Bool) -> Void in
-//
-//            NSLog("Complete: \(result)")
-//            }
-//        )
-        
-        //Make JSON to send to send to server
-//        var json = [String:Any]()
-//
-//        json[SKUser.PropertyKey.UUID] = user.UUID
-//        json[SKUser.PropertyKey.projectID] = user.projectID
-//        json[SKUser.PropertyKey.countryCode] = user.countryCode
-//        json[SKUser.PropertyKey.deviceType] = user.deviceType
-//        json[SKEvent.PropertyKey.type] = eventType.rawValue
-//        json[SKEvent.PropertyKey.stickerID] = sticker?.id ?? ""
-        
+
         
         do {
-//            let data = Data(contentsOf: finishedViewURL)
-//            let data = try JSONSerialization.data(withJSONObject: json, options: [])
             let boundary = "?????"
             var request = URLRequest(url: URL(string: url)!)
+            request.timeoutInterval = 660
             request.httpMethod = "POST"
             request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video") as Data
 //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
@@ -251,13 +295,12 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
                 
                 guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
                     print("Server error!")
-                    print(data, response, error)
+//                    print(data, response, error)
                     return
                 }
-                
-                print(response)
+                print("SUCCESS")
             }
-            
+            print("Upload Started")
             task.resume()
             
             
@@ -334,7 +377,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     func textViewDidChange(_ textView: UITextView) {
         characterCounter.text = String(textView.text.count)
         let newSize = characterCounter.attributedText!.size()
-        print(newSize)
+
         characterCounter.frame = CGRect(
             origin: CGPoint(
                 x: characterCounter.superview!.bounds.maxX - newSize.width,
@@ -372,6 +415,5 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         if (self.navigationController?.viewControllers.contains(self))! {
             self.navigationController?.popViewController(animated: true)
         }
-        print(self.navigationController?.viewControllers.contains(self))
     }
 }

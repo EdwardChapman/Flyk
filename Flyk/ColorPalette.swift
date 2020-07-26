@@ -20,4 +20,5 @@ extension UIColor {
     static let flykLightBlack = UIColor(red: 0.086, green: 0.086, blue: 0.086, alpha: 1)
     static let flykRecordRed = UIColor(red: 1, green: 0, blue: 0, alpha: 0.7)
     static let flykLoadingGrey = UIColor(red: 0.3, green: 0.3, blue: 0.3, alpha: 1)
+    static let flykLightGrey = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 1)
 }

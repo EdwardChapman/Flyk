@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */; };
 		922B226E24AFB41000914FD4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 922B226D24AFB40F00914FD4 /* Assets.xcassets */; };
 		924A142624C29CE100B8929F /* UploadFiles.swift in Sources */ = {isa = PBXBuildFile; fileRef = 924A142524C29CE100B8929F /* UploadFiles.swift */; };
 		927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61224AD590D002445B9 /* AppDelegate.swift */; };
@@ -18,7 +19,6 @@
 		927BB63524AD590F002445B9 /* DripDropUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB63424AD590F002445B9 /* DripDropUITests.swift */; };
 		927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64424AD5DFD002445B9 /* FourthViewController.swift */; };
 		927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64624AD5E23002445B9 /* MyProfile.swift */; };
-		927BB64D24AD7A76002445B9 /* Carousel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64C24AD7A76002445B9 /* Carousel.swift */; };
 		928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242C924BAAEAE0000C44A /* TextEditorView.swift */; };
 		928242CC24BADE200000C44A /* VideoOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242CB24BADE200000C44A /* VideoOverlayView.swift */; };
 		928242CF24BB6F7C0000C44A /* BasketView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242CE24BB6F7C0000C44A /* BasketView.swift */; };
@@ -28,11 +28,15 @@
 		928242D724BC29B30000C44A /* ExportComposition.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242D624BC29B30000C44A /* ExportComposition.swift */; };
 		9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */; };
 		9298485024C18D8F005AA6F0 /* SwipeBackNavigationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */; };
-		929AE76324B00A22002FC64D /* Content.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76224B00A22002FC64D /* Content.swift */; };
 		929AE76724B00CFD002FC64D /* Home.swift in Sources */ = {isa = PBXBuildFile; fileRef = 929AE76624B00CFD002FC64D /* Home.swift */; };
+		92B2D9FF24CE4C54004F1CCC /* PostsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B2D9FE24CE4C54004F1CCC /* PostsCell.swift */; };
+		92B2DA0124CE4C63004F1CCC /* DraftsCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B2DA0024CE4C63004F1CCC /* DraftsCell.swift */; };
+		92B5B79524CB3DA600DADE85 /* TextColorPicker.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92B5B79424CB3DA600DADE85 /* TextColorPicker.swift */; };
 		92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28724B6710500A71950 /* TakeVideoViewController.swift */; };
 		92DAA28A24B6714800A71950 /* EditVideoViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DAA28924B6714700A71950 /* EditVideoViewController.swift */; };
 		92DD6F5F24C6555C008CBCEA /* DiscoverSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD6F5E24C6555C008CBCEA /* DiscoverSearchBar.swift */; };
+		92DD729A24CA32BA002BC233 /* ProfileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729924CA32BA002BC233 /* ProfileCell.swift */; };
+		92DD729C24CA4C7C002BC233 /* NotificationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729B24CA4C7C002BC233 /* NotificationCell.swift */; };
 		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
 		92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F87D0624BFB1B1002F75FD /* VideoCell.swift */; };
 /* End PBXBuildFile section */
@@ -55,6 +59,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarIsHiddenExtension.swift; sourceTree = "<group>"; };
 		922B226D24AFB40F00914FD4 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = SOURCE_ROOT; };
 		924A142524C29CE100B8929F /* UploadFiles.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = UploadFiles.swift; sourceTree = "<group>"; };
 		927BB60F24AD590D002445B9 /* Flyk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = Flyk.app; sourceTree = BUILT_PRODUCTS_DIR; };
@@ -72,7 +77,6 @@
 		927BB63624AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		927BB64424AD5DFD002445B9 /* FourthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FourthViewController.swift; sourceTree = "<group>"; };
 		927BB64624AD5E23002445B9 /* MyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfile.swift; sourceTree = "<group>"; };
-		927BB64C24AD7A76002445B9 /* Carousel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Carousel.swift; sourceTree = "<group>"; };
 		928242C924BAAEAE0000C44A /* TextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorView.swift; sourceTree = "<group>"; };
 		928242CB24BADE200000C44A /* VideoOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoOverlayView.swift; sourceTree = "<group>"; };
 		928242CE24BB6F7C0000C44A /* BasketView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BasketView.swift; sourceTree = "<group>"; };
@@ -82,11 +86,15 @@
 		928242D624BC29B30000C44A /* ExportComposition.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExportComposition.swift; sourceTree = "<group>"; };
 		9290A4A824BE407C002B6F96 /* FinishedVideoViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FinishedVideoViewController.swift; sourceTree = "<group>"; };
 		9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SwipeBackNavigationController.swift; sourceTree = "<group>"; };
-		929AE76224B00A22002FC64D /* Content.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Content.swift; sourceTree = "<group>"; };
 		929AE76624B00CFD002FC64D /* Home.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = Home.swift; sourceTree = "<group>"; };
+		92B2D9FE24CE4C54004F1CCC /* PostsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsCell.swift; sourceTree = "<group>"; };
+		92B2DA0024CE4C63004F1CCC /* DraftsCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftsCell.swift; sourceTree = "<group>"; };
+		92B5B79424CB3DA600DADE85 /* TextColorPicker.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextColorPicker.swift; sourceTree = "<group>"; };
 		92DAA28724B6710500A71950 /* TakeVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = TakeVideoViewController.swift; sourceTree = "<group>"; };
 		92DAA28924B6714700A71950 /* EditVideoViewController.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = EditVideoViewController.swift; sourceTree = "<group>"; };
 		92DD6F5E24C6555C008CBCEA /* DiscoverSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverSearchBar.swift; sourceTree = "<group>"; };
+		92DD729924CA32BA002BC233 /* ProfileCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCell.swift; sourceTree = "<group>"; };
+		92DD729B24CA4C7C002BC233 /* NotificationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCell.swift; sourceTree = "<group>"; };
 		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		92F87D0624BFB1B1002F75FD /* VideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -188,6 +196,7 @@
 			isa = PBXGroup;
 			children = (
 				927BB64424AD5DFD002445B9 /* FourthViewController.swift */,
+				92DD729B24CA4C7C002BC233 /* NotificationCell.swift */,
 			);
 			path = Notifications;
 			sourceTree = "<group>";
@@ -216,6 +225,9 @@
 			isa = PBXGroup;
 			children = (
 				927BB64624AD5E23002445B9 /* MyProfile.swift */,
+				92DD729924CA32BA002BC233 /* ProfileCell.swift */,
+				92B2D9FE24CE4C54004F1CCC /* PostsCell.swift */,
+				92B2DA0024CE4C63004F1CCC /* DraftsCell.swift */,
 			);
 			path = "My Profile";
 			sourceTree = "<group>";
@@ -226,7 +238,7 @@
 				92DAA28924B6714700A71950 /* EditVideoViewController.swift */,
 				928242CB24BADE200000C44A /* VideoOverlayView.swift */,
 				928242CE24BB6F7C0000C44A /* BasketView.swift */,
-				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
+				92DD729D24CB3D33002BC233 /* TextEditing */,
 				928242D624BC29B30000C44A /* ExportComposition.swift */,
 				928242D424BBD6BE0000C44A /* SetDurationView.swift */,
 				928242D024BBB3EB0000C44A /* MenuTargetView.swift */,
@@ -238,10 +250,18 @@
 		929AE76424B00A36002FC64D /* components */ = {
 			isa = PBXGroup;
 			children = (
-				927BB64C24AD7A76002445B9 /* Carousel.swift */,
-				929AE76224B00A22002FC64D /* Content.swift */,
+				9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */,
 			);
 			path = components;
+			sourceTree = "<group>";
+		};
+		92DD729D24CB3D33002BC233 /* TextEditing */ = {
+			isa = PBXGroup;
+			children = (
+				928242C924BAAEAE0000C44A /* TextEditorView.swift */,
+				92B5B79424CB3DA600DADE85 /* TextColorPicker.swift */,
+			);
+			path = TextEditing;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -375,6 +395,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				92B5B79524CB3DA600DADE85 /* TextColorPicker.swift in Sources */,
+				92B2D9FF24CE4C54004F1CCC /* PostsCell.swift in Sources */,
 				92DAA28A24B6714800A71950 /* EditVideoViewController.swift in Sources */,
 				928242CC24BADE200000C44A /* VideoOverlayView.swift in Sources */,
 				928242D324BBB4670000C44A /* PresentationHitTest.swift in Sources */,
@@ -382,13 +404,12 @@
 				927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */,
 				927BB61724AD590D002445B9 /* DiscoverViewController.swift in Sources */,
 				927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */,
-				929AE76324B00A22002FC64D /* Content.swift in Sources */,
 				929AE76724B00CFD002FC64D /* Home.swift in Sources */,
-				927BB64D24AD7A76002445B9 /* Carousel.swift in Sources */,
 				92DD6F5F24C6555C008CBCEA /* DiscoverSearchBar.swift in Sources */,
 				924A142624C29CE100B8929F /* UploadFiles.swift in Sources */,
 				927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */,
 				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
+				9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */,
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,
@@ -396,8 +417,11 @@
 				92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */,
 				928242D524BBD6BE0000C44A /* SetDurationView.swift in Sources */,
 				928242D124BBB3EB0000C44A /* MenuTargetView.swift in Sources */,
+				92DD729A24CA32BA002BC233 /* ProfileCell.swift in Sources */,
 				92DAA28824B6710600A71950 /* TakeVideoViewController.swift in Sources */,
+				92DD729C24CA4C7C002BC233 /* NotificationCell.swift in Sources */,
 				928242D724BC29B30000C44A /* ExportComposition.swift in Sources */,
+				92B2DA0124CE4C63004F1CCC /* DraftsCell.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
