@@ -36,6 +36,12 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     
     var returnToForegroundObserver: NSObjectProtocol?
     
+    lazy var commentsViewController: CommentsViewController = {
+        let cVc = CommentsViewController()
+        cVc.transitioningDelegate = cVc
+        cVc.modalPresentationStyle = .custom
+        return cVc
+    }()
     
     
     override func viewWillAppear(_ animated: Bool) {
@@ -80,12 +86,24 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         
         
         collectionView.refreshControl = UIRefreshControl()
+        
         collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
         collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
         collectionView.refreshControl!.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
         collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
+
+        
+
                 
+    }
+    @objc func handleAPNGTap(tapGesture: UITapGestureRecognizer){
+        if (tapGesture.view as! UIImageView).isAnimating {
+            (tapGesture.view as! UIImageView).stopAnimating()
+            (tapGesture.view as! UIImageView).animationImages = nil
+        }else{
+//            (tapGesture.view as! UIImageView).startAnimating()
+        }
     }
     @objc func handleRefreshControl() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
@@ -137,6 +155,9 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "videoCell", for: indexPath) as! VideoCell
         cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
+        
+        cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
+        
         let remoteAsset = AVAsset(url: videoURLs[indexPath.row])
         
 
@@ -288,7 +309,10 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         self.present(vc, animated: true)
     }
     
-    
+    @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
+        self.present(self.commentsViewController, animated: true) {/*CompletionHandler*/}
+    }
+
 
 }
 

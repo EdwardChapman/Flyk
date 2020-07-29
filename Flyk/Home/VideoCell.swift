@@ -25,6 +25,9 @@ class VideoCell: UICollectionViewCell {
     var pause: UIImageView!
     var share: UIImageView!
     
+    
+    let comments = UIImageView(image: UIImage(named: "commentsImg"))
+    
     var isPaused: Bool = true {
         didSet {
             if isPaused {
@@ -151,6 +154,29 @@ class VideoCell: UICollectionViewCell {
         
         
         
+        comments.contentMode = .scaleAspectFit
+        self.addSubview(comments)
+        comments.translatesAutoresizingMaskIntoConstraints = false
+        comments.leadingAnchor.constraint(equalTo: share.trailingAnchor, constant: 15).isActive = true
+        comments.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -60).isActive = true
+        comments.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        comments.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        comments.alpha = 0.8
+        comments.isUserInteractionEnabled = true
+        
+        let commentsCounter = UILabel()
+        commentsCounter.adjustsFontSizeToFitWidth = true
+        comments.addSubview(commentsCounter)
+        commentsCounter.text = "500"
+        commentsCounter.textColor = .white
+        commentsCounter.translatesAutoresizingMaskIntoConstraints = false
+        commentsCounter.centerXAnchor.constraint(equalTo: comments.centerXAnchor, constant: -2).isActive = true
+        commentsCounter.centerYAnchor.constraint(equalTo: comments.centerYAnchor, constant: -3).isActive = true
+        commentsCounter.widthAnchor.constraint(lessThanOrEqualTo: comments.widthAnchor, multiplier: 0.6).isActive = true
+        commentsCounter.heightAnchor.constraint(lessThanOrEqualTo: comments.heightAnchor, multiplier: 0.8).isActive = true
+        
+        
+        
         pause = UIImageView(image: UIImage(named: "pause"))
         pause.contentMode = .scaleAspectFit
         self.addSubview(pause)
@@ -163,6 +189,8 @@ class VideoCell: UICollectionViewCell {
         pause.isHidden = true
         
     }
+    
+
     
     @objc func handleHeartTap(tapGesture: UITapGestureRecognizer){
         if let imgView = tapGesture.view as? UIImageView{

@@ -7,6 +7,7 @@
 //
 
 import UIKit
+import CoreData
 import AVFoundation
 
 
@@ -233,6 +234,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
                 //
                 //                }
                 self.videoPlaybackView.removeFromSuperview()
+                self.playerLayer.player?.pause()
                 self.tabBarController!.selectedIndex = 4
                 self.navigationController?.popToRootViewController(animated: true)
             }
@@ -252,6 +254,39 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         playbackViewStoreAnimation()
         
         
+        let videoName = UUID().uuidString+".mov"
+        let videoDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent(videoName)
+        
+        do{
+            try FileManager.default.moveItem(at: finishedViewURL!, to: videoDocumentsURL)
+        }catch {
+            print("FAILED MOVING VIDEO FILE")
+            return;
+        }
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        
+        let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
+        let draft = NSManagedObject(entity: entity!, insertInto: context)
+        
+        draft.setValue(videoName, forKey: "filename")
+        draft.setValue(Date(), forKey: "creationDate")
+        draft.setValue(true, forKey: "allowComments")
+        draft.setValue(false, forKey: "allowReactions")
+        draft.setValue("Saved", forKey: "uploadStatus")
+        draft.setValue("Hello this is my first video!", forKey: "videoDescription")
+        draft.setValue(0, forKey: "uploadProgress")
+        
+//        do {
+//            try context.save()
+//        } catch {
+//            print("Failed saving")
+//            return;
+//        }
+        
+        
+        
     }
     @objc func handleUploadTap(tapGesture: UITapGestureRecognizer){
         if finishedViewURL == nil {return}
@@ -259,55 +294,47 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         generator.prepare()
         generator.impactOccurred()
         playbackViewStoreAnimation()
-        //HERE WE PASS THE STUFF TO ALLOW THE UPLOAD TO HAPPEN
-
-        let url = "https://upload-dot-swiftytest.uc.r.appspot.com/upload"
-//        let img = UIImage(contentsOfFile: fullPath)
-        var data: NSData;
-        do {
-            try data = NSData(contentsOf: finishedViewURL!)
-        }catch{
-            print("URL FAIL")
-            return
-        }
-
+        // HERE WE PASS THE STUFF TO ALLOW THE UPLOAD TO HAPPEN
+        // USE COREDATA TO STORE IT HERE
         
-        do {
-            let boundary = "?????"
-            var request = URLRequest(url: URL(string: url)!)
-            request.timeoutInterval = 660
-            request.httpMethod = "POST"
-            request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video") as Data
-//            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
-            request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
-                              forHTTPHeaderField: "Content-Type")
-            request.addValue("video/mp4", forHTTPHeaderField: "mimeType")
-            request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
-            
-            request.addValue("text/plain", forHTTPHeaderField: "Accept")
-            
-            let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                
-                if error != nil || data == nil {
-                    print("Client error!")
-                    return
-                }
-                
-                guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
-                    print("Server error!")
-//                    print(data, response, error)
-                    return
-                }
-                print("SUCCESS")
-            }
-            print("Upload Started")
-            task.resume()
-            
-            
-            
-            
-        }catch{}
+        let videoName = UUID().uuidString+".mov"
+        let videoDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+            .appendingPathComponent(videoName)
+        
+        do{
+            try FileManager.default.moveItem(at: finishedViewURL!, to: videoDocumentsURL)
+        }catch {
+            print("FAILED MOVING VIDEO FILE")
+            return;
+        }
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        let context = appDelegate.persistentContainer.viewContext
+        
+        let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
+        let draft = NSManagedObject(entity: entity!, insertInto: context)
+        
+        draft.setValue(videoName, forKey: "filename")
+        draft.setValue(Date(), forKey: "creationDate")
+        draft.setValue(true, forKey: "allowComments")
+        draft.setValue(false, forKey: "allowReactions")
+        draft.setValue("ShouldUpload", forKey: "uploadStatus")
+        draft.setValue("Hello this is my first video!", forKey: "videoDescription")
+        draft.setValue(0, forKey: "uploadProgress")
+        
+        
+        ServerUpload.videoUpload(videoUrl: videoDocumentsURL)
+//        do {
+//            try context.save()
+//        } catch {
+//            print("Failed saving")
+//            return;
+//        }
+        
+        
+        
     }
+    
+    
     
     func setupSwitches(){
         let tandemSwitch = UISwitch(frame: .zero)

@@ -7,6 +7,8 @@
 //
 
 import UIKit
+import CoreData
+import AVFoundation
 
 
 
@@ -20,54 +22,35 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     var usernameTextView : UITextView!
     var bioTextView : UITextView!
     
+    
+    func printHi(){
+        print("HIIHIHIHIHIHIHI")
+    }
+    
+    lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    lazy var context = appDelegate.persistentContainer.viewContext
+    
+    
+    lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
+        
+        
+    
+    func fetchDraftEntityList() -> [NSManagedObject]{
+        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Draft")
+        request.returnsObjectsAsFaults = false
+        do {
+            let result = try context.fetch(request)
+            return result as! [NSManagedObject]
+        } catch {
+            print("Failed fetching saved videos", error)
+            return []
+        }
+        //        print(data.entity.attributesByName.keys) //GET ALL KEYS
+        //        print(data.value(forKey: "videoUrl") //GET VALUE
+    }
+
 
     
-    func getMyProfile() {
-        
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/myProfile/")!) { data, response, error in
-            
-            if error != nil || data == nil {
-                print("Client error!")
-                return
-            }
-            
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-                print("Server error!")
-                return
-            }
-            
-            guard let mime = response.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-            
-            do {
-                let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
-                //            {
-                //                username: "Mr. Polar Bear",
-                //                profile_photos: "polar_bear.jpg",
-                //                videos: [
-                //                "v09044e20000brmcq2ihl9acefv17icg.MP4",
-                //                "v09044fa0000brfud6gpfrijil1melq0.MP4"
-                //                ],
-                //                bio: "I am a polar bear."
-                //            }
-                print(myProfileData)
-                
-                self.loadProfileImage(profileImgString: myProfileData["profile_photos"] as? String ?? "default.png")
-                
-                DispatchQueue.main.async {
-                    self.usernameTextView.text = myProfileData["username"] as? String
-                    self.bioTextView.text = myProfileData["bio"] as? String
-                }
-                
-                
-            } catch {
-                print("JSON error: \(error.localizedDescription)")
-            }
-            
-            }.resume()
-    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -88,7 +71,6 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-//        collectionView.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 2).isActive = true
         collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
@@ -113,7 +95,11 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         generator.impactOccurred()
 //        fetchVideoList()
         // Dismiss the refresh control.
-        DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
+        DispatchQueue.main.async {
+            self.savedVideosData = self.fetchDraftEntityList()
+            self.collectionView.reloadData()
+            self.collectionView.refreshControl!.endRefreshing()
+        }
     }
     
     
@@ -126,16 +112,134 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         if section == 0 {return 1}
-        return 10
+        return savedVideosData.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         if(indexPath.section == 0){
             let profileCell = collectionView.dequeueReusableCell(withReuseIdentifier: "profileCell", for: indexPath)
+            
             return profileCell
         }else{
             let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "thumbnailVideo", for: indexPath)
             cell.backgroundColor = .flykMediumGrey
+            
+            let savedURL = savedVideosData[indexPath.row].value(forKey: "filename") as! String
+            let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                .appendingPathComponent(savedURL)
+            
+            
+            let videoAsset = AVAsset(url: documentsUrl)
+            let newPlayer = AVPlayer(url: documentsUrl)
+            let playerLayer = AVPlayerLayer()
+            playerLayer.player = newPlayer
+            playerLayer.videoGravity = .resizeAspectFill
+            playerLayer.frame = cell.layer.bounds
+            cell.layer.addSublayer(playerLayer)
+            
+            
+            
+            let cellOverlay = UIView()
+            cell.addSubview(cellOverlay)
+            cellOverlay.translatesAutoresizingMaskIntoConstraints = false
+            cellOverlay.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
+            cellOverlay.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
+            cellOverlay.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
+            cellOverlay.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
+            
+            let uploadProgressView = UIView()
+            uploadProgressView.backgroundColor = .flykBlue
+            uploadProgressView.alpha = 0.7
+            cellOverlay.addSubview(uploadProgressView)
+            uploadProgressView.translatesAutoresizingMaskIntoConstraints = false
+            let bottomTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.bottomAnchor)
+            bottomTopAnchor.isActive = true
+            let topTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.topAnchor)
+            topTopAnchor.isActive = false
+            uploadProgressView.bottomAnchor.constraint(equalTo: cellOverlay.bottomAnchor).isActive = true
+            uploadProgressView.leadingAnchor.constraint(equalTo: cellOverlay.leadingAnchor).isActive = true
+            uploadProgressView.trailingAnchor.constraint(equalTo: cellOverlay.trailingAnchor).isActive = true
+            
+            let uploadingLabel = UILabel()
+            cellOverlay.addSubview(uploadingLabel)
+            uploadingLabel.text = "Uploading"
+            uploadingLabel.textColor = .white
+            uploadingLabel.translatesAutoresizingMaskIntoConstraints = false
+            uploadingLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
+            uploadingLabel.centerYAnchor.constraint(equalTo: cellOverlay.centerYAnchor).isActive = true
+            
+            let cancelLabel = UILabel()
+            cellOverlay.addSubview(cancelLabel)
+            cancelLabel.text = "CANCEL"
+            cancelLabel.textColor = .white
+            cancelLabel.backgroundColor = .red
+            cancelLabel.alpha = 0.7
+            cancelLabel.layer.cornerRadius = 5
+            cancelLabel.clipsToBounds = true
+            cancelLabel.translatesAutoresizingMaskIntoConstraints = false
+            cancelLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
+            cancelLabel.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 20).isActive = true
+            
+            cell.layoutIfNeeded()
+            
+            bottomTopAnchor.isActive = false
+            topTopAnchor.isActive = true
+            
+            UIView.animate(withDuration: 5, animations: {
+                cell.layoutIfNeeded()
+            }) { (finished) in
+                
+                uploadingLabel.text = "Processing"
+                
+                cancelLabel.isHidden = true
+                let processingBar = UIView()
+                cellOverlay.addSubview(processingBar)
+                processingBar.translatesAutoresizingMaskIntoConstraints = false
+                processingBar.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
+                processingBar.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 15).isActive = true
+                processingBar.widthAnchor.constraint(equalTo: cellOverlay.widthAnchor, multiplier: 0.7).isActive = true
+                processingBar.heightAnchor.constraint(equalToConstant: 25).isActive = true
+                processingBar.layer.cornerRadius = 25/2
+                processingBar.backgroundColor = .white
+                processingBar.clipsToBounds = true
+                cell.layoutIfNeeded()
+                var pBStart: CGFloat = -processingBar.frame.width - 35
+                var counter = 0
+                while(pBStart < processingBar.frame.width){
+                    counter+=1
+                    let slantBar = UIView()
+                    processingBar.addSubview(slantBar)
+                    slantBar.backgroundColor = .flykBlue
+                    slantBar.frame = CGRect(
+                        x: pBStart,
+                        y: 0,
+                        width: 10,
+                        height: processingBar.frame.height*1.5
+                    )
+                    slantBar.center.y = processingBar.bounds.height/2
+                    pBStart += 2*slantBar.frame.width
+                    slantBar.transform = slantBar.transform.rotated(by: 3.14*(1/6))
+                }
+                let posMov: CGFloat = CGFloat((Int(processingBar.frame.width/10)+2)*10)
+                for slant in processingBar.subviews {
+                    UIView.animate(withDuration: 4, delay: 0, options: [.curveLinear, .repeat], animations: {
+                        UIView.setAnimationRepeatCount(1)
+                        slant.center.x += posMov
+                    }, completion: { (finished) in
+//                        print("COMPLETED")
+                        if slant == processingBar.subviews.last {
+                            UIView.animate(withDuration: 0.3, delay: 0, options: [], animations: {
+                                cellOverlay.alpha = 0
+                            }, completion: {(fin) in
+                                print(fin)
+                                cellOverlay.isHidden = true
+                            })
+                        }
+                    })
+                }
+            }
+            
+            newPlayer.play()
             return cell
         }
     }
@@ -194,9 +298,59 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     
     
+    
+    
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    func getMyProfile() {
+        
+        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/myProfile/")!) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            do {
+                let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
+                //            {
+                //                username: "Mr. Polar Bear",
+                //                profile_photos: "polar_bear.jpg",
+                //                videos: [
+                //                "v09044e20000brmcq2ihl9acefv17icg.MP4",
+                //                "v09044fa0000brfud6gpfrijil1melq0.MP4"
+                //                ],
+                //                bio: "I am a polar bear."
+                //            }
+                print(myProfileData)
+                
+                self.loadProfileImage(profileImgString: myProfileData["profile_photos"] as? String ?? "default.png")
+                
+                DispatchQueue.main.async {
+                    self.usernameTextView.text = myProfileData["username"] as? String
+                    self.bioTextView.text = myProfileData["bio"] as? String
+                }
+                
+                
+            } catch {
+                print("JSON error: \(error.localizedDescription)")
+            }
+            
+            }.resume()
+    }
     
     func loadProfileImage(profileImgString: String){
         let pImgURL = URL(string: "https://swiftytest.uc.r.appspot.com/profilePhotos/"+profileImgString)!
