@@ -189,6 +189,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         if(animated){
             self.tabBarController!.showTabBarView()
         }
@@ -211,6 +212,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     }
     
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         if(!animated){
             self.tabBarController!.showTabBarView()
         }

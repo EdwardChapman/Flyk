@@ -270,6 +270,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
 //        print("APPEAR")
         if(animated){
             self.tabBarController!.hideTabBarView()
@@ -277,6 +278,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         videoPlaybackPlayer.play()
     }
     override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
         //STOP PLAYING audio/video
         for subview in self.view.subviews{
             

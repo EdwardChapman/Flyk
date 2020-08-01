@@ -18,7 +18,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     
     
     override func viewWillAppear(_ animated: Bool) {
-        
+        super.viewWillAppear(animated)
     }
     
     override func viewDidLoad() {
@@ -100,7 +100,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     }
     
     override func viewDidDisappear(_ animated: Bool) {
-
+        super.viewDidDisappear(animated)
     }
     
     deinit {

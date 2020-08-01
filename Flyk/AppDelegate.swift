@@ -40,6 +40,35 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         return container
     }()
     
+    let defaults = UserDefaults.standard
+    func isFirstLaunch() {
+        if defaults.bool(forKey: "FirstLaunch") == true {
+            print("Second+")
+            return;
+        }else{
+            print("First")
+//            defaults.set(true, forKey: "FirstLaunch")
+            //Send request to init new account
+            //Request cookie
+            
+        }
+    }
+    
+    func triggerSignInIfNoAccount(customMessgae: String?) -> Bool{
+        // check if user has account
+        // retrun true
+        
+        let rootView = UIApplication.shared.windows.first?.rootViewController
+        let signInNav = SignInNavController()
+        signInNav.transitioningDelegate = signInNav
+        signInNav.modalPresentationStyle = .custom
+        signInNav.signInRootViewController.customMessage = customMessgae
+        rootView?.present(signInNav, animated: true, completion: {})
+        return false
+    }
+    
+    let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String
+    
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
         // Override point for customization after application launch.
@@ -49,8 +78,6 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch let error as NSError {
             print(error)
         }
-        FileManager.default.clearTmpDirectory()
-        
         return true
     }
 
@@ -74,6 +101,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
 
     func applicationWillTerminate(_ application: UIApplication) {
         // Called when the application is about to terminate. Save data if appropriate. See also applicationDidEnterBackground:.
+        FileManager.default.clearTmpDirectory()
     }
 
 

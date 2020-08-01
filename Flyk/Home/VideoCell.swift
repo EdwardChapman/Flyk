@@ -193,10 +193,13 @@ class VideoCell: UICollectionViewCell {
 
     
     @objc func handleHeartTap(tapGesture: UITapGestureRecognizer){
-        if let imgView = tapGesture.view as? UIImageView{
-            imgView.isHighlighted = !imgView.isHighlighted
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.success)
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Like Posts") {
+            if let imgView = tapGesture.view as? UIImageView{
+                imgView.isHighlighted = !imgView.isHighlighted
+                let generator = UINotificationFeedbackGenerator()
+                generator.notificationOccurred(.success)
+            }
         }
     }
     @objc func profileImgTapGesture(tapGesture: UITapGestureRecognizer){

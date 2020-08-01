@@ -45,6 +45,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     
     
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         addReturnToForegroundObserver()
         if let currentCell = self.currentCell {
             if !currentCell.isPaused {
@@ -55,10 +56,9 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     
     override func viewDidLoad() {
         super.viewDidLoad()
-
         
         
-//        fetchVideoList() // THIS IS DISABLED FOR TESTING
+        fetchVideoList() // THIS IS DISABLED FOR TESTING
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .vertical
         flowLayout.minimumInteritemSpacing = 0
@@ -93,9 +93,16 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
 
-        
+        print(UIDevice.current.name, UIDevice.current.identifierForVendor?.uuidString)
 
                 
+    }
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        appDelegate.isFirstLaunch()
+        
+//        appDelegate.triggerSignInIfNoAccount(customMessgae: "hi")
     }
     @objc func handleAPNGTap(tapGesture: UITapGestureRecognizer){
         if (tapGesture.view as! UIImageView).isAnimating {
@@ -118,6 +125,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     }
     
     override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         removeReturnToForegroundObserver()
         if let currentCell = self.currentCell {
             currentCell.player.pause()
@@ -310,7 +318,10 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     }
     
     @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
-        self.present(self.commentsViewController, animated: true) {/*CompletionHandler*/}
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Write Comments") {
+            self.present(self.commentsViewController, animated: true) {/*CompletionHandler*/}
+        }
     }
 
 

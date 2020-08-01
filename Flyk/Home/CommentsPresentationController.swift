@@ -87,6 +87,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.view.addSubview(dragOverlayView)
         dragOverlayView.translatesAutoresizingMaskIntoConstraints = false
         dragOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
@@ -178,18 +179,17 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         removeKeyboardObserver()
     }
     
-    override func viewWillDisappear(_ animated: Bool) {
-        self.keyboardHeight = nil
-    }
-    
     override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
         print(self.commentInputViewBottomAnchor.constant)
         self.view.layoutIfNeeded()
     }
     override func viewDidAppear(_ animated: Bool) {
-       self.keyboardHeight = nil
+        super.viewDidAppear(animated)
+        self.keyboardHeight = nil
     }
     override func viewDidDisappear(_ animated: Bool) {
+        super.viewDidDisappear(animated)
         self.keyboardHeight = nil
     }
     
