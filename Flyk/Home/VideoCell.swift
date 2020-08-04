@@ -68,7 +68,7 @@ class VideoCell: UICollectionViewCell {
     
     func addOverlay(){
         let profileImg = UIImageView()
-        let pImgURL = URL(string: "https://swiftytest.uc.r.appspot.com/profilePhotos/polar_bear.jpg")
+        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/polar_bear.jpg")
         URLSession.shared.dataTask(with:  pImgURL!, completionHandler: { data, response, error in
             DispatchQueue.main.async {
                 profileImg.image = UIImage(data: data!)

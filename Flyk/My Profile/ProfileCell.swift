@@ -12,16 +12,17 @@ import UIKit
 import AVFoundation
 
 
-class ProfileCell: UICollectionViewCell {
+class ProfileCell: UIView {
     
     let profileImage = UIImageView()
     let usernameLabel = UILabel()
     let bioTextView = UITextView()
+    let settingsImgView = UIImageView(image: UIImage(named: "settings"))
     
     override init(frame: CGRect){
         super.init(frame: frame)
 //        getMyProfile()
-        
+        self.backgroundColor = .flykLightBlack
         let profileImageWidth: CGFloat = 100
         profileImage.layer.cornerRadius = profileImageWidth/2;
         profileImage.layer.masksToBounds = true;
@@ -37,7 +38,8 @@ class ProfileCell: UICollectionViewCell {
         bioTextView.text = "Hello this is my profile\nRoar"
         bioTextView.font = bioTextView.font!.withSize(16)
         
-        let settingsImgView = UIImageView(image: UIImage(named: "settings"))
+        
+        settingsImgView.isUserInteractionEnabled = true
         settingsImgView.contentMode = .scaleAspectFit
         settingsImgView.frame = CGRect(
             x: self.frame.width - 50,
@@ -45,6 +47,7 @@ class ProfileCell: UICollectionViewCell {
             width: 30,
             height: 30
         )
+
         self.addSubview(settingsImgView)
         
         
@@ -75,23 +78,7 @@ class ProfileCell: UICollectionViewCell {
         
     }
     
-    @objc func handlePauseTapGesture(tapGesture: UITapGestureRecognizer){
-       
-    }
-    
-    func addOverlay(){
-        
-    }
-    
-    
-    
-    override func prepareForReuse() {
-        super.prepareForReuse()
-        
-    }
-    
-    
-    
+
     
     required init?(coder aDecoder: NSCoder) {
         fatalError("init(coder:) has not been implemented")

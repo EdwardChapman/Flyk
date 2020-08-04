@@ -45,6 +45,9 @@
 		92DD6F5F24C6555C008CBCEA /* DiscoverSearchBar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD6F5E24C6555C008CBCEA /* DiscoverSearchBar.swift */; };
 		92DD729A24CA32BA002BC233 /* ProfileCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729924CA32BA002BC233 /* ProfileCell.swift */; };
 		92DD729C24CA4C7C002BC233 /* NotificationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729B24CA4C7C002BC233 /* NotificationCell.swift */; };
+		92DFF57624D5C82B00ED5CEA /* PostsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */; };
+		92DFF57824D6291F00ED5CEA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57724D6291F00ED5CEA /* Settings.swift */; };
+		92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57924D7600400ED5CEA /* FlykConfig.swift */; };
 		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
 		92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F87D0624BFB1B1002F75FD /* VideoCell.swift */; };
 /* End PBXBuildFile section */
@@ -111,6 +114,9 @@
 		92DD6F5E24C6555C008CBCEA /* DiscoverSearchBar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DiscoverSearchBar.swift; sourceTree = "<group>"; };
 		92DD729924CA32BA002BC233 /* ProfileCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileCell.swift; sourceTree = "<group>"; };
 		92DD729B24CA4C7C002BC233 /* NotificationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCell.swift; sourceTree = "<group>"; };
+		92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsCollectionView.swift; sourceTree = "<group>"; };
+		92DFF57724D6291F00ED5CEA /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		92DFF57924D7600400ED5CEA /* FlykConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlykConfig.swift; sourceTree = "<group>"; };
 		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		92F87D0624BFB1B1002F75FD /* VideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCell.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
@@ -178,6 +184,7 @@
 				9298484F24C18D8F005AA6F0 /* SwipeBackNavigationController.swift */,
 				927BB61824AD590D002445B9 /* Main.storyboard */,
 				92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */,
+				92DFF57924D7600400ED5CEA /* FlykConfig.swift */,
 				92413B7624D4B49C0025D137 /* SignIn */,
 				928242C224BAAD550000C44A /* Home */,
 				928242C724BAAD8F0000C44A /* Discover */,
@@ -254,13 +261,14 @@
 		928242C824BAADAA0000C44A /* My Profile */ = {
 			isa = PBXGroup;
 			children = (
-				92B9A51824CFAF440076429F /* New Group */,
 				927BB64624AD5E23002445B9 /* MyProfile.swift */,
 				92B2DA0424CE68A3004F1CCC /* TabCollectionView.swift */,
+				92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */,
 				92DD729924CA32BA002BC233 /* ProfileCell.swift */,
 				92B2DA0224CE4E79004F1CCC /* VideoBlockCollectionView.swift */,
 				92B2D9FE24CE4C54004F1CCC /* PostsCell.swift */,
 				92B2DA0024CE4C63004F1CCC /* DraftsCell.swift */,
+				92DFF57724D6291F00ED5CEA /* Settings.swift */,
 			);
 			path = "My Profile";
 			sourceTree = "<group>";
@@ -286,13 +294,6 @@
 				9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */,
 			);
 			path = components;
-			sourceTree = "<group>";
-		};
-		92B9A51824CFAF440076429F /* New Group */ = {
-			isa = PBXGroup;
-			children = (
-			);
-			path = "New Group";
 			sourceTree = "<group>";
 		};
 		92DD729D24CB3D33002BC233 /* TextEditing */ = {
@@ -447,13 +448,16 @@
 				927BB61724AD590D002445B9 /* DiscoverViewController.swift in Sources */,
 				927BB61324AD590D002445B9 /* AppDelegate.swift in Sources */,
 				929AE76724B00CFD002FC64D /* Home.swift in Sources */,
+				92DFF57624D5C82B00ED5CEA /* PostsCollectionView.swift in Sources */,
 				92DD6F5F24C6555C008CBCEA /* DiscoverSearchBar.swift in Sources */,
 				92B74A1624D0B8E00051FEA9 /* GifTest.swift in Sources */,
 				924A142624C29CE100B8929F /* UploadFiles.swift in Sources */,
 				927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */,
+				92DFF57824D6291F00ED5CEA /* Settings.swift in Sources */,
 				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
 				9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */,
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
+				92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */,
 				92A65B2B24CE9AA500FE7D15 /* Model.xcdatamodeld in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,

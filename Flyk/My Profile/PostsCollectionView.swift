@@ -1,52 +1,38 @@
 //
-//  TabCollectionView.swift
+//  PostsCollectionView.swift
 //  Flyk
 //
-//  Created by Edward Chapman on 7/26/20.
+//  Created by Edward Chapman on 8/1/20.
 //  Copyright © 2020 Edward Chapman. All rights reserved.
 //
 
 import UIKit
 
-class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
     var myProfileView: MyProfile!
-
-    var collectionTabs: UIView! {
-        didSet{
-            tabScrollBar.backgroundColor = .white
-        }
-    }
-    var tabScrollBarLeadingAnchor: NSLayoutConstraint!
-    lazy var tabScrollBar: UIView = {
-        let ts = UIView()
-        collectionTabs.addSubview(ts)
-        ts.translatesAutoresizingMaskIntoConstraints = false
-        ts.bottomAnchor.constraint(equalTo: self.collectionTabs.bottomAnchor).isActive = true
-        self.tabScrollBarLeadingAnchor = ts.leadingAnchor.constraint(equalTo: self.collectionTabs.leadingAnchor)
-        self.tabScrollBarLeadingAnchor.isActive = true
-        ts.heightAnchor.constraint(equalToConstant: 5).isActive = true
-        ts.widthAnchor.constraint(equalTo: self.collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
-        return ts
-    }()
+    
     init(frame: CGRect){
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
         
         
         
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
-        flowLayout.scrollDirection = .horizontal
+        flowLayout.scrollDirection = .vertical
         flowLayout.minimumLineSpacing = 0
         flowLayout.minimumInteritemSpacing = 0
         
+        
+        self.backgroundColor = .flykDarkGrey
         
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
         self.delegate = self
         self.dataSource = self
         self.contentInsetAdjustmentBehavior = .never
-        self.isPagingEnabled = true
         
-        self.contentMode = .top
+        
+        
+        
         
     }
     
@@ -74,46 +60,29 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         return 1
     }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return 3
+        return 23
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        
         let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
-//        for subview in cell.subviews {
-//            if let sv = subview as? PostsCollectionView {
-//                sv.removeFromSuperview()
-//            }
-//        }
         let indexColor: [UIColor] = [
-            .flykMediumGrey,
+            .flykDarkWhite,
             .flykBlue,
-            .flykRecordRed
+            .flykRecordRed,
+            .flykLightDarkGrey
         ]
-        cell.backgroundColor = indexColor[indexPath.row]
+        cell.backgroundColor = indexColor[indexPath.row % 4]
         
-//        cell.translatesAutoresizingMaskIntoConstraints = false
-//        cell.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-//        cell.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
-//
-        let postsCollectionView = PostsCollectionView(frame: self.frame)
-        postsCollectionView.myProfileView = self.myProfileView
-        
-        cell.addSubview(postsCollectionView)
-        postsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        postsCollectionView.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
-        postsCollectionView.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
-        postsCollectionView.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
-        postsCollectionView.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
-//        postsCollectionView.layoutIfNeeded()
-//        postsCollectionView.reloadData()
         
         return cell
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        return self.frame.size
+        let width = self.frame.size.width/3
+        let height = width*(16/9)
+        return CGSize(width: width, height: height)
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
@@ -122,6 +91,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
 //        print("DID END DISPLAYING CELL")
+        
     }
     
     
@@ -150,23 +120,65 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         
     }
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        
+//        scrollView.isScrollEnabled = true
+//        self.bounces = false //STOP BOUNCING TO HOPEFULLY PASS UP
     }
+    var lastTargetOffsetY: CGFloat?
+    var realTargetOffsetY: CGFloat?
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         
+        lastTargetOffsetY = targetContentOffset.pointee.y
+        print(lastTargetOffsetY)
+        
+        
+        
+        
+//        print(lastTargetOffsetY)
+//        print(scrollView.decelerationRate)
+        
     }
+    
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print("SCROLL")
-        self.tabScrollBarLeadingAnchor.constant = scrollView.contentOffset.x/3
-        self.superview?.layoutIfNeeded()
+        
+        let profileScrollView = self.myProfileView.profileScrollView
+        
+        let pSvHeight = profileScrollView.frame.height
+        
+        //This is a down drag
+        let maxOffset = self.myProfileView.profileView.frame.height - self.myProfileView.view.safeAreaInsets.top
+        
+        if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
+            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+            if newY > maxOffset {
+                newY = maxOffset
+            }
+            
+            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+//            scrollView.setContentOffset(.zero, animated: false)
+            scrollView.contentOffset = CGPoint.zero
+            
+            
+        //THIS is an up drag
+        } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+            if newY < 0 {
+                newY = 0
+            }
+            
+//            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+            profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
+//            scrollView.setContentOffset(.zero, animated: false)
+            scrollView.contentOffset = CGPoint.zero
+            
+        //up drag with no content left
+        } else if scrollView.contentOffset.y < 0 {
+//            scrollView.setContentOffset(.zero, animated: false)
+            scrollView.contentOffset = CGPoint.zero
+        }
+        
     }
     
     
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    
-
 }
+
 

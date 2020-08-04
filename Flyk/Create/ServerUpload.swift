@@ -10,7 +10,7 @@ import UIKit
 
 class ServerUpload {
     static func videoUpload(videoUrl: URL){
-        let endPointURL = "https://upload-dot-swiftytest.uc.r.appspot.com/upload"
+        let endPointURL = FlykConfig.uploadEndpoint+"/upload"
         //        let img = UIImage(contentsOfFile: fullPath)
         var data: NSData;
         do {

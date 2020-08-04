@@ -81,7 +81,7 @@ class FirstViewController: UIViewController {
     
     func getImages(){
         
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/list/images")!) { data, response, error in
+        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/list/images")!) { data, response, error in
             
             if error != nil || data == nil {
                 print("Client error!")
@@ -105,7 +105,7 @@ class FirstViewController: UIViewController {
                 var counter = 0
                 for imgName in imgNameList {
                     
-                    URLSession.shared.dataTask(with:  URL(string: "https://swiftytest.uc.r.appspot.com/images/"+(imgName as! String))!, completionHandler: { data, response, error in
+                    URLSession.shared.dataTask(with:  URL(string: FlykConfig.mainEndpoint+"/images/"+(imgName as! String))!, completionHandler: { data, response, error in
                         DispatchQueue.main.async {
                             let loadedImg = UIImageView(image: UIImage(data: data!))
                             loadedImg.frame = CGRect(x: 0, y: self.screenSize.height*CGFloat(counter), width: self.screenSize.width, height: self.screenSize.height)
@@ -127,7 +127,7 @@ class FirstViewController: UIViewController {
     
     func getVideos(){
         
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/list/videos")!) { data, response, error in
+        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/list/videos")!) { data, response, error in
             
             if error != nil || data == nil {
                 print("Client error!")
@@ -153,7 +153,7 @@ class FirstViewController: UIViewController {
                     
                     DispatchQueue.main.async {
                         
-                        let player = AVPlayer(url: URL(string: "https://swiftytest.uc.r.appspot.com/videos/"+(videoName as! String))!)
+                        let player = AVPlayer(url: URL(string: FlykConfig.mainEndpoint+"/videos/"+(videoName as! String))!)
                         let playerLayer = AVPlayerLayer(player: player)
                         playerLayer.frame = CGRect(x: 0, y: self.screenSize.height*CGFloat(self.videoPlayerList.count), width: self.screenSize.width, height: self.screenSize.height)
                         self.view.layer.addSublayer(playerLayer)

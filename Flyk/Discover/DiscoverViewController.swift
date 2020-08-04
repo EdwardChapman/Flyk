@@ -201,7 +201,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func fetchVideoList(){
         
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/list/videos")!) { data, response, error in
+        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/list/videos")!) { data, response, error in
             
             if error != nil || data == nil {
                 print("Client error!")
@@ -223,7 +223,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
                 //                let imgNameList = ["1.jpg", "2.png", "3.png"]
                 let optionalVidURLs = videoNameList.map({ (vidName) -> URL? in
                     if let vidNameString: String = vidName as? String {
-                        if let vidStrURL = URL(string:"https://swiftytest.uc.r.appspot.com/videos/" + vidNameString){
+                        if let vidStrURL = URL(string:FlykConfig.mainEndpoint+"/videos/" + vidNameString){
                             return vidStrURL
                         }
                     }

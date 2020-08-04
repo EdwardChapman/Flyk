@@ -23,9 +23,6 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     var bioTextView : UITextView!
     
     
-    func printHi(){
-        print("HIIHIHIHIHIHIHI")
-    }
     
     lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
     lazy var context = appDelegate.persistentContainer.viewContext
@@ -49,43 +46,166 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         //        print(data.value(forKey: "videoUrl") //GET VALUE
     }
 
-
     
+    let profileScrollView = UIScrollView()
+    var tabCollectionView: TabCollectionView!
+    var profileView: ProfileCell!
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        self.view.backgroundColor = .flykLightBlack
+        self.view.addSubview(profileScrollView)
+        profileScrollView.translatesAutoresizingMaskIntoConstraints = false
+        profileScrollView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        profileScrollView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        profileScrollView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+        profileScrollView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         
-        let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumLineSpacing = 0.5
-        flowLayout.minimumInteritemSpacing = 0.5
+        profileView = ProfileCell(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height/3))
+        profileScrollView.addSubview(profileView)
         
-        collectionView.register(ProfileCell.self, forCellWithReuseIdentifier: "profileCell")
-        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "thumbnailVideo")
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.contentInsetAdjustmentBehavior = .never
-        self.view.addSubview(collectionView)
+        profileScrollView.refreshControl = UIRefreshControl()
+        profileScrollView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
+        profileScrollView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
+        profileScrollView.refreshControl!.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 8).isActive = true
+        profileScrollView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-        
-        
-        self.view.backgroundColor = UIColor.flykDarkGrey
-        collectionView.backgroundColor = UIColor.flykLightBlack
+        profileScrollView.contentInsetAdjustmentBehavior = .never
         
         
-        collectionView.refreshControl = UIRefreshControl()
-        collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
-        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
-        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-
         
+        let collectionTabs = UIView()
+        self.profileScrollView.addSubview(collectionTabs)
+        collectionTabs.translatesAutoresizingMaskIntoConstraints = false
+        collectionTabs.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        collectionTabs.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        collectionTabs.topAnchor.constraint(equalTo: profileView.bottomAnchor).isActive = true
+        collectionTabs.heightAnchor.constraint(equalToConstant: 45).isActive = true
+        
+        let postsTab = UIView()
+        postsTab.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTabTap(tapGesture:))))
+        collectionTabs.addSubview(postsTab)
+        postsTab.translatesAutoresizingMaskIntoConstraints = false
+        postsTab.leadingAnchor.constraint(equalTo: collectionTabs.leadingAnchor).isActive = true
+        postsTab.topAnchor.constraint(equalTo: collectionTabs.topAnchor).isActive = true
+        postsTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
+        postsTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
+        
+        let postsImageView = UIImageView(image: UIImage(named: "Cubes"))
+        postsTab.addSubview(postsImageView)
+        postsImageView.contentMode = .scaleAspectFit
+        postsImageView.translatesAutoresizingMaskIntoConstraints = false
+        postsImageView.centerXAnchor.constraint(equalTo: postsTab.centerXAnchor).isActive = true
+        postsImageView.centerYAnchor.constraint(equalTo: postsTab.centerYAnchor).isActive = true
+        postsImageView.heightAnchor.constraint(equalTo: postsTab.heightAnchor, multiplier: 0.5).isActive = true
+        postsImageView.widthAnchor.constraint(equalTo: postsImageView.widthAnchor).isActive = true
+        
+        
+        let draftsTab = UIView()
+        draftsTab.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTabTap(tapGesture:))))
+        collectionTabs.addSubview(draftsTab)
+        draftsTab.translatesAutoresizingMaskIntoConstraints = false
+        draftsTab.leadingAnchor.constraint(equalTo: postsTab.trailingAnchor).isActive = true
+        draftsTab.topAnchor.constraint(equalTo: collectionTabs.topAnchor).isActive = true
+        draftsTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
+        draftsTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
+        
+        let draftsImageView = UIImageView(image: UIImage(named: "draftLock"))
+        draftsTab.addSubview(draftsImageView)
+        draftsImageView.contentMode = .scaleAspectFit
+        draftsImageView.translatesAutoresizingMaskIntoConstraints = false
+        draftsImageView.centerXAnchor.constraint(equalTo: draftsTab.centerXAnchor).isActive = true
+        draftsImageView.centerYAnchor.constraint(equalTo: draftsTab.centerYAnchor).isActive = true
+        draftsImageView.heightAnchor.constraint(equalTo: draftsTab.heightAnchor, multiplier: 0.5).isActive = true
+        draftsImageView.widthAnchor.constraint(equalTo: draftsImageView.widthAnchor).isActive = true
+        
+        
+        let likesTab = UIView()
+        likesTab.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTabTap(tapGesture:))))
+        collectionTabs.addSubview(likesTab)
+        likesTab.translatesAutoresizingMaskIntoConstraints = false
+        likesTab.leadingAnchor.constraint(equalTo: draftsTab.trailingAnchor).isActive = true
+        likesTab.topAnchor.constraint(equalTo: collectionTabs.topAnchor).isActive = true
+        likesTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
+        likesTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
+        
+        let likesImageView = UIImageView(image: UIImage(named: "heartTab"))
+        likesTab.addSubview(likesImageView)
+        likesImageView.contentMode = .scaleAspectFit
+        likesImageView.translatesAutoresizingMaskIntoConstraints = false
+        likesImageView.centerXAnchor.constraint(equalTo: likesTab.centerXAnchor).isActive = true
+        likesImageView.centerYAnchor.constraint(equalTo: likesTab.centerYAnchor).isActive = true
+        likesImageView.heightAnchor.constraint(equalTo: likesTab.heightAnchor, multiplier: 0.5).isActive = true
+        likesImageView.widthAnchor.constraint(equalTo: likesImageView.widthAnchor).isActive = true
+        
+        
+        tabCollectionView = TabCollectionView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: 200))
+        tabCollectionView.myProfileView = self
+        tabCollectionView.collectionTabs = collectionTabs
+        self.profileScrollView.addSubview(tabCollectionView)
+        self.view.layoutIfNeeded()
+        tabCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        tabCollectionView.leadingAnchor.constraint(equalTo: self.profileScrollView.leadingAnchor).isActive = true
+//        tabCollectionView.trailingAnchor.constraint(equalTo: self.profileScrollView.trailingAnchor).isActive = true
+        tabCollectionView.widthAnchor.constraint(equalTo: self.view.widthAnchor).isActive = true
+        tabCollectionView.topAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
+        tabCollectionView.heightAnchor.constraint(lessThanOrEqualTo: self.view.safeAreaLayoutGuide.heightAnchor, constant: -45).isActive = true
+        
+        let tabColViewHeightAnchor = tabCollectionView.heightAnchor.constraint(equalToConstant: 1000)
+        tabColViewHeightAnchor.priority = UILayoutPriority(999)
+        tabColViewHeightAnchor.isActive = true
+//        tabCollectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        self.view.layoutIfNeeded()
+        tabCollectionView.reloadData()
+        
+        let tabColViewHeight = tabCollectionView.frame.height
+        let colTabsHeight = collectionTabs.frame.height
+        let profileViewHeight = profileView.frame.height
+        self.profileScrollView.contentSize = CGSize(
+            width: self.view.frame.width,
+            height: tabColViewHeight+colTabsHeight+profileViewHeight-45
+        )
+        
+//        let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
+//        flowLayout.scrollDirection = .vertical
+//        flowLayout.minimumLineSpacing = 0.5
+//        flowLayout.minimumInteritemSpacing = 0.5
+//
+//        collectionView.register(ProfileCell.self, forCellWithReuseIdentifier: "profileCell")
+//        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "thumbnailVideo")
+//        collectionView.delegate = self
+//        collectionView.dataSource = self
+//        collectionView.contentInsetAdjustmentBehavior = .never
+//        self.view.addSubview(collectionView)
+//
+//
+//        collectionView.translatesAutoresizingMaskIntoConstraints = false
+//        collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+//        collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+//        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+//        collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+//
+//
+//        self.view.backgroundColor = UIColor.flykDarkGrey
+//        collectionView.backgroundColor = UIColor.flykLightBlack
+//
+//
+//        collectionView.refreshControl = UIRefreshControl()
+//        collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
+//        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
+//        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
+//        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        profileView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
+        
+    }
+    
+    @objc func handleSettingsTap(tapGesture: UITapGestureRecognizer){
+        self.navigationController?.pushViewController(SettingsViewController(), animated: true)
+    }
+    
+    @objc func handleTabTap(tapGesture: UITapGestureRecognizer){
+        let scrollToX = (tapGesture.view?.frame.minX)! * 3
+        self.tabCollectionView.setContentOffset(CGPoint(x: scrollToX, y: 0), animated: true)
     }
     
     
@@ -95,11 +215,14 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         generator.impactOccurred()
 //        fetchVideoList()
         // Dismiss the refresh control.
+        
         DispatchQueue.main.async {
-            self.savedVideosData = self.fetchDraftEntityList()
-            self.collectionView.reloadData()
-            self.collectionView.refreshControl!.endRefreshing()
+//            self.savedVideosData = self.fetchDraftEntityList()
+//            self.collectionView.reloadData()
+//            self.collectionView.refreshControl!.endRefreshing()
+            self.profileScrollView.refreshControl?.endRefreshing()
         }
+ 
     }
     
     
@@ -293,7 +416,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
+
     }
     
     
@@ -307,7 +430,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     func getMyProfile() {
         
-        URLSession.shared.dataTask(with: URL(string: "https://swiftytest.uc.r.appspot.com/myProfile/")!) { data, response, error in
+        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/myProfile/")!) { data, response, error in
             
             if error != nil || data == nil {
                 print("Client error!")
@@ -353,7 +476,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     }
     
     func loadProfileImage(profileImgString: String){
-        let pImgURL = URL(string: "https://swiftytest.uc.r.appspot.com/profilePhotos/"+profileImgString)!
+        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/"+profileImgString)!
         print(pImgURL)
         URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
             DispatchQueue.main.async {

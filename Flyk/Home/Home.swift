@@ -247,7 +247,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func fetchVideoList(){
-        let videoListURL = URL(string: "https://swiftytest.uc.r.appspot.com/list/")!
+        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/list/")!
 
         let urlReq = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
         URLSession.shared.dataTask(with: urlReq) { data, response, error in
@@ -274,7 +274,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
                 
                 let optionalVidURLs = videoNameList.map({ (vidName) -> URL? in
                     if let vidNameString: String = vidName as? String {
-                        if let vidStrURL = URL(string:"https://swiftytest.uc.r.appspot.com/video/" + vidNameString){
+                        if let vidStrURL = URL(string: FlykConfig.mainEndpoint+"/video/" + vidNameString){
                             return vidStrURL
                         }
                     }
