@@ -113,27 +113,98 @@ class EmailSignInViewController: UIViewController, UITextFieldDelegate {
         
     }
     
+    var inputErrs: [String] = [] {
+        didSet {
+            DispatchQueue.main.async {
+                self.signInErrorLabel.text = ""
+                for err in self.inputErrs {
+                    self.signInErrorLabel.text?.append(err)
+                    self.signInErrorLabel.text?.append("\n")
+                }
+                if self.inputErrs.count > 0 {
+                    let generator = UINotificationFeedbackGenerator()
+                    generator.notificationOccurred(.error)
+                }
+            }
+        }
+    }
+    
     @objc func signInTap(sender: UIButton, forEvent event: UIEvent) {
         guard
             let email = self.emailInput.text,
             let password = self.passwordInput.text
             else{return}
-        var inputErrs: [String] = []
+        sender.isEnabled = false
+        self.inputErrs = []
         if password.count == 0 {
-            inputErrs.append("Empty Password")
+            self.inputErrs.append("Empty Password")
         }
         if email.count == 0 {
-            inputErrs.append("Empty Email")
+            self.inputErrs.append("Empty Email")
         }
-        if inputErrs.count > 0 {
-            self.signInErrorLabel.text = ""
-            for err in inputErrs {
-                self.signInErrorLabel.text?.append(err)
-                self.signInErrorLabel.text?.append("\n")
+        
+        /* Send Request To Server */
+        if self.inputErrs.count == 0 {
+            let url = URL(string: FlykConfig.mainEndpoint + "/login")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            
+            let parameters: NSDictionary = ["email": email, "password": password]
+            
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+            } catch let error {
+                print(error.localizedDescription)
+                sender.isEnabled = true
+                return;
             }
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
-            return;
+            
+            
+            
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                DispatchQueue.main.async {sender.isEnabled = true }
+                if(error != nil) {return print(error)}
+                guard let response = response as? HTTPURLResponse
+                    else{print("resopnse is not httpurlResponse"); return;}
+                print("Status: ", response.statusCode)
+                
+                if response.statusCode == 200 {
+                    // Set cookie then pop navigation controller
+                    DispatchQueue.main.async { self.navigationController?.dismiss(animated: true, completion: {}) }
+                }
+                
+                if response.statusCode == 500 {
+                    print("Server Error")
+                    self.inputErrs = ["Server Error"]
+                    //PRINT OUT THE RESPONSE HERE
+                    // ??? maybey a warning lol
+                }
+                
+                if response.statusCode == 400 {
+                    print("Client Error")
+                    //PRINT OUT THE RESPONSE HERE
+                    // pop to input page and display errors
+                    guard let mime = response.mimeType, mime == "application/json" else {
+                        print("Wrong MIME type!")
+                        return
+                    }
+                    
+                    do {
+                        let json : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
+                        print(json["errors"])
+                        if let errors = json["errors"] as? [String] {
+                            self.inputErrs = errors
+                        }
+                    } catch let err {
+                        print("JSON error: \(err.localizedDescription)")
+                    }
+                }
+            }.resume()
+        }else{
+            sender.isEnabled = true
         }
         
     }
@@ -142,28 +213,20 @@ class EmailSignInViewController: UIViewController, UITextFieldDelegate {
             let email = self.emailInput.text,
             let password = self.passwordInput.text
         else{return}
+        self.inputErrs = []
         
-        var inputErrs: [String] = []
         if password.count == 0 {
-            inputErrs.append("Empty Password")
+            self.inputErrs.append("Empty Password")
         }
         if email.count == 0 {
-            inputErrs.append("Empty Email")
+            self.inputErrs.append("Empty Email")
         }
-        if inputErrs.count > 0 {
-            self.signInErrorLabel.text = ""
-            for err in inputErrs {
-                self.signInErrorLabel.text?.append(err)
-                self.signInErrorLabel.text?.append("\n")
-            }
-            let generator = UINotificationFeedbackGenerator()
-            generator.notificationOccurred(.error)
-            return;
+        if self.inputErrs.count == 0 {
+            let agePickerVc = AgePickerViewController()
+            agePickerVc.email = email
+            agePickerVc.password = password
+            self.navigationController?.pushViewController(agePickerVc, animated: true)
         }
-        let agePickerVc = AgePickerViewController()
-        agePickerVc.email = email
-        agePickerVc.password = password
-        self.navigationController?.pushViewController(agePickerVc, animated: true)
     }
     
     
@@ -250,9 +313,9 @@ class AgePickerViewController: UIViewController {
         
     }
     
-    var blockNextTap = false
+    
     @objc func handleNextTap(sender: UIButton, forEvent event: UIEvent) {
-        blockNextTap = true
+        sender.isEnabled = false
         let df = DateFormatter()
         df.dateFormat = "yyyy-MM-dd"
         let dateString = df.string(from: agePicker.date)
@@ -263,7 +326,7 @@ class AgePickerViewController: UIViewController {
         sendCreateAccountVC.password = password
         self.navigationController?.pushViewController(sendCreateAccountVC, animated: true)
         sendCreateAccountVC.createAccountPostReq()
-        blockNextTap = false
+        sender.isEnabled = true
     }
 
 }
@@ -298,11 +361,74 @@ class SendCreateAccountViewController: UIViewController {
 
     
     func createAccountPostReq(){
-        print(
-            dobString,
-            email,
-            password
-        );
+//        print( dobString, email, password );
+        let url = URL(string: FlykConfig.mainEndpoint + "/createAccount")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        let parameters: NSDictionary = ["email": email, "password": password, "birthdate": dobString]
+        
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+        } catch let error {
+            print(error.localizedDescription)
+            return;
+        }
+        
+        
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            if(error != nil) {return print(error)}
+            guard let response = response as? HTTPURLResponse
+                else{print("resopnse is not httpurlResponse"); return;}
+            print("Status: ", response.statusCode)
+            
+            
+            if response.statusCode == 200 {
+                // Set cookie then pop navigation controller
+                DispatchQueue.main.async { self.navigationController?.dismiss(animated: true, completion: {}) }
+            }
+            
+            if response.statusCode == 500 {
+                print("Server Error")
+                //PRINT OUT THE RESPONSE HERE
+                // ??? maybey a warning lol
+            }
+            
+            if response.statusCode == 400 {
+                print("Client Error")
+                //PRINT OUT THE RESPONSE HERE
+                // pop to input page and display errors
+                guard let mime = response.mimeType, mime == "application/json" else {
+                    print("Wrong MIME type!")
+                    return
+                }
+                
+                do {
+                    let json : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
+                    print(json)
+                    print(json["errors"])
+                } catch let err {
+                    print("JSON error: \(err.localizedDescription)")
+                }
+            }
+            
+
+            
+//            guard (200...299).contains(response.statusCode) else {
+//                print("Server error!")
+//                return
+//            }
+            
+//            if error != nil || data == nil {
+//                print("Client error!")
+//                return
+//            }
+            
+            }.resume()
         
 //        @keyframes rollAnimation {
 //            0%   { left:-50px; }

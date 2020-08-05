@@ -119,9 +119,9 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
 //        videoURLs = []
         fetchVideoList()
         // Dismiss the refresh control.
-        DispatchQueue.main.async {
-            self.collectionView.refreshControl!.endRefreshing()
-        }
+//        DispatchQueue.main.async {
+//            self.collectionView.refreshControl!.endRefreshing()
+//        }
     }
     
     override func viewDidDisappear(_ animated: Bool) {
@@ -251,6 +251,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
 
         let urlReq = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
         URLSession.shared.dataTask(with: urlReq) { data, response, error in
+            DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
     
             if error != nil || data == nil {
                 print("Client error!")

@@ -165,10 +165,10 @@
             </objects>
             <point key="canvasLocation" x="1158" y="745"/>
         </scene>
-        <!--Fourth View Controller-->
+        <!--Notification View Controller-->
         <scene sceneID="4ja-YU-nci">
             <objects>
-                <viewController id="Wkb-Kf-jco" customClass="FourthViewController" customModule="Flyk" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="Wkb-Kf-jco" customClass="NotificationViewController" customModule="Flyk" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="aSE-8x-0HR">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>

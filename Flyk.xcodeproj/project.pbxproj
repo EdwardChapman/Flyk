@@ -17,7 +17,7 @@
 		927BB61F24AD590F002445B9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 927BB61D24AD590F002445B9 /* LaunchScreen.storyboard */; };
 		927BB62A24AD590F002445B9 /* DripDropTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB62924AD590F002445B9 /* DripDropTests.swift */; };
 		927BB63524AD590F002445B9 /* DripDropUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB63424AD590F002445B9 /* DripDropUITests.swift */; };
-		927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64424AD5DFD002445B9 /* FourthViewController.swift */; };
+		927BB64524AD5DFD002445B9 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64424AD5DFD002445B9 /* NotificationViewController.swift */; };
 		927BB64724AD5E23002445B9 /* MyProfile.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64624AD5E23002445B9 /* MyProfile.swift */; };
 		928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242C924BAAEAE0000C44A /* TextEditorView.swift */; };
 		928242CC24BADE200000C44A /* VideoOverlayView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242CB24BADE200000C44A /* VideoOverlayView.swift */; };
@@ -86,7 +86,7 @@
 		927BB63024AD590F002445B9 /* FlykUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlykUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		927BB63424AD590F002445B9 /* DripDropUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DripDropUITests.swift; sourceTree = "<group>"; };
 		927BB63624AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
-		927BB64424AD5DFD002445B9 /* FourthViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FourthViewController.swift; sourceTree = "<group>"; };
+		927BB64424AD5DFD002445B9 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		927BB64624AD5E23002445B9 /* MyProfile.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfile.swift; sourceTree = "<group>"; };
 		928242C924BAAEAE0000C44A /* TextEditorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TextEditorView.swift; sourceTree = "<group>"; };
 		928242CB24BADE200000C44A /* VideoOverlayView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoOverlayView.swift; sourceTree = "<group>"; };
@@ -231,7 +231,7 @@
 		928242C324BAAD800000C44A /* Notifications */ = {
 			isa = PBXGroup;
 			children = (
-				927BB64424AD5DFD002445B9 /* FourthViewController.swift */,
+				927BB64424AD5DFD002445B9 /* NotificationViewController.swift */,
 				92DD729B24CA4C7C002BC233 /* NotificationCell.swift */,
 			);
 			path = Notifications;
@@ -460,7 +460,7 @@
 				92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */,
 				92A65B2B24CE9AA500FE7D15 /* Model.xcdatamodeld in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
-				927BB64524AD5DFD002445B9 /* FourthViewController.swift in Sources */,
+				927BB64524AD5DFD002445B9 /* NotificationViewController.swift in Sources */,
 				92B74A1424CFB9750051FEA9 /* CommentsPresentationController.swift in Sources */,
 				9298485024C18D8F005AA6F0 /* SwipeBackNavigationController.swift in Sources */,
 				92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */,

@@ -50,6 +50,17 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     let profileScrollView = UIScrollView()
     var tabCollectionView: TabCollectionView!
     var profileView: ProfileCell!
+    let draftsTab = UIView()
+    
+    var shouldGoToDrafts = false
+    
+    
+    override func viewDidAppear(_ animated: Bool) {
+        super.viewDidAppear(animated)
+        if(shouldGoToDrafts){
+            goToDrafts()
+        }
+    }
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -101,7 +112,6 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         postsImageView.widthAnchor.constraint(equalTo: postsImageView.widthAnchor).isActive = true
         
         
-        let draftsTab = UIView()
         draftsTab.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleTabTap(tapGesture:))))
         collectionTabs.addSubview(draftsTab)
         draftsTab.translatesAutoresizingMaskIntoConstraints = false
@@ -206,6 +216,13 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     @objc func handleTabTap(tapGesture: UITapGestureRecognizer){
         let scrollToX = (tapGesture.view?.frame.minX)! * 3
         self.tabCollectionView.setContentOffset(CGPoint(x: scrollToX, y: 0), animated: true)
+    }
+    func goToDrafts(){
+        tabCollectionView.reloadData()
+        let scrollToX = self.draftsTab.frame.minX * 3
+        self.tabCollectionView.setContentOffset(CGPoint(x: scrollToX, y: 0), animated: true)
+        self.shouldGoToDrafts = false
+        //Reload tab
     }
     
     

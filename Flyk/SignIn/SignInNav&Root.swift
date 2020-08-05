@@ -91,7 +91,7 @@ class SignInRootViewController: UIViewController {
 
 
 
-class SignInPresentationController: UIPresentationController{
+class SignInPresentationController: UIPresentationController {
     let blurEffectView: UIVisualEffectView!
     var tapGestureRecognizer: UITapGestureRecognizer = UITapGestureRecognizer()
     @objc func dismiss(){

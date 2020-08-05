@@ -236,7 +236,13 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
                 self.videoPlaybackView.removeFromSuperview()
                 self.playerLayer.player?.pause()
                 self.tabBarController!.selectedIndex = 4
-                self.navigationController?.popToRootViewController(animated: true)
+//                self.navigationController?.popToRootViewController(animated: true)
+                if let profileNavController = self.tabBarController?.viewControllers?[4] as? UINavigationController {
+                    if let myProfile = profileNavController.viewControllers.first as? MyProfile {
+                        self.tabBarController?.showTabBarView()
+                        myProfile.shouldGoToDrafts = true
+                    }
+                }
             }
             
         }else{
@@ -247,6 +253,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     
     
     @objc func handleLaterUpload(tapGesture: UITapGestureRecognizer){
+
         if finishedViewURL == nil {return}
         let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.prepare()
@@ -277,6 +284,8 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         draft.setValue("Saved", forKey: "uploadStatus")
         draft.setValue("Hello this is my first video!", forKey: "videoDescription")
         draft.setValue(0, forKey: "uploadProgress")
+ 
+        
         
 //        do {
 //            try context.save()
@@ -284,6 +293,9 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
 //            print("Failed saving")
 //            return;
 //        }
+
+        
+        
         
         
         
@@ -322,7 +334,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         draft.setValue(0, forKey: "uploadProgress")
         
         
-        ServerUpload.videoUpload(videoUrl: videoDocumentsURL)
+//        ServerUpload.videoUpload(videoUrl: videoDocumentsURL)
 //        do {
 //            try context.save()
 //        } catch {
