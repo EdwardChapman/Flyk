@@ -27,6 +27,25 @@ class VideoCell: UICollectionViewCell {
     
     
     let comments = UIImageView(image: UIImage(named: "commentsImg"))
+    let commentsCounter = UILabel()
+    
+    let postDateLabel = UILabel(frame: .zero)
+    let usernameLabel = UILabel(frame: .zero)
+    
+    var currentVideoData: NSDictionary?
+    
+    
+    let descriptionTextView = UITextView(frame: CGRect(origin: CGPoint(x: 300,y: 300), size: .zero))
+    
+    let heartImageView = UIImageView(image: UIImage(named: "heart_v2"), highlightedImage: UIImage(named: "heart_red_v2"))
+    
+    var isVideoLiked: Bool = false {
+        didSet{
+            DispatchQueue.main.async {
+                self.heartImageView.isHighlighted = self.isVideoLiked
+            }
+        }
+    }
     
     var isPaused: Bool = true {
         didSet {
@@ -38,6 +57,51 @@ class VideoCell: UICollectionViewCell {
                 self.player.playImmediately(atRate: 1)
                 pause.isHidden = true
             }
+        }
+    }
+    
+    
+    func setupNewVideo(fromDict videoData: NSDictionary) {
+        currentVideoData = videoData
+        let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
+        let videoFilename =  videoData["video_filename"] as! String
+        let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
+        let remoteAsset = AVAsset(url: remoteAssetUrl)
+        
+        
+        
+        let newPlayer = AVPlayerItem(asset: remoteAsset)
+        self.player.replaceCurrentItem(with: newPlayer)
+        
+        if let username = videoData["username"] as? String {
+            self.usernameLabel.text = username
+        }else{
+            print("username failed")
+        }
+        
+        if let postDate = videoData["post_date"] as? String {
+            self.postDateLabel.text = postDate
+        }
+        
+        if let descriptionText = videoData["video_description"] as? String {
+             self.descriptionTextView.text = descriptionText
+        }
+//        print(self.descriptionTextView.attributedText!.size())
+//        self.descriptionTextView.frame.size = self.descriptionTextView.attributedText!.size()
+        if let isLikedByUser = videoData["is_liked_by_user"] as? Bool {
+            self.isVideoLiked = isLikedByUser
+        }
+        
+        if let profile_img_filename = videoData["profile_img_filename"] as? String {
+            print("PROFIELE IMG FILENAME ESITS")
+            // LOAD FROM URL
+        }else{
+            print("PROFILE IMG FILENAME DNE")
+            // LOAD DEFAULT
+        }
+        
+        if let comments_count = videoData["comments_count"] as? Int {
+            commentsCounter.text = String(comments_count)
         }
     }
     
@@ -87,70 +151,69 @@ class VideoCell: UICollectionViewCell {
         profileImg.isUserInteractionEnabled = true
         profileImg.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(profileImgTapGesture(tapGesture:))))
         
-        let profileName = UILabel(frame: .zero)
-        self.addSubview(profileName)
-        profileName.translatesAutoresizingMaskIntoConstraints = false
-        profileName.leadingAnchor.constraint(equalTo: profileImg.trailingAnchor, constant: 8).isActive = true
-        profileName.bottomAnchor.constraint(equalTo: profileImg.centerYAnchor).isActive = true
-        profileName.text = "5 days ago"//"@polarBear"
-        let newSize = profileName.attributedText!.size()
-        profileName.frame.size = newSize
-        profileName.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
-        
-        let postDate = UILabel(frame: .zero)
-        self.addSubview(postDate)
-        postDate.translatesAutoresizingMaskIntoConstraints = false
-        postDate.leadingAnchor.constraint(equalTo: profileImg.trailingAnchor, constant: 8).isActive = true
-        postDate.topAnchor.constraint(equalTo: profileName.bottomAnchor).isActive = true
-        postDate.text = "@polarBear"//"5 days ago"
-        let newPostSize = postDate.attributedText!.size()
-        postDate.frame.size = newPostSize
-        postDate.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
+
+        self.addSubview(postDateLabel)
+        postDateLabel.translatesAutoresizingMaskIntoConstraints = false
+        postDateLabel.leadingAnchor.constraint(equalTo: profileImg.trailingAnchor, constant: 8).isActive = true
+        postDateLabel.bottomAnchor.constraint(equalTo: profileImg.centerYAnchor).isActive = true
+//        postDateLabel.text = ""// "5 days ago"
+//        let newSize = postDateLabel.attributedText!.size()
+//        postDateLabel.frame.size = newSize
+        postDateLabel.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
         
         
-        let description = UITextView(frame: CGRect(origin: CGPoint(x: 300,y: 300), size: .zero))
-        self.addSubview(description)
+        self.addSubview(usernameLabel)
+        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
+        usernameLabel.leadingAnchor.constraint(equalTo: profileImg.trailingAnchor, constant: 8).isActive = true
+        usernameLabel.topAnchor.constraint(equalTo: postDateLabel.bottomAnchor).isActive = true
+//        usernameLabel.text = ""
+//        usernameLabel.frame.size = usernameLabel.attributedText!.size()
+        usernameLabel.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
         
-        description.text = "This is a video hello world at some point this should spill to a second line"
-        description.font = description.font?.withSize(14)
-        description.isScrollEnabled = false
         
-        let newDescriptionSize = description.attributedText!.size()
         
-        description.frame.size = newDescriptionSize
-        description.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
-        description.backgroundColor = .clear
-        description.isEditable = false
-        description.isSelectable = false
+        self.addSubview(descriptionTextView)
         
-        description.translatesAutoresizingMaskIntoConstraints = false
-        description.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15).isActive = true
-        description.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
+        descriptionTextView.text = ""
+        descriptionTextView.font = UIFont.systemFont(ofSize: 14)
+        descriptionTextView.isScrollEnabled = false
+        
+        let newDescriptionSize = descriptionTextView.attributedText!.size()
+        
+        descriptionTextView.frame.size = newDescriptionSize
+        descriptionTextView.textColor = UIColor(red: 0.9, green: 0.9, blue: 0.9, alpha: 0.9)
+        descriptionTextView.backgroundColor = .clear
+        descriptionTextView.isEditable = false
+        descriptionTextView.isSelectable = false
+        
+        descriptionTextView.translatesAutoresizingMaskIntoConstraints = false
+        descriptionTextView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: 15).isActive = true
+        descriptionTextView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
 //        description.heightAnchor.constraint(equalToConstant: description.contentSize.height).isActive = true
-        description.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.6).isActive = true
+        descriptionTextView.widthAnchor.constraint(equalTo: self.widthAnchor, multiplier: 0.6).isActive = true
         
         share = UIImageView(image: UIImage(named: "shareV1"))
         share.contentMode = .scaleAspectFit
         self.addSubview(share)
         share.translatesAutoresizingMaskIntoConstraints = false
-        share.leadingAnchor.constraint(equalTo: description.trailingAnchor, constant: 15).isActive = true
+        share.leadingAnchor.constraint(equalTo: descriptionTextView.trailingAnchor, constant: 15).isActive = true
         share.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
         share.heightAnchor.constraint(equalToConstant: 40).isActive = true
         share.widthAnchor.constraint(equalToConstant: 40).isActive = true
         share.alpha = 0.8
         share.isUserInteractionEnabled = true
         
-        let heart = UIImageView(image: UIImage(named: "heart_v2"), highlightedImage: UIImage(named: "heart_red_v2"))
-        heart.contentMode = .scaleAspectFit
-        self.addSubview(heart)
-        heart.translatesAutoresizingMaskIntoConstraints = false
-        heart.leadingAnchor.constraint(equalTo: share.trailingAnchor, constant: 15).isActive = true
-        heart.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
-        heart.heightAnchor.constraint(equalToConstant: 40).isActive = true
-        heart.widthAnchor.constraint(equalToConstant: 40).isActive = true
-        heart.alpha = 0.8
-        heart.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleHeartTap(tapGesture:))))
-        heart.isUserInteractionEnabled = true
+        
+        heartImageView.contentMode = .scaleAspectFit
+        self.addSubview(heartImageView)
+        heartImageView.translatesAutoresizingMaskIntoConstraints = false
+        heartImageView.leadingAnchor.constraint(equalTo: share.trailingAnchor, constant: 15).isActive = true
+        heartImageView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -10).isActive = true
+        heartImageView.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        heartImageView.widthAnchor.constraint(equalToConstant: 40).isActive = true
+        heartImageView.alpha = 0.8
+        heartImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleHeartTap(tapGesture:))))
+        heartImageView.isUserInteractionEnabled = true
         
         
         
@@ -164,10 +227,10 @@ class VideoCell: UICollectionViewCell {
         comments.alpha = 0.8
         comments.isUserInteractionEnabled = true
         
-        let commentsCounter = UILabel()
+        
         commentsCounter.adjustsFontSizeToFitWidth = true
         comments.addSubview(commentsCounter)
-        commentsCounter.text = "500"
+//        commentsCounter.text = "500"
         commentsCounter.textColor = .white
         commentsCounter.translatesAutoresizingMaskIntoConstraints = false
         commentsCounter.centerXAnchor.constraint(equalTo: comments.centerXAnchor, constant: -2).isActive = true
@@ -195,10 +258,105 @@ class VideoCell: UICollectionViewCell {
     @objc func handleHeartTap(tapGesture: UITapGestureRecognizer){
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Like Posts") {
-            if let imgView = tapGesture.view as? UIImageView{
-                imgView.isHighlighted = !imgView.isHighlighted
+            if let imgView = tapGesture.view as? UIImageView {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
+                
+                
+                if !isVideoLiked /* LIKE VIDEO */ {
+                    self.isVideoLiked = true
+                    
+                    let videoListURL = URL(string: FlykConfig.mainEndpoint+"/video/like")!
+                    
+                    var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+                    
+                    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                    let parameters: NSDictionary = ["videoId": self.currentVideoData?["video_id"]]
+                    do {
+                        request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                    } catch let error {
+                        print(error.localizedDescription)
+                        return;
+                    }
+                    
+                    
+                    request.httpMethod = "POST"
+                    URLSession.shared.dataTask(with: request) { data, response, error in
+                        
+                        if error != nil {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                            self.isVideoLiked = false
+                            return
+                        }
+                        guard let response = response as? HTTPURLResponse else {
+                            print("not httpurlresponse...!")
+                            return;
+                        }
+                        
+                        if(response.statusCode == 200) {
+                            //Worked....
+                        }else{
+                            print("Response not 200", response)
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                            self.isVideoLiked = false
+                        }
+                        
+                        }.resume()
+                    
+                    
+                }else{ // UNLIKE VIDEO
+                    self.isVideoLiked = false
+                    
+                    let videoListURL = URL(string: FlykConfig.mainEndpoint+"/video/unlike")!
+                    
+                    var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+                    
+                    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                    let parameters: NSDictionary = ["videoId": self.currentVideoData?["video_id"]]
+                    do {
+                        request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                    } catch let error {
+                        print(error.localizedDescription)
+                        return;
+                    }
+                    
+                    
+                    request.httpMethod = "POST"
+                    URLSession.shared.dataTask(with: request) { data, response, error in
+                        
+                        if error != nil {
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                            self.isVideoLiked = true
+                            return
+                        }
+                        guard let response = response as? HTTPURLResponse else {
+                            print("not httpurlresponse...!")
+                            return;
+                        }
+                        
+                        if(response.statusCode == 200) {
+                            //Worked....
+                        }else{
+                            print("Response not 200", response)
+                            let generator = UINotificationFeedbackGenerator()
+                            generator.notificationOccurred(.error)
+                            self.isVideoLiked = true
+                        }
+                        
+                        }.resume()
+                    
+                    
+                    
+                    
+                    
+                    
+                }
+               
+                
+                
             }
         }
     }

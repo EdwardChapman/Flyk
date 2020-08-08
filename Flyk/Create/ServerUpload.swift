@@ -9,7 +9,7 @@
 import UIKit
 
 class ServerUpload {
-    static func videoUpload(videoUrl: URL){
+    static func videoUpload(videoUrl: URL, allowComments: Bool, allowReactions: Bool, videoDescription: String){
         let endPointURL = FlykConfig.uploadEndpoint+"/upload"
         //        let img = UIImage(contentsOfFile: fullPath)
         var data: NSData;
@@ -26,7 +26,7 @@ class ServerUpload {
             var request = URLRequest(url: URL(string: endPointURL)!)
             request.timeoutInterval = 660
             request.httpMethod = "POST"
-            request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video") as Data
+            request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data
             //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
             request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
                              forHTTPHeaderField: "Content-Type")
@@ -36,7 +36,7 @@ class ServerUpload {
             request.addValue("text/plain", forHTTPHeaderField: "Accept")
             
             let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                
+                print(data, response)
                 if error != nil || data == nil {
                     print("Client error!")
                     return

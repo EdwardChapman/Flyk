@@ -173,7 +173,40 @@ class EmailSignInViewController: UIViewController, UITextFieldDelegate {
                 
                 if response.statusCode == 200 {
                     // Set cookie then pop navigation controller
-                    DispatchQueue.main.async { self.navigationController?.dismiss(animated: true, completion: {}) }
+//                    DispatchQueue.main.async {
+//                        self.navigationController?.dismiss(animated: true, completion: {})
+//                    }
+                    
+                    
+                    
+                    let cookieName = "Flyk"
+                    if let cookie = HTTPCookieStorage.shared.cookies?.first(where: { $0.name == cookieName }) {
+//                        debugPrint("\(cookieName): \(cookie.value)")
+//                        let cookieValue = cookie.value //THIS IS WHAT WE NEED TO STORE.
+//                        print(
+//                            cookie.properties![.domain], // "swiftytest.uc.r.appspot.com"
+//                            cookie.properties![.path]    // "/"
+//                        )
+                        
+                        // MAKE REPLICA OF THAT COOKIE FOR UPLOAD
+                        var newCookieProperties = [HTTPCookiePropertyKey: Any]()
+                        newCookieProperties[.name] = cookie.name
+                        newCookieProperties[.value] = cookie.value
+                        newCookieProperties[.domain] = FlykConfig.uploadEndpoint.components(separatedBy: "//").last
+                        newCookieProperties[.path] = cookie.path
+                        newCookieProperties[.version] = cookie.version
+                        newCookieProperties[.expires] = cookie.expiresDate
+                        let newCookie = HTTPCookie(properties: newCookieProperties)
+                        HTTPCookieStorage.shared.setCookie(newCookie!)
+                        
+                        DispatchQueue.main.async {
+                            self.navigationController?.dismiss(animated: true, completion: {})
+
+                            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+                            appDelegate.currentUserAccount.setValue(cookie.value, forKey: "cookie_value")
+                            appDelegate.currentUserAccount.setValue(true, forKey: "signed_in")
+                        }
+                    }
                 }
                 
                 if response.statusCode == 500 {
@@ -380,6 +413,8 @@ class SendCreateAccountViewController: UIViewController {
         request.addValue("application/json", forHTTPHeaderField: "Content-Type")
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
+        
+        
         URLSession.shared.dataTask(with: request) { data, response, error in
             if(error != nil) {return print(error)}
             guard let response = response as? HTTPURLResponse
@@ -389,7 +424,36 @@ class SendCreateAccountViewController: UIViewController {
             
             if response.statusCode == 200 {
                 // Set cookie then pop navigation controller
-                DispatchQueue.main.async { self.navigationController?.dismiss(animated: true, completion: {}) }
+                
+                
+                let cookieName = "Flyk"
+                if let cookie = HTTPCookieStorage.shared.cookies?.first(where: { $0.name == cookieName }) {
+                    //                        debugPrint("\(cookieName): \(cookie.value)")
+                    //                        let cookieValue = cookie.value //THIS IS WHAT WE NEED TO STORE.
+                    //                        print(
+                    //                            cookie.properties![.domain], // "swiftytest.uc.r.appspot.com"
+                    //                            cookie.properties![.path]    // "/"
+                    //                        )
+                    
+                    // MAKE REPLICA OF THAT COOKIE FOR UPLOAD
+                    var newCookieProperties = [HTTPCookiePropertyKey: Any]()
+                    newCookieProperties[.name] = cookie.name
+                    newCookieProperties[.value] = cookie.value
+                    newCookieProperties[.domain] = FlykConfig.uploadEndpoint.components(separatedBy: "//").last
+                    newCookieProperties[.path] = cookie.path
+                    newCookieProperties[.version] = cookie.version
+                    newCookieProperties[.expires] = cookie.expiresDate
+                    let newCookie = HTTPCookie(properties: newCookieProperties)
+                    HTTPCookieStorage.shared.setCookie(newCookie!)
+                    
+                    DispatchQueue.main.async {
+                        self.navigationController?.dismiss(animated: true, completion: {})
+                        
+                        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+                        appDelegate.currentUserAccount.setValue(cookie.value, forKey: "cookie_value")
+                        appDelegate.currentUserAccount.setValue(true, forKey: "signed_in")
+                    }
+                }
             }
             
             if response.statusCode == 500 {

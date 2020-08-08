@@ -235,14 +235,16 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
                 //                }
                 self.videoPlaybackView.removeFromSuperview()
                 self.playerLayer.player?.pause()
+                let oldNav = self.navigationController
+//                self.navigationController?.popToRootViewController(animated: false)
                 self.tabBarController!.selectedIndex = 4
-//                self.navigationController?.popToRootViewController(animated: true)
                 if let profileNavController = self.tabBarController?.viewControllers?[4] as? UINavigationController {
                     if let myProfile = profileNavController.viewControllers.first as? MyProfile {
                         self.tabBarController?.showTabBarView()
                         myProfile.shouldGoToDrafts = true
                     }
                 }
+                oldNav?.popToRootViewController(animated: false)
             }
             
         }else{

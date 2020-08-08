@@ -21,12 +21,13 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
 
     
     var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var videoURLs : [URL] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
+    var videosDataList : [NSDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
+    
     var currentCell : VideoCell? {
         didSet{
             if let curCell = currentCell {
                 if let cellIndex = collectionView.indexPath(for: curCell){
-                    if videoURLs.count > 0 && cellIndex.row > (videoURLs.count - 2) {
+                    if videosDataList.count > 0 && cellIndex.row > (videosDataList.count - 2) {
                         print("FETCH NEW ITEMS HERE")
                     }
                 }
@@ -58,7 +59,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         super.viewDidLoad()
         
         
-        fetchVideoList() // THIS IS DISABLED FOR TESTING
+//        fetchVideoList() // THIS IS DISABLED FOR TESTING
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .vertical
         flowLayout.minimumInteritemSpacing = 0
@@ -82,6 +83,8 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
         collectionView.decelerationRate = .fast
+        collectionView.showsVerticalScrollIndicator = false
+        collectionView.showsHorizontalScrollIndicator = false
         
         
         
@@ -92,15 +95,27 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         collectionView.refreshControl!.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
         collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
+        collectionView.refreshControl?.beginRefreshing()
+        fetchVideoList()
 
         print(UIDevice.current.name, UIDevice.current.identifierForVendor?.uuidString)
 
-                
+        //Cookie name is flyk
+        //All I need is the cookie value
+        
+//        var mainCookie = URLSession.shared.configuration.httpCookieStorage?.cookies(for: URL(string:FlykConfig.mainEndpoint)!)![0]
+//        mainCookie?.domain = FlykConfig.uploadEndpoint
+//        mainCookie.
+//        
+//        URLSession.shared.configuration.httpCookieStorage?.setCookies( [mainCookie],
+//            for: URL(string: FlykConfig.uploadEndpoint), mainDocumentURL: nil
+//        )
+//        print(URLSession.shared.configuration.httpCookieStorage?.cookies(for: URL(string:FlykConfig.uploadEndpoint)!))
     }
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        appDelegate.isFirstLaunch()
+//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+//        appDelegate.isFirstLaunch()
         
 //        appDelegate.triggerSignInIfNoAccount(customMessgae: "hi")
     }
@@ -148,14 +163,14 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         // Begin asynchronously fetching data for the requested index paths.
         for indexPath in indexPaths {
-            let prefetchURL = videoURLs[indexPath.row]
+            let prefetchURL = videosDataList[indexPath.row]["videoFilename"]
 //            asyncFetcher.fetchAsync(model.identifier)
             print(indexPath)
             
         }
     }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return videoURLs.count
+        return videosDataList.count
     }
     
     //
@@ -166,11 +181,35 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         
         cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
         
-        let remoteAsset = AVAsset(url: videoURLs[indexPath.row])
+        print(videosDataList[indexPath.row])
         
+        let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
+        let videoFilename =  videosDataList[indexPath.row]["video_filename"] as! String
+        let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
+        let remoteAsset = AVAsset(url: remoteAssetUrl)
+        
+        
+        cell.setupNewVideo(fromDict: videosDataList[indexPath.row])
+        /*
 
         let newPlayer = AVPlayerItem(asset: remoteAsset)
         cell.player.replaceCurrentItem(with: newPlayer)
+        
+        cell.usernameLabel.text = videosDataList[indexPath.row]["username"] as? String
+        print(cell.usernameLabel.attributedText!.size())
+        cell.usernameLabel.frame.size = cell.usernameLabel.attributedText!.size()
+        
+        
+        cell.descriptionTextView.text = videosDataList[indexPath.row]["video_description"] as? String
+        print(cell.descriptionTextView.attributedText!.size())
+        cell.descriptionTextView.frame.size = cell.descriptionTextView.attributedText!.size()
+        
+        if let profile_img_filename = videosDataList[indexPath.row]["profile_img_filename"] as? String {
+            print("PROFIELE IMG FILENAME ESITS")
+        }else{
+            print("PROFILE IMG FILENAME DNE")
+        }
+        */
 //        cell.player.playImmediately(atRate: 1.0)
         
         cell.addDidEndObserver()
@@ -247,43 +286,32 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func fetchVideoList(){
-        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/list/")!
+        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/home/")!
 
-        let urlReq = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
-        URLSession.shared.dataTask(with: urlReq) { data, response, error in
+        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request) { data, response, error in
             DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
-    
-            if error != nil || data == nil {
-                print("Client error!")
+            
+            if error != nil {
+                print(error)
                 return
+            }
+            guard let response = response as? HTTPURLResponse else {
+                print("not httpurlresponse...!")
+                return;
             }
             
-            
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-                print("Server error!")
-                return
-            }
-
-            guard let mime = response.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-
-            do {
-                let videoNameList : NSArray = try JSONSerialization.jsonObject(with: data!, options: []) as! NSArray
-                //                let imgNameList = ["1.jpg", "2.png", "3.png"]
-                
-                let optionalVidURLs = videoNameList.map({ (vidName) -> URL? in
-                    if let vidNameString: String = vidName as? String {
-                        if let vidStrURL = URL(string: FlykConfig.mainEndpoint+"/video/" + vidNameString){
-                            return vidStrURL
-                        }
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        self.videosDataList = videosList
                     }
-                    return nil
-                })
-                self.videoURLs = optionalVidURLs.filter({ (maybeNill) -> Bool in return maybeNill != nil}) as! [URL]
-            } catch {
-                print("JSON error: \(error.localizedDescription)")
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
             }
 
         }.resume()

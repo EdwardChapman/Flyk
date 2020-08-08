@@ -17,7 +17,9 @@ import AVFoundation
 
 class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDelegate {
     
-    let captureSession = AVCaptureSession()
+    lazy var captureSession : AVCaptureSession = {
+        return AVCaptureSession()
+    }()
     
     lazy var backCamVideoInput: AVCaptureDeviceInput? = {
         let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)

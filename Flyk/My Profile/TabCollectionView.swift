@@ -41,6 +41,8 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         
         
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
+        self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "draftsCollectionView")
+        self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "likesCollectionView")
         self.delegate = self
         self.dataSource = self
         self.contentInsetAdjustmentBehavior = .never
@@ -79,33 +81,34 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
+        var cell: UICollectionViewCell!
+        var cellCollectionView: UICollectionView!
         
-        let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
-//        for subview in cell.subviews {
-//            if let sv = subview as? PostsCollectionView {
-//                sv.removeFromSuperview()
-//            }
-//        }
-        let indexColor: [UIColor] = [
-            .flykMediumGrey,
-            .flykBlue,
-            .flykRecordRed
-        ]
-        cell.backgroundColor = indexColor[indexPath.row]
+        if indexPath.row == 0 {
+            cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
+            let postsCollectionView = PostsCollectionView(frame: self.frame )
+            postsCollectionView.myProfileView = self.myProfileView
+            cellCollectionView = postsCollectionView
+        }else if indexPath.row == 1 {
+            cell = self.dequeueReusableCell(withReuseIdentifier: "draftsCollectionView", for: indexPath)
+            let postsCollectionView = DraftsCollectionView(frame: self.frame )
+            postsCollectionView.myProfileView = self.myProfileView
+            cellCollectionView = postsCollectionView
+        }else if indexPath.row == 2 {
+            cell = self.dequeueReusableCell(withReuseIdentifier: "likesCollectionView", for: indexPath)
+            let postsCollectionView = PostsCollectionView(frame: self.frame )
+            postsCollectionView.myProfileView = self.myProfileView
+            cellCollectionView = postsCollectionView
+        }
+
         
-//        cell.translatesAutoresizingMaskIntoConstraints = false
-//        cell.widthAnchor.constraint(equalTo: self.widthAnchor).isActive = true
-//        cell.heightAnchor.constraint(equalTo: self.heightAnchor).isActive = true
-//
-        let postsCollectionView = PostsCollectionView(frame: self.frame)
-        postsCollectionView.myProfileView = self.myProfileView
+        cell.addSubview(cellCollectionView)
         
-        cell.addSubview(postsCollectionView)
-        postsCollectionView.translatesAutoresizingMaskIntoConstraints = false
-        postsCollectionView.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
-        postsCollectionView.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
-        postsCollectionView.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
-        postsCollectionView.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
+        cellCollectionView.translatesAutoresizingMaskIntoConstraints = false
+        cellCollectionView.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
+        cellCollectionView.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
+        cellCollectionView.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
+        cellCollectionView.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
 //        postsCollectionView.layoutIfNeeded()
 //        postsCollectionView.reloadData()
         

@@ -11,7 +11,7 @@ import Foundation
 class MultiPartPost {
    
 
-
+/*
 
 
     static func sendFile(
@@ -41,11 +41,12 @@ class MultiPartPost {
         
 //        NSURLConnection.sendAsynchronousRequest(request1 as URLRequest, queue: queue, completionHandler:completionHandler)
     }
+   */
 
     // this is a very verbose version of that function
     // you can shorten it, but i left it as-is for clarity
     // and as an example
-    static func photoDataToFormData(data: NSData, boundary: String, fileName: String) -> NSData {
+    static func photoDataToFormData(data: NSData, boundary: String, fileName: String, allowComments: Bool, allowReactions: Bool, videoDescription: String) -> NSData {
         let fullData = NSMutableData()
         
         // 1 - Boundary should start with --
@@ -57,31 +58,65 @@ class MultiPartPost {
         // 2
         let lineTwo = "Content-Disposition: form-data; name=\"video\"; filename=\"" + fileName + "\"\r\n"
 //        print(lineTwo)
-        fullData.append(lineTwo.data(
-            using: String.Encoding.utf8,
-            allowLossyConversion: false)!)
+        fullData.append(lineTwo.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
         
         // 3
         let lineThree = "Content-Type: video/mp4\r\n\r\n"
-        fullData.append(lineThree.data(
-            using: String.Encoding.utf8,
-            allowLossyConversion: false)!)
+        fullData.append(lineThree.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
         
         // 4
         fullData.append(data as Data)
         
         // 5
         let lineFive = "\r\n"
-        fullData.append(lineFive.data(
-            using: String.Encoding.utf8,
-            allowLossyConversion: false)!)
+        fullData.append(lineFive.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
         
         // 6 - The end. Notice -- at the start and at the end
-        let lineSix = "--" + boundary + "--\r\n"
-        fullData.append(lineSix.data(
-            using: String.Encoding.utf8,
-            allowLossyConversion: false)!)
+        let lineSix = "--" + boundary + "\r\n"
+        fullData.append(lineSix.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
         
+        
+        /* VIDEO DESCRIPTION */
+        let a = "Content-Disposition: form-data; name=\"videoDescription\"" + "\"\r\n"
+        fullData.append(a.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        let aCT = "Content-Type: text/plain\r\n\r\n"
+        fullData.append(aCT.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(videoDescription.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(lineFive.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
+        
+        fullData.append(lineSix.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
+        
+        
+        /* ALLOW COMMENTS */
+        let b = "Content-Disposition: form-data; name=\"allowComments\"" + "\"\r\n"
+        fullData.append(b.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        let bCT = "Content-Type: text/plain\r\n\r\n"
+        fullData.append(bCT.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(allowComments.description.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(lineFive.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
+        
+        fullData.append(lineSix.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
+        
+        
+        /* ALLOW REACTIONS */
+        let c = "Content-Disposition: form-data; name=\"allowReactions\"" + "\"\r\n"
+        fullData.append(c.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        let cCT = "Content-Type: text/plain\r\n\r\n"
+        fullData.append(cCT.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(allowReactions.description.data( using: String.Encoding.utf8, allowLossyConversion: false)!)
+        
+        fullData.append(lineFive.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
+        
+        let end = "--" + boundary + "--\r\n"
+        fullData.append(end.data( using: String.Encoding.utf8, allowLossyConversion: false )!)
         
         
         return fullData

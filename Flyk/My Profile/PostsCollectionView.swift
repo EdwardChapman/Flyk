@@ -15,29 +15,61 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     var myProfileView: MyProfile!
     
     
-    lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
+    var videoDataList: [NSDictionary] = [] {
+        didSet {
+            DispatchQueue.main.async {
+                self.reloadData()
+            }
+        }
+    }
     lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
     lazy var context = appDelegate.persistentContainer.viewContext
     
     
-    func fetchDraftEntityList() -> [NSManagedObject]{
-        let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Draft")
-        request.returnsObjectsAsFaults = false
-        do {
-            let result = try context.fetch(request)
-            return result as! [NSManagedObject]
-        } catch {
-            print("Failed fetching saved videos", error)
-            return []
-        }
-        //        print(data.entity.attributesByName.keys) //GET ALL KEYS
-        //        print(data.value(forKey: "videoUrl") //GET VALUE
+    func fetchMyPosts(){
+        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/posts")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        self.videoDataList = videosList
+                        print("videoList", videosList)
+                    }
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
+            }
+            
+        }.resume()
+        
     }
     
     
     init(frame: CGRect){
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
-        
+        print("PostsCollecitonview init")
+        fetchMyPosts()
         
         
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
@@ -83,7 +115,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         return 1
     }
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        return savedVideosData.count
+        return videoDataList.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
@@ -91,122 +123,21 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
         cell.backgroundColor = .flykMediumGrey
         
-        let savedURL = savedVideosData[indexPath.row].value(forKey: "filename") as! String
-        let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(savedURL)
         
-        
-        let videoAsset = AVAsset(url: documentsUrl)
-        let newPlayer = AVPlayer(url: documentsUrl)
-        let playerLayer = AVPlayerLayer()
-        playerLayer.player = newPlayer
-        playerLayer.videoGravity = .resizeAspectFill
-        playerLayer.frame = cell.layer.bounds
-        cell.layer.addSublayer(playerLayer)
-        
-        
-        
-        let cellOverlay = UIView()
-        cell.addSubview(cellOverlay)
-        cellOverlay.translatesAutoresizingMaskIntoConstraints = false
-        cellOverlay.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
-        cellOverlay.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
-        cellOverlay.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
-        cellOverlay.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
-        
-        let uploadProgressView = UIView()
-        uploadProgressView.backgroundColor = .flykBlue
-        uploadProgressView.alpha = 0.7
-        cellOverlay.addSubview(uploadProgressView)
-        uploadProgressView.translatesAutoresizingMaskIntoConstraints = false
-        let bottomTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.bottomAnchor)
-        bottomTopAnchor.isActive = true
-        let topTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.topAnchor)
-        topTopAnchor.isActive = false
-        uploadProgressView.bottomAnchor.constraint(equalTo: cellOverlay.bottomAnchor).isActive = true
-        uploadProgressView.leadingAnchor.constraint(equalTo: cellOverlay.leadingAnchor).isActive = true
-        uploadProgressView.trailingAnchor.constraint(equalTo: cellOverlay.trailingAnchor).isActive = true
-        
-        let uploadingLabel = UILabel()
-        cellOverlay.addSubview(uploadingLabel)
-        uploadingLabel.text = "Uploading"
-        uploadingLabel.textColor = .white
-        uploadingLabel.translatesAutoresizingMaskIntoConstraints = false
-        uploadingLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-        uploadingLabel.centerYAnchor.constraint(equalTo: cellOverlay.centerYAnchor).isActive = true
-        
-        let cancelLabel = UILabel()
-        cellOverlay.addSubview(cancelLabel)
-        cancelLabel.text = "CANCEL"
-        cancelLabel.textColor = .white
-        cancelLabel.backgroundColor = .red
-        cancelLabel.alpha = 0.7
-        cancelLabel.layer.cornerRadius = 5
-        cancelLabel.clipsToBounds = true
-        cancelLabel.translatesAutoresizingMaskIntoConstraints = false
-        cancelLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-        cancelLabel.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 20).isActive = true
-        
-        cell.layoutIfNeeded()
-        
-        bottomTopAnchor.isActive = false
-        topTopAnchor.isActive = true
-        
-        UIView.animate(withDuration: 5, animations: {
-            cell.layoutIfNeeded()
-        }) { (finished) in
+        /* APNG/GIF SETUP */
+        let targetPath = FlykConfig.mainEndpoint+"/video/animatedThumbnail/"
+        if let apngFilename = videoDataList[indexPath.row]["apng_filename"] as? String {
+            let apngUrl = URL(string: targetPath + apngFilename)
             
-            uploadingLabel.text = "Processing"
-            
-            cancelLabel.isHidden = true
-            let processingBar = UIView()
-            cellOverlay.addSubview(processingBar)
-            processingBar.translatesAutoresizingMaskIntoConstraints = false
-            processingBar.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-            processingBar.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 15).isActive = true
-            processingBar.widthAnchor.constraint(equalTo: cellOverlay.widthAnchor, multiplier: 0.7).isActive = true
-            processingBar.heightAnchor.constraint(equalToConstant: 25).isActive = true
-            processingBar.layer.cornerRadius = 25/2
-            processingBar.backgroundColor = .white
-            processingBar.clipsToBounds = true
-            cell.layoutIfNeeded()
-            var pBStart: CGFloat = -processingBar.frame.width - 35
-            var counter = 0
-            while(pBStart < processingBar.frame.width){
-                counter+=1
-                let slantBar = UIView()
-                processingBar.addSubview(slantBar)
-                slantBar.backgroundColor = .flykBlue
-                slantBar.frame = CGRect(
-                    x: pBStart,
-                    y: 0,
-                    width: 10,
-                    height: processingBar.frame.height*1.5
-                )
-                slantBar.center.y = processingBar.bounds.height/2
-                pBStart += 2*slantBar.frame.width
-                slantBar.transform = slantBar.transform.rotated(by: 3.14*(1/6))
-            }
-            let posMov: CGFloat = CGFloat((Int(processingBar.frame.width/10)+2)*10)
-            for slant in processingBar.subviews {
-                UIView.animate(withDuration: 4, delay: 0, options: [.curveLinear, .repeat], animations: {
-                    UIView.setAnimationRepeatCount(1)
-                    slant.center.x += posMov
-                }, completion: { (finished) in
-                    //                        print("COMPLETED")
-                    if slant == processingBar.subviews.last {
-                        UIView.animate(withDuration: 0.3, delay: 0, options: [], animations: {
-                            cellOverlay.alpha = 0
-                        }, completion: {(fin) in
-                            print(fin)
-                            cellOverlay.isHidden = true
-                        })
-                    }
-                })
+            if let apngTestImgView = UIImageView.fromGif(frame: cell.frame, assetUrl: apngUrl, autoReverse: true) {
+                apngTestImgView.frame = cell.bounds
+                cell.addSubview(apngTestImgView)
+                
             }
         }
+
         
-        newPlayer.play()
+        
         return cell
 
     }

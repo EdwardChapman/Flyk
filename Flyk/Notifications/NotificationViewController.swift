@@ -63,7 +63,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        fetchNotifications()
+//        fetchNotifications()
         
         // Register the table view cell class and its reuse id
         tableView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
@@ -82,7 +82,9 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         tableView.refreshControl = UIRefreshControl()
         tableView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
         
-        
+        self.tableView.refreshControl!.beginRefreshing()
+        fetchNotifications()
+
     }
     
     @objc func handleRefreshControl() {

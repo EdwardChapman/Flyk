@@ -19,20 +19,36 @@ extension UIImageView {
 //        }
 //        let url = URL(fileURLWithPath: path)
         if let assetUrl = assetUrl {
-            guard let gifData = try? Data(contentsOf: assetUrl),
-                let source =  CGImageSourceCreateWithData(gifData as CFData, nil) else { return nil }
-            var images = [UIImage]()
-            let imageCount = CGImageSourceGetCount(source)
-            for i in 0 ..< imageCount {
-                if let image = CGImageSourceCreateImageAtIndex(source, i, nil) {
-                    images.append(UIImage(cgImage: image))
-                }
-            }
-            let origLength = images.count - 1
-            if autoReverse { for i in 0..<images.count { images.append(images[origLength-i]) } }
-            
             let gifImageView = UIImageView(frame: frame)
-            gifImageView.animationImages = images
+            URLSession.shared.dataTask(with:  assetUrl, completionHandler: { data, response, error in
+                
+                    
+                if let gifData = data {
+                    if let source =  CGImageSourceCreateWithData(gifData as CFData, nil) {
+                        var images = [UIImage]()
+                        let imageCount = CGImageSourceGetCount(source)
+                        for i in 0 ..< imageCount {
+                            if let image = CGImageSourceCreateImageAtIndex(source, i, nil) {
+                                images.append(UIImage(cgImage: image))
+                            }
+                        }
+                        let origLength = images.count - 1
+                        if autoReverse { for i in 0..<images.count { images.append(images[origLength-i]) } }
+                        
+                        
+                        DispatchQueue.main.async {
+                            gifImageView.animationImages = images
+                            gifImageView.isUserInteractionEnabled = false
+                            gifImageView.startAnimating()
+                        }
+                    }
+                }
+            }).resume()
+            
+            gifImageView.animationDuration = 1
+            
+            gifImageView.contentMode = .scaleAspectFit
+            
             return gifImageView
         }else{
             return nil

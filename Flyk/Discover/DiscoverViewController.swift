@@ -14,7 +14,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     
     
     let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var videoURLs : [URL] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
+    var videoDataList : [NSDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
     
     
     override func viewWillAppear(_ animated: Bool) {
@@ -23,7 +23,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     
     override func viewDidLoad() {
         super.viewDidLoad()
-//        fetchVideoList() // THIS IS DISABLED FOR TESTING
+        fetchVideoList() // THIS IS DISABLED FOR TESTING
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .vertical
         flowLayout.minimumLineSpacing = 0.5
@@ -49,7 +49,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
 //        collectionView.decelerationRate = .fast
         self.view.backgroundColor = UIColor.flykDarkGrey
-        collectionView.backgroundColor = UIColor.flykDarkWhite
+        collectionView.backgroundColor = UIColor.flykDarkGrey
         
         
         collectionView.refreshControl = UIRefreshControl()
@@ -58,7 +58,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
         collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         
-        loadingPlaceholderSetup()
+//        loadingPlaceholderSetup()
     }
     
     func loadingPlaceholderSetup(){
@@ -115,19 +115,29 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
 //        return videoURLs.count
-        return videoURLs.count
+        return videoDataList.count
     }
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "discoverCell", for: indexPath)
 
-        let remoteAsset = AVAsset(url: videoURLs[indexPath.row])
-        let newPlayer = AVPlayer(playerItem: AVPlayerItem(asset: remoteAsset))
-        let playerLayer = AVPlayerLayer()
-        playerLayer.player = newPlayer
-        playerLayer.videoGravity = .resizeAspectFill
-        playerLayer.frame = cell.layer.bounds
-        cell.layer.addSublayer(playerLayer)
+        let apngImgView = UIImageView(frame: cell.layer.bounds)
+        
+        
+        /* APNG/GIF SETUP */
+        let targetPath = FlykConfig.mainEndpoint+"/video/animatedThumbnail/"
+        if let apngFilename = videoDataList[indexPath.row]["apng_filename"] as? String {
+            let apngUrl = URL(string: targetPath + apngFilename)
+            
+            if let apngTestImgView = UIImageView.fromGif(frame: view.frame, assetUrl: apngUrl, autoReverse: true) {
+                apngTestImgView.animationDuration = 1
+                apngTestImgView.startAnimating()
+                apngTestImgView.frame = cell.bounds
+                cell.addSubview(apngTestImgView)
+                apngTestImgView.contentMode = .scaleAspectFit
+            }
+        }
+        
         
         return cell
     }
@@ -150,7 +160,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
 //            self.currentCell?.player.play()
 //        }
         
-        if videoURLs.count > 0 && indexPath.row > (videoURLs.count - 2) {
+        if videoDataList.count > 0 && indexPath.row > (videoDataList.count - 2) {
             print("FETCH NEW ITEMS HERE")
         }
     }
@@ -200,39 +210,32 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
     func fetchVideoList(){
+        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/discover/")!
         
-        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/list/videos")!) { data, response, error in
+        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
             
-            if error != nil || data == nil {
-                print("Client error!")
+            if error != nil {
+                print(error)
                 return
             }
-            
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-                print("Server error!")
-                return
+            guard let response = response as? HTTPURLResponse else {
+                print("not httpurlresponse...!")
+                return;
             }
             
-            guard let mime = response.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-            
-            do {
-                let videoNameList : NSArray = try JSONSerialization.jsonObject(with: data!, options: []) as! NSArray
-                //                let imgNameList = ["1.jpg", "2.png", "3.png"]
-                let optionalVidURLs = videoNameList.map({ (vidName) -> URL? in
-                    if let vidNameString: String = vidName as? String {
-                        if let vidStrURL = URL(string:FlykConfig.mainEndpoint+"/videos/" + vidNameString){
-                            return vidStrURL
-                        }
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        self.videoDataList = videosList
                     }
-                    return nil
-                })
-                
-              self.videoURLs = optionalVidURLs.filter({ (maybeNill) -> Bool in return maybeNill != nil}) as! [URL]
-            } catch {
-                print("JSON error: \(error.localizedDescription)")
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
             }
             
             }.resume()

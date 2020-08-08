@@ -49,7 +49,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     let profileScrollView = UIScrollView()
     var tabCollectionView: TabCollectionView!
-    var profileView: ProfileCell!
+    var profileView: ProfileHeaderView!
     let draftsTab = UIView()
     
     var shouldGoToDrafts = false
@@ -57,13 +57,21 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
+        
+        if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+            profileView.signInButton.isHidden = false
+        }else{
+            profileView.signInButton.isHidden = true
+        }
         if(shouldGoToDrafts){
             goToDrafts()
         }
     }
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
         self.view.backgroundColor = .flykLightBlack
         self.view.addSubview(profileScrollView)
         profileScrollView.translatesAutoresizingMaskIntoConstraints = false
@@ -72,8 +80,9 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         profileScrollView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         profileScrollView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         
-        profileView = ProfileCell(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height/3))
+        profileView = ProfileHeaderView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height/3))
         profileScrollView.addSubview(profileView)
+        profileView.fetchProfileData()
         
         profileScrollView.refreshControl = UIRefreshControl()
         profileScrollView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
@@ -445,62 +454,62 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     //////////////////////////////////////////////////////////////////////////////////////////////////
     
     
-    func getMyProfile() {
-        
-        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/myProfile/")!) { data, response, error in
-            
-            if error != nil || data == nil {
-                print("Client error!")
-                return
-            }
-            
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-                print("Server error!")
-                return
-            }
-            
-            guard let mime = response.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-            
-            do {
-                let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
-                //            {
-                //                username: "Mr. Polar Bear",
-                //                profile_photos: "polar_bear.jpg",
-                //                videos: [
-                //                "v09044e20000brmcq2ihl9acefv17icg.MP4",
-                //                "v09044fa0000brfud6gpfrijil1melq0.MP4"
-                //                ],
-                //                bio: "I am a polar bear."
-                //            }
-                print(myProfileData)
-                
-                self.loadProfileImage(profileImgString: myProfileData["profile_photos"] as? String ?? "default.png")
-                
-                DispatchQueue.main.async {
-                    self.usernameTextView.text = myProfileData["username"] as? String
-                    self.bioTextView.text = myProfileData["bio"] as? String
-                }
-                
-                
-            } catch {
-                print("JSON error: \(error.localizedDescription)")
-            }
-            
-            }.resume()
-    }
-    
-    func loadProfileImage(profileImgString: String){
-        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/"+profileImgString)!
-        print(pImgURL)
-        URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
-            DispatchQueue.main.async {
-                print(data)
-                self.profileImage.image = UIImage(data: data!)
-            }
-        }).resume()
-        
-    }
+//    func getMyProfile() {
+//        
+//        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/myProfile/")!) { data, response, error in
+//            
+//            if error != nil || data == nil {
+//                print("Client error!")
+//                return
+//            }
+//            
+//            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+//                print("Server error!")
+//                return
+//            }
+//            
+//            guard let mime = response.mimeType, mime == "application/json" else {
+//                print("Wrong MIME type!")
+//                return
+//            }
+//            
+//            do {
+//                let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
+//                //            {
+//                //                username: "Mr. Polar Bear",
+//                //                profile_photos: "polar_bear.jpg",
+//                //                videos: [
+//                //                "v09044e20000brmcq2ihl9acefv17icg.MP4",
+//                //                "v09044fa0000brfud6gpfrijil1melq0.MP4"
+//                //                ],
+//                //                bio: "I am a polar bear."
+//                //            }
+//                print(myProfileData)
+//                
+//                self.loadProfileImage(profileImgString: myProfileData["profile_photos"] as? String ?? "default.png")
+//                
+//                DispatchQueue.main.async {
+//                    self.usernameTextView.text = myProfileData["username"] as? String
+//                    self.bioTextView.text = myProfileData["bio"] as? String
+//                }
+//                
+//                
+//            } catch {
+//                print("JSON error: \(error.localizedDescription)")
+//            }
+//            
+//            }.resume()
+//    }
+//    
+//    func loadProfileImage(profileImgString: String){
+//        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/"+profileImgString)!
+//        print(pImgURL)
+//        URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
+//            DispatchQueue.main.async {
+//                print(data)
+//                self.profileImage.image = UIImage(data: data!)
+//            }
+//        }).resume()
+//        
+//    }
 }
