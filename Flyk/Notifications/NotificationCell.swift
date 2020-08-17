@@ -34,6 +34,7 @@ class NoticationCell: UITableViewCell {
         self.contentView.frame.size = CGSize(width: self.contentView.frame.width, height: 70)
         
         contextProfileImg.backgroundColor = .flykLoadingGrey
+        contextProfileImg.isUserInteractionEnabled = true
         contextProfileImg.translatesAutoresizingMaskIntoConstraints = false
         contextProfileImg.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: leftInset).isActive = true
         contextProfileImg.widthAnchor.constraint(equalToConstant: contextProfileImgWidth).isActive = true
@@ -53,6 +54,11 @@ class NoticationCell: UITableViewCell {
         
         
         self.backgroundColor = .flykDarkGrey
+    }
+    
+    override func prepareForReuse() {
+        self.contextProfileImg.image = nil
+        self.notificationLabel.text = ""
     }
     
     

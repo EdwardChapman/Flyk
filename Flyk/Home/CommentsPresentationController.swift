@@ -14,52 +14,90 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
 
     
     // Data model: These strings will be the data for the table view cells
-    let notificationList: [String] = [
-        "Bob liked your video",
-        "Jeff followed you",
-        "Your video reached 100 likes and this line should hopefully spill over this will go to a third line and maybe this will go to a fourth",
-        "You reached 100 followers",
-        "Smith liked your video",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "Bob liked your video",
-        "Jeff followed you",
-        "Your video reached 100 likes and this line should hopefully spill over this will go to a third line and maybe this will go to a fourth",
-        "You reached 100 followers",
-        "Smith liked your video",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "Bob liked your video",
-        "Jeff followed you",
-        "Your video reached 100 likes and this line should hopefully spill over this will go to a third line and maybe this will go to a fourth",
-        "You reached 100 followers",
-        "Smith liked your video",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-        "Bob liked your video",
-        "Jeff followed you",
-        "Your video reached 100 likes and this line should hopefully spill over this will go to a third line and maybe this will go to a fourth",
-        "You reached 100 followers",
-        "Smith liked your video",
-        "1",
-        "2",
-        "3",
-        "4",
-        "5",
-        "6",
-    ]
+    var notificationList: [NSDictionary] = [] {
+        didSet{
+            DispatchQueue.main.async {
+                self.tableView.reloadData()
+            }
+        }
+    }
+    
+    var currentVideoId: String?
+    
+    func setupComments(forVideo videoId: String?){
+        //CLEAR CURRENT COMMENT LIST
+        //SET CONTENT OFFSET TO ZERO
+        //Fetch Comments for new videoId
+        if videoId != currentVideoId {
+            notificationList = []
+            currentVideoId = videoId
+            fetchComments()
+        }
+    }
+    
+    var goToProfileFunction: ((UITapGestureRecognizer)->())?
+    @objc func handleCellProfileImgTap(tapGesture: UITapGestureRecognizer){
+        if let goToProfileFunction = self.goToProfileFunction {
+            goToProfileFunction(tapGesture)
+        }
+    }
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // NETWORKING //////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    func fetchComments(){
+        if let videoId = currentVideoId {
+            
+            let url = URL(string: FlykConfig.mainEndpoint + "/video/comments")!
+            var request = URLRequest(url: url)
+            request.httpMethod = "POST"
+            
+            let parameters: NSDictionary = ["videoId": videoId]
+            
+            do {
+                request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+            } catch let error {
+                print(error.localizedDescription)
+                return;
+            }
+            
+            
+            
+            request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+            request.addValue("application/json", forHTTPHeaderField: "Accept")
+            
+            URLSession.shared.dataTask(with: request) { data, response, error in
+                if(error != nil) {return print(error)}
+                guard let response = response as? HTTPURLResponse
+                    else{print("resopnse is not httpurlResponse"); return;}
+//                print("Status: ", response.statusCode)
+                
+                if response.statusCode == 200 {
+                    do {
+                        let json : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as! [NSDictionary]
+                        
+                        self.notificationList = json
+                    } catch let err {
+                        print("JSON error: \(err.localizedDescription)")
+                    }
+                }
+                
+                if response.statusCode == 500 {
+                    print("Server Error")
+//                    self.inputErrs = ["Server Error"]
+                    //PRINT OUT THE RESPONSE HERE
+                    // ??? maybey a warning lol
+                }
+                
+                if response.statusCode == 400 {
+                    print("Client Error")
+
+                }
+            }.resume()
+        }
+    }
+    
     
     // cell reuse id (cells that scroll out of view can be reused)
     let notificationCellId = "notificationCell"
@@ -70,15 +108,14 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     let dragOverlayView = UIView()
     
     let commentInputView = UIView()
+    let commentTextField = UITextView()
     var commentInputViewBottomAnchor: NSLayoutConstraint!
     
     var keyboardHeight: CGFloat? {
         didSet {
             if let keyboardHeight = self.keyboardHeight {
-                print("CONSTANT SET FROM KEYBOARD")
                 commentInputViewBottomAnchor.constant = -(keyboardHeight - self.view.safeAreaInsets.bottom)
             }else{
-                print("CONSTANT SET TO ZERO")
                 commentInputViewBottomAnchor.constant = 0
             }
             self.view.layoutIfNeeded()
@@ -102,6 +139,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         
         tableView.delegate = self
         tableView.dataSource = self
+        tableView.allowsSelection = false
         tableView.backgroundColor = .flykDarkGrey
         tableView.separatorStyle = UITableViewCell.SeparatorStyle.none
         tableView.register(NoticationCell.self, forCellReuseIdentifier: notificationCellId)
@@ -120,15 +158,14 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         commentInputViewBottomAnchor = commentInputView.bottomAnchor.constraint(equalTo: dragOverlayView.safeAreaLayoutGuide.bottomAnchor)
         commentInputViewBottomAnchor.isActive = true
         
-        let commentTextField = UITextView()
+        
         commentTextField.text = "Comment..."
         commentTextField.textColor = .white
         commentInputView.addSubview(commentTextField)
         commentTextField.backgroundColor = .black
-        
-//        commentTextField.layer.borderWidth = 1
-//        commentTextField.layer.borderColor = UIColor.flykDarkWhite.cgColor
+        commentTextField.font = UIFont.systemFont(ofSize: 18)
         commentTextField.layer.cornerRadius = 45/2
+        commentTextField.textContainerInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 45)
         self.view.layoutIfNeeded()
         
         let profileImgView = UIImageView(image: UIImage())
@@ -158,6 +195,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         sendComment.bottomAnchor.constraint(equalTo: commentTextField.bottomAnchor, constant: -7.5).isActive = true
         sendComment.heightAnchor.constraint(equalToConstant: 30).isActive = true
         sendComment.widthAnchor.constraint(equalTo: sendComment.heightAnchor).isActive = true
+        sendComment.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSendCommentTap(tapGesture:))))
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.leadingAnchor.constraint(equalTo: dragOverlayView.leadingAnchor).isActive = true
@@ -175,13 +213,68 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         
     }
     
+    @objc func handleSendCommentTap(tapGesture: UITapGestureRecognizer){
+        self.commentTextField.resignFirstResponder()
+        if let videoId = self.currentVideoId {
+            if let commentText = commentTextField.text {
+                let trimmedComment = commentText.trimmingCharacters(in: .whitespacesAndNewlines)
+                if trimmedComment.count > 0 {
+                    //DO THE POST REQUEST HERE
+                    
+                    let url = URL(string: FlykConfig.mainEndpoint + "/video/comments/post")!
+                    var request = URLRequest(url: url)
+                    request.httpMethod = "POST"
+                    
+                    
+                    do {
+                        let parameters: NSDictionary = ["videoId": videoId, "comment": trimmedComment]
+                        request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                    } catch let error {
+                        print(error.localizedDescription)
+                        return;
+                    }
+                    
+                    request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                    request.addValue("application/json", forHTTPHeaderField: "Accept")
+                    
+                    URLSession.shared.dataTask(with: request) { data, response, error in
+                        if(error != nil) {return print(error)}
+                        guard let response = response as? HTTPURLResponse
+                            else{print("resopnse is not httpurlResponse"); return;}
+                                        print("Status: ", response.statusCode)
+                        self.fetchComments()
+                        if response.statusCode == 200 {
+                            
+                        }
+                        
+                        if response.statusCode == 500 {
+                            print("Server Error")
+                            //                    self.inputErrs = ["Server Error"]
+                            //PRINT OUT THE RESPONSE HERE
+                            // ??? maybey a warning lol
+                        }
+                        
+                        if response.statusCode == 400 {
+                            print("Client Error")
+
+                        }
+                        }.resume()
+                    
+                }
+            }
+        }
+        
+        self.commentTextField.text = ""
+        //Show placeholder label here
+    }
+    
+    
     deinit {
         removeKeyboardObserver()
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
-        print(self.commentInputViewBottomAnchor.constant)
         self.view.layoutIfNeeded()
     }
     override func viewDidAppear(_ animated: Bool) {
@@ -195,20 +288,20 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     @objc fileprivate func keyboardWillShow(notification:NSNotification) {
         if let keyboardRectValue = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            print("KEYBOARD WILL SHOW")
             self.keyboardHeight = keyboardRectValue.height
+            print("KEYBOARD WILL Show")
         }
     }
     
     @objc fileprivate func keyboardWillHide(notification: NSNotification) {
-        print("HIDE")
+        print("KEYBOARD WILL HIDE")
         self.keyboardHeight = nil
     }
     
     func addKeyboardObserver(){
         NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
         
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
+        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
     }
     func removeKeyboardObserver(){
         NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification , object: nil)
@@ -236,7 +329,20 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         
         // set the text from the data model
         //        cell.backgroundColor = .flykDarkGrey
-        cell.notificationLabel.text = self.notificationList[indexPath.row]
+        cell.notificationLabel.text = self.notificationList[indexPath.row]["comment_text"] as? String
+        if let pImgFilename = self.notificationList[indexPath.row]["profile_img_filename"] as? String {
+            let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profile/photo/"+pImgFilename)!
+            URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
+                DispatchQueue.main.async {
+                    cell.contextProfileImg.image = UIImage(data: data!)
+                }
+            }).resume()
+        }
+        if let goToProfileFunc = self.goToProfileFunction {
+            let gestReq = UITapGestureRecognizer(target: self, action: #selector(handleCellProfileImgTap(tapGesture:)))
+            cell.contextProfileImg.addGestureRecognizer(gestReq)
+        }
+        
         //        cell.textLabel?.textColor = .white
         return cell
     }
@@ -254,20 +360,17 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     }
     
     
+    
+    
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // SCROLLVIEW DELEGATE //////////////////////////////////////////////////////////////////////////
     /////////////////////////////////////////////////////////////////////////////////////////////////
     var shouldDismiss = false
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         
-//            if shouldDismiss {
-//                dragOverlayView.frame.origin = self.view.bounds.origin
-//            }else{
-//                dragOverlayView.frame.origin = .zero
-//            }
-//        }
-//        isDismissingDrag = false
+
     }
+    
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
         if self.shouldDismiss {
             self.dismiss(animated: true, completion: {self.dragOverlayView.frame.origin = .zero})
@@ -279,7 +382,6 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         isDismissingDrag = false
     }
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        print(velocity.y)
         isCurDragging = false
 //        targetContentOffset.pointee.y
         if velocity.y < -1 && scrollView.contentOffset.y <= 0{
@@ -305,6 +407,20 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
+// CLASS CommentsPresentationController ////////////////////////////////////////////////////////////////////
+////////////////////////////////////////////////////////////////////////////////////////////////////////////
 
 class CommentsPresentationController: UIPresentationController{
     let blurEffectView: UIView//UIVisualEffectView!

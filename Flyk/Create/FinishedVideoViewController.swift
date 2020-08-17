@@ -29,6 +29,9 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     let characterCounter = UILabel()
     let descriptionInput = UITextView()
     
+    let reactionsSwitch = UISwitch(frame: .zero)
+    let commentsSwitch = UISwitch(frame: .zero)
+    
     let videoLoadingSpinner = UIActivityIndicatorView(style: .white)
     
     lazy var videoPlaybackView : UIView = {
@@ -239,7 +242,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
 //                self.navigationController?.popToRootViewController(animated: false)
                 self.tabBarController!.selectedIndex = 4
                 if let profileNavController = self.tabBarController?.viewControllers?[4] as? UINavigationController {
-                    if let myProfile = profileNavController.viewControllers.first as? MyProfile {
+                    if let myProfile = profileNavController.viewControllers.first as? MyProfileVC {
                         self.tabBarController?.showTabBarView()
                         myProfile.shouldGoToDrafts = true
                     }
@@ -279,12 +282,13 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
         let draft = NSManagedObject(entity: entity!, insertInto: context)
         
+        
         draft.setValue(videoName, forKey: "filename")
         draft.setValue(Date(), forKey: "creationDate")
-        draft.setValue(true, forKey: "allowComments")
-        draft.setValue(false, forKey: "allowReactions")
+        draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
+        draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
+        draft.setValue(descriptionInput.text, forKey: "videoDescription")
         draft.setValue("Saved", forKey: "uploadStatus")
-        draft.setValue("Hello this is my first video!", forKey: "videoDescription")
         draft.setValue(0, forKey: "uploadProgress")
  
         
@@ -329,10 +333,10 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         
         draft.setValue(videoName, forKey: "filename")
         draft.setValue(Date(), forKey: "creationDate")
-        draft.setValue(true, forKey: "allowComments")
-        draft.setValue(false, forKey: "allowReactions")
+        draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
+        draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
+        draft.setValue(descriptionInput.text, forKey: "videoDescription")
         draft.setValue("ShouldUpload", forKey: "uploadStatus")
-        draft.setValue("Hello this is my first video!", forKey: "videoDescription")
         draft.setValue(0, forKey: "uploadProgress")
         
         
@@ -351,35 +355,37 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     
     
     func setupSwitches(){
-        let tandemSwitch = UISwitch(frame: .zero)
-        self.view.addSubview(tandemSwitch)
-        tandemSwitch.translatesAutoresizingMaskIntoConstraints = false
-        tandemSwitch.frame.size = tandemSwitch.intrinsicContentSize
-        tandemSwitch.tintColor = .flykLightDarkGrey
+
+        self.view.addSubview(reactionsSwitch)
+        reactionsSwitch.isOn = true
+        reactionsSwitch.translatesAutoresizingMaskIntoConstraints = false
+        reactionsSwitch.frame.size = reactionsSwitch.intrinsicContentSize
+        reactionsSwitch.tintColor = .flykLightDarkGrey
         
         let superWidth = self.view.frame.width
         let videoPlayerBottom = 0.4*superWidth*(16/9)+8
         let topConst = videoPlayerBottom+40
-        tandemSwitch.onTintColor = .flykBlue
-        tandemSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(topConst)).isActive = true
-        tandemSwitch.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
-        tandemSwitch.widthAnchor.constraint(equalToConstant: tandemSwitch.intrinsicContentSize.width).isActive = true
-        tandemSwitch.heightAnchor.constraint(equalToConstant: tandemSwitch.intrinsicContentSize.height).isActive = true
+        reactionsSwitch.onTintColor = .flykBlue
+        reactionsSwitch.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: CGFloat(topConst)).isActive = true
+        reactionsSwitch.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
+        reactionsSwitch.widthAnchor.constraint(equalToConstant: reactionsSwitch.intrinsicContentSize.width).isActive = true
+        reactionsSwitch.heightAnchor.constraint(equalToConstant: reactionsSwitch.intrinsicContentSize.height).isActive = true
         
-        let tandemSwitchLabel = UILabel(frame: .zero)
-        tandemSwitchLabel.textColor = .flykDarkWhite
-        self.view.addSubview(tandemSwitchLabel)
-        tandemSwitchLabel.translatesAutoresizingMaskIntoConstraints = false
-        tandemSwitchLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
-        tandemSwitchLabel.trailingAnchor.constraint(equalTo: tandemSwitch.leadingAnchor, constant: -8).isActive = true
-        tandemSwitchLabel.centerYAnchor.constraint(equalTo: tandemSwitch.centerYAnchor).isActive = true
-        tandemSwitchLabel.text = "Allow Tandem"
-        tandemSwitchLabel.adjustsFontSizeToFitWidth = true
+        let reactionsLabel = UILabel(frame: .zero)
+        reactionsLabel.textColor = .flykDarkWhite
+        self.view.addSubview(reactionsLabel)
+        reactionsLabel.translatesAutoresizingMaskIntoConstraints = false
+        reactionsLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
+        reactionsLabel.trailingAnchor.constraint(equalTo: reactionsSwitch.leadingAnchor, constant: -8).isActive = true
+        reactionsLabel.centerYAnchor.constraint(equalTo: reactionsSwitch.centerYAnchor).isActive = true
+        reactionsLabel.text = "Allow Tandem"
+        reactionsLabel.adjustsFontSizeToFitWidth = true
         
         
         
-        let commentsSwitch = UISwitch(frame: .zero)
+        
         commentsSwitch.tintColor = .flykLightDarkGrey
+        commentsSwitch.isOn = true
         self.view.addSubview(commentsSwitch)
         commentsSwitch.translatesAutoresizingMaskIntoConstraints = false
         commentsSwitch.frame.size = commentsSwitch.intrinsicContentSize
@@ -388,7 +394,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
 //        let videoPlayerBottom = 0.4*superWidth*(16/9)+8
 //        let topConst = videoPlayerBottom+40
         commentsSwitch.onTintColor = .flykBlue
-        commentsSwitch.topAnchor.constraint(equalTo: tandemSwitch.bottomAnchor, constant: 35).isActive = true
+        commentsSwitch.topAnchor.constraint(equalTo: reactionsSwitch.bottomAnchor, constant: 35).isActive = true
         commentsSwitch.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -16).isActive = true
         commentsSwitch.widthAnchor.constraint(equalToConstant: commentsSwitch.intrinsicContentSize.width).isActive = true
         commentsSwitch.heightAnchor.constraint(equalToConstant: commentsSwitch.intrinsicContentSize.height).isActive = true
@@ -454,6 +460,8 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     
     @objc func handleBackButtonTap(tapGesture: UITapGestureRecognizer){
         if (self.navigationController?.viewControllers.contains(self))! {
+            self.playerLayer.player?.pause()
+            self.playerLayer.player = nil
             self.navigationController?.popViewController(animated: true)
         }
     }

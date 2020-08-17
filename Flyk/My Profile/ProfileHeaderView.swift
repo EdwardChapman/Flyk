@@ -30,6 +30,11 @@ class ProfileHeaderView: UIView {
         profileImageView.layer.cornerRadius = profileImageWidth/2;
         profileImageView.layer.masksToBounds = true;
         profileImageView.backgroundColor = UIColor.flykLoadingGrey
+        profileImageView.isUserInteractionEnabled = true
+        profileImageView.contentMode = .scaleToFill
+        
+        
+        
         
         usernameLabel.backgroundColor = .clear
         usernameLabel.textColor = .white

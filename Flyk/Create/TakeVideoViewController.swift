@@ -23,12 +23,19 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     lazy var backCamVideoInput: AVCaptureDeviceInput? = {
         let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
-        if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!) { return videoDeviceInput }
+        if let videoDevice = videoDevice {
+            if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice) {
+                return videoDeviceInput
+            }
+            return nil
+        }
         return nil
     }()
-    var selfieCamVideoInput: AVCaptureDeviceInput? = {
+    lazy var selfieCamVideoInput: AVCaptureDeviceInput? = {
         let videoDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .front)
-        if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!) { return videoDeviceInput }
+        if let videoDeviceInput = try? AVCaptureDeviceInput(device: videoDevice!) {
+            return videoDeviceInput
+        }
         return nil
     }()
     
@@ -81,11 +88,15 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     }
     func microphonesSetup(){
         captureSession.beginConfiguration()
-        let audioDevice = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInMicrophone, for: .audio, position: .unspecified)
+        let audioDeviceOp = AVCaptureDevice.default(AVCaptureDevice.DeviceType.builtInMicrophone, for: .audio, position: .unspecified)
         guard
-            let audioDeviceInput = try? AVCaptureDeviceInput(device: audioDevice!),
+            let audioDevice = audioDeviceOp,
+            let audioDeviceInput = try? AVCaptureDeviceInput(device: audioDevice),
             captureSession.canAddInput(audioDeviceInput)
-            else { return }
+        else {
+            captureSession.commitConfiguration()
+            return
+        }
         captureSession.addInput(audioDeviceInput)
         captureSession.commitConfiguration()
     }
@@ -93,7 +104,11 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
 
     func movieOutputSetup(){
         captureSession.beginConfiguration() //THIS MIGHT NEED TO MOVE
-        guard captureSession.canAddOutput(movieOutput) else { return }
+        guard captureSession.canAddOutput(movieOutput)
+        else {
+            captureSession.commitConfiguration()
+            return
+        }
         captureSession.sessionPreset = .hd1920x1080
         captureSession.addOutput(movieOutput)
         captureSession.commitConfiguration()

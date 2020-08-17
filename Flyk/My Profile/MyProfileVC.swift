@@ -12,7 +12,7 @@ import AVFoundation
 
 
 
-class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
     
     let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
@@ -29,8 +29,8 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     
     lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
-        
-        
+    
+    
     
     func fetchDraftEntityList() -> [NSManagedObject]{
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Draft")
@@ -49,28 +49,153 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
     
     let profileScrollView = UIScrollView()
     var tabCollectionView: TabCollectionView!
-    var profileView: ProfileHeaderView!
+    var profileHeaderView: ProfileHeaderView!
     let draftsTab = UIView()
     
     var shouldGoToDrafts = false
     
+
     
+    var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
         if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
-            profileView.signInButton.isHidden = false
+            profileHeaderView.signInButton.isHidden = false
         }else{
-            profileView.signInButton.isHidden = true
+            profileHeaderView.signInButton.isHidden = true
         }
         if(shouldGoToDrafts){
             goToDrafts()
         }
+        
+        if animated {
+            if let rootVC = self.navigationController?.viewControllers[0] {
+                if rootVC != self {
+                    previousInteractivePopGestureDelegate = self.navigationController?.interactivePopGestureRecognizer?.delegate
+                    self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
+                }
+            }
+        }
+    }
+    override func viewWillDisappear(_ animated: Bool) {
+        if let prevDel = previousInteractivePopGestureDelegate {
+            self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
+        }
+    }
+    
+    @objc func handleProfileImgTap(tapGesture: UITapGestureRecognizer){
+        let profileImgActionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        profileImgActionSheet.addAction(UIAlertAction(title: "Remove Current Image", style: .destructive,
+            handler: { _ in
+                // Delete current image
+            })
+        )
+        profileImgActionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default,
+            handler: { _ in
+                // popCamera taking view
+                self.imgFromCamera()
+            })
+        )
+        profileImgActionSheet.addAction(UIAlertAction(title: "Choose From Photos", style: .default,
+            handler: { _ in
+                // pop photo library
+                self.imgFromPhotos()
+            })
+        )
+        profileImgActionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,
+            handler: { _ in
+                //closes the action sheet.
+            })
+        )
+        
+        self.present(profileImgActionSheet, animated: true, completion: nil)
+    }
+    
+    func imgFromCamera() {
+        let myPickerController = UIImagePickerController()
+        myPickerController.allowsEditing = true
+        myPickerController.delegate = self;
+        myPickerController.sourceType = UIImagePickerController.SourceType.camera
+        
+        self.present(myPickerController, animated: true, completion: nil)
+        
+    }
+    
+    func imgFromPhotos() {
+        
+        let myPickerController = UIImagePickerController()
+        myPickerController.allowsEditing = true
+//        myPickerController.preferredContentSize = CGSize(width: 100, height: 100)
+        
+        myPickerController.delegate = self
+        myPickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
+        
+        self.present(myPickerController, animated: true, completion: nil)
+        
+    }
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let img =  info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
+//            profileHeaderView.profileImageView.image = img
+            sendProfilePicToServer(newImg: img)
+        }
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    func sendProfilePicToServer(newImg : UIImage){
+        
+        
+        let endPointURL = FlykConfig.uploadEndpoint+"/upload/profilePhoto"
+        
+        let dataOpt: Data? = newImg.jpegData(compressionQuality: 1)
+        guard let dataNotConverted = dataOpt else { return }
+        let data = NSData(data: dataNotConverted)
+        
+        
+        let boundary = "?????"
+        var request = URLRequest(url: URL(string: endPointURL)!)
+        request.timeoutInterval = 30
+        request.httpMethod = "POST"
+        request.httpBody = MultiPartPost_2.photoDataToFormData(data: data, boundary: boundary, fileName: "profilePhoto") as Data
+        //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+        request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
+                         forHTTPHeaderField: "Content-Type")
+        request.addValue("image/jpeg", forHTTPHeaderField: "mimeType")
+        request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
+        
+        request.addValue("text/plain", forHTTPHeaderField: "Accept")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            print(data, response)
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
+                print("Server error!")
+                //                    print(data, response, error)
+                return
+            }
+            DispatchQueue.main.async {
+                self.profileHeaderView.fetchProfileData()
+            }
+            print("SUCCESS")
+        }
+        
+        print("Upload Started")
+        task.resume()
+            
+
     }
     
 
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+
         
         self.view.backgroundColor = .flykLightBlack
         self.view.addSubview(profileScrollView)
@@ -80,9 +205,9 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         profileScrollView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         profileScrollView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
         
-        profileView = ProfileHeaderView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height/3))
-        profileScrollView.addSubview(profileView)
-        profileView.fetchProfileData()
+        profileHeaderView = ProfileHeaderView(frame: CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height/3))
+        profileScrollView.addSubview(profileHeaderView)
+        profileHeaderView.fetchProfileData()
         
         profileScrollView.refreshControl = UIRefreshControl()
         profileScrollView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
@@ -92,6 +217,8 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         
         profileScrollView.contentInsetAdjustmentBehavior = .never
         
+        profileHeaderView.profileImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleProfileImgTap)))
+        
         
         
         let collectionTabs = UIView()
@@ -99,7 +226,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         collectionTabs.translatesAutoresizingMaskIntoConstraints = false
         collectionTabs.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         collectionTabs.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        collectionTabs.topAnchor.constraint(equalTo: profileView.bottomAnchor).isActive = true
+        collectionTabs.topAnchor.constraint(equalTo: profileHeaderView.bottomAnchor).isActive = true
         collectionTabs.heightAnchor.constraint(equalToConstant: 45).isActive = true
         
         let postsTab = UIView()
@@ -111,7 +238,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         postsTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
         postsTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
         
-        let postsImageView = UIImageView(image: UIImage(named: "Cubes"))
+        let postsImageView = UIImageView(image: UIImage(named: "newCubesV1"))
         postsTab.addSubview(postsImageView)
         postsImageView.contentMode = .scaleAspectFit
         postsImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -129,7 +256,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         draftsTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
         draftsTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
         
-        let draftsImageView = UIImageView(image: UIImage(named: "draftLock"))
+        let draftsImageView = UIImageView(image: UIImage(named: "newDraftLockWrenchV1"))
         draftsTab.addSubview(draftsImageView)
         draftsImageView.contentMode = .scaleAspectFit
         draftsImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -148,7 +275,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         likesTab.bottomAnchor.constraint(equalTo: collectionTabs.bottomAnchor).isActive = true
         likesTab.widthAnchor.constraint(equalTo: collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
         
-        let likesImageView = UIImageView(image: UIImage(named: "heartTab"))
+        let likesImageView = UIImageView(image: UIImage(named: "newHeartV5"))
         likesTab.addSubview(likesImageView)
         likesImageView.contentMode = .scaleAspectFit
         likesImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -179,7 +306,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
         
         let tabColViewHeight = tabCollectionView.frame.height
         let colTabsHeight = collectionTabs.frame.height
-        let profileViewHeight = profileView.frame.height
+        let profileViewHeight = profileHeaderView.frame.height
         self.profileScrollView.contentSize = CGSize(
             width: self.view.frame.width,
             height: tabColViewHeight+colTabsHeight+profileViewHeight-45
@@ -214,7 +341,7 @@ class MyProfile: UIViewController, UICollectionViewDataSource, UICollectionViewD
 //        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
 //        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
 //        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        profileView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
+        profileHeaderView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
         
     }
     

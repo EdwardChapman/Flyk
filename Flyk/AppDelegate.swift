@@ -57,6 +57,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
             
             //IF ACCOUNT DNE THEN WE INSERT ONE
             if accountList.count == 0 {
+                print("creating account in coredata")
                 let accountEntity = NSEntityDescription.entity(forEntityName: "Accounts", in: context)
                 let newAccount = NSManagedObject(entity: accountEntity!, insertInto: context)
                 

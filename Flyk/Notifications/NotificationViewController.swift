@@ -13,10 +13,26 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
     let tableView: UITableView = UITableView(frame: CGRect.zero, style: .plain)
     
     // Data model: These strings will be the data for the table view cells
+    lazy var zeroNotificationsLabel: UILabel = {
+        let label = UILabel()
+        self.view.addSubview(label)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        label.centerYAnchor.constraint(equalTo: self.view.centerYAnchor).isActive = true
+        label.text = "You don't have any notifications"
+        label.textColor = UIColor.flykDarkWhite
+        label.isHidden = true
+        return label
+    }()
     var notificationList: [NSDictionary] = [] {
         didSet{
             DispatchQueue.main.async {
                 self.tableView.reloadData()
+                if self.notificationList.count == 0 {
+                    self.zeroNotificationsLabel.isHidden = false
+                }else{
+                    self.zeroNotificationsLabel.isHidden = true
+                }
             }
         }
     }
@@ -81,7 +97,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         
         tableView.refreshControl = UIRefreshControl()
         tableView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
-        
+        tableView.allowsSelection = false
         self.tableView.refreshControl!.beginRefreshing()
         fetchNotifications()
 

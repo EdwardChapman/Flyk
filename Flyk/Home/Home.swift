@@ -21,7 +21,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
 
     
     var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var videosDataList : [NSDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
+    var videosDataList : [NSMutableDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
     
     var currentCell : VideoCell? {
         didSet{
@@ -39,6 +39,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     
     lazy var commentsViewController: CommentsViewController = {
         let cVc = CommentsViewController()
+        cVc.goToProfileFunction = self.handleGoToProfileTap
         cVc.transitioningDelegate = cVc
         cVc.modalPresentationStyle = .custom
         return cVc
@@ -58,6 +59,13 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     override func viewDidLoad() {
         super.viewDidLoad()
         
+        if let rootVC = self.navigationController?.viewControllers[0] {
+            if rootVC != self {
+                self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
+            } else{
+                print(rootVC)
+            }
+        }
         
 //        fetchVideoList() // THIS IS DISABLED FOR TESTING
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
@@ -112,6 +120,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
 //        )
 //        print(URLSession.shared.configuration.httpCookieStorage?.cookies(for: URL(string:FlykConfig.uploadEndpoint)!))
     }
+
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
 //        let appDelegate = UIApplication.shared.delegate as! AppDelegate
@@ -181,7 +190,7 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         
         cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
         
-        print(videosDataList[indexPath.row])
+//        print(videosDataList[indexPath.row])
         
         let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
         let videoFilename =  videosDataList[indexPath.row]["video_filename"] as! String
@@ -190,6 +199,11 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         
         
         cell.setupNewVideo(fromDict: videosDataList[indexPath.row])
+        
+        cell.profileImg.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
+        cell.usernameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
+        
+        
         /*
 
         let newPlayer = AVPlayerItem(asset: remoteAsset)
@@ -214,6 +228,14 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         
         cell.addDidEndObserver()
         return cell
+    }
+    
+    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer){
+        
+        let vc = MyProfileVC()
+        //vc.profileUsername = xxxxx //THIS WILL ALLOW US TO REUSE THE SAME VC
+        self.navigationController?.pushViewController(vc, animated: true)
+        self.commentsViewController.dismiss(animated: true, completion: nil)
     }
 
     
@@ -305,7 +327,10 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
             if(response.statusCode == 200) {
                 do {
                     if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
-                        self.videosDataList = videosList
+                        
+                        self.videosDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+                    }else{
+                        print("VIDEO LIST AS MUTABLE FAILED...")
                     }
                 } catch {
                     print("JSON error: \(error.localizedDescription)")
@@ -349,7 +374,16 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Write Comments") {
-            self.present(self.commentsViewController, animated: true) {/*CompletionHandler*/}
+            if let vidCell = tapGesture.view?.superview as? VideoCell {
+                if let vidData = vidCell.currentVideoData {
+                    let vidID =  vidData["video_id"] as? String
+                    self.commentsViewController.setupComments(forVideo: vidID)
+                    self.present(self.commentsViewController, animated: true) {
+                        /*CompletionHandler*/
+                    }
+                    
+                }
+            }
         }
     }
 

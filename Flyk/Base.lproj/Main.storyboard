@@ -93,7 +93,7 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="obq-eZ-yHw"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="S_hollow" selectedImage="S" id="w6x-Se-d7P"/>
+                    <tabBarItem key="tabBarItem" title="" image="centerTabBarPlus3" selectedImage="centerTabBarPlus3Selected" id="w6x-Se-d7P"/>
                     <navigationItem key="navigationItem" id="TcX-BO-3aB"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="VY3-K6-12v" sceneMemberID="firstResponder"/>
@@ -175,24 +175,24 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="VbZ-kn-pJM"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="mail_hollow" selectedImage="mail" id="TWJ-OJ-QZ4"/>
+                    <tabBarItem key="tabBarItem" title="" image="newMailV1" selectedImage="newMailV1Active" id="TWJ-OJ-QZ4"/>
                     <navigationItem key="navigationItem" id="bPQ-Em-MPG"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="RE4-B3-VVy" sceneMemberID="firstResponder"/>
             </objects>
             <point key="canvasLocation" x="1935" y="1436"/>
         </scene>
-        <!--My Profile-->
+        <!--My ProfileVC-->
         <scene sceneID="Brc-2X-M6w">
             <objects>
-                <viewController id="IvA-ny-Mya" customClass="MyProfile" customModule="Flyk" customModuleProvider="target" sceneMemberID="viewController">
+                <viewController id="IvA-ny-Mya" customClass="MyProfileVC" customModule="Flyk" customModuleProvider="target" sceneMemberID="viewController">
                     <view key="view" contentMode="scaleToFill" id="30Y-Q1-4o9">
                         <rect key="frame" x="0.0" y="0.0" width="414" height="896"/>
                         <autoresizingMask key="autoresizingMask" widthSizable="YES" heightSizable="YES"/>
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="sxi-CW-qho"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="myProfile_hollow" selectedImage="myProfile" id="Rb0-Gf-rfI"/>
+                    <tabBarItem key="tabBarItem" title="" image="newProfileV1" selectedImage="newProfileV1Active" id="Rb0-Gf-rfI"/>
                     <navigationItem key="navigationItem" id="53i-DZ-pd0"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="EPN-2s-W7C" sceneMemberID="firstResponder"/>
@@ -203,13 +203,13 @@
     <resources>
         <image name="Discover" width="19" height="19"/>
         <image name="Discover_hollow" width="19" height="19"/>
-        <image name="S" width="34" height="59"/>
-        <image name="S_hollow" width="34" height="59"/>
+        <image name="centerTabBarPlus3" width="24" height="24"/>
+        <image name="centerTabBarPlus3Selected" width="24" height="24"/>
         <image name="home" width="22" height="20"/>
         <image name="home_hollow" width="22" height="20"/>
-        <image name="mail" width="37" height="27"/>
-        <image name="mail_hollow" width="37" height="26"/>
-        <image name="myProfile" width="26" height="28"/>
-        <image name="myProfile_hollow" width="26" height="28"/>
+        <image name="newMailV1" width="30" height="23"/>
+        <image name="newMailV1Active" width="30" height="22"/>
+        <image name="newProfileV1" width="21" height="23"/>
+        <image name="newProfileV1Active" width="21" height="23"/>
     </resources>
 </document>

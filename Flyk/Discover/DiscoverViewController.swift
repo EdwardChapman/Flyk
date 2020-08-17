@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UISearchControllerDelegate {
     
     
     
@@ -37,9 +37,26 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
         
 //        collectionView.contentInsetAdjustmentBehavior = .never
-        let searchBar = DiscoverSearchBar()
+        let searchResultsVC = UIViewController()
+        searchResultsVC.view.backgroundColor = .blue
+        let searchController = DiscoverSearchController(searchResultsController: searchResultsVC)
+        searchController.styleSearchBar()
+        let searchBar = searchController.searchBar
         self.view.addSubview(searchBar)
-        searchBar.setupConstraints()
+        
+        self.view.layoutIfNeeded()
+        searchBar.translatesAutoresizingMaskIntoConstraints = false
+        searchBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        searchBar.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
+        searchBar.heightAnchor.constraint(equalToConstant: searchBar.intrinsicContentSize.height).isActive = true
+//        searchController.isActive = true
+        searchBar.delegate = self
+        searchController.delegate = self // THIS IS FUCKED....
+        
+        
+        
+        
         
         collectionView.translatesAutoresizingMaskIntoConstraints = false
         collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
@@ -60,6 +77,42 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
 //        loadingPlaceholderSetup()
     }
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //SearchBarDelegate ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String){
+        // THIS IS WHERE WE QUERY WITH THE SEARCH TEXT
+        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+        print(trimmedSearch)
+    }
+    
+    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(true, animated: true)
+        print("searchbar did begin editing")
+    }
+    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.setShowsCancelButton(false, animated: true)
+        searchBar.text = ""
+        searchBar.endEditing(true)
+        print("searchbar cancel button clicked.")
+    }
+    
+    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+        searchBar.endEditing(true)
+        print("Search bar button clicked.")
+    }
+    
+    
+    
+    
+    
+    
+    
+    
+    
     
     func loadingPlaceholderSetup(){
         let placeholderView = UIView()

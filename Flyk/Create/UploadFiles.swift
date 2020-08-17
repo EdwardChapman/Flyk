@@ -6,43 +6,63 @@
 //  Copyright © 2020 Edward Chapman. All rights reserved.
 //
 
-import Foundation
+import UIKit
+
+
+class ServerUpload {
+    static func videoUpload(videoUrl: URL, allowComments: Bool, allowReactions: Bool, videoDescription: String){
+        let endPointURL = FlykConfig.uploadEndpoint+"/upload"
+        //        let img = UIImage(contentsOfFile: fullPath)
+        var data: NSData;
+        do {
+            try data = NSData(contentsOf: videoUrl)
+        }catch{
+            print("URL FAIL")
+            return
+        }
+        
+        
+        do {
+            let boundary = "?????"
+            var request = URLRequest(url: URL(string: endPointURL)!)
+            request.timeoutInterval = 660
+            request.httpMethod = "POST"
+            request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data
+            //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+            request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
+                             forHTTPHeaderField: "Content-Type")
+            request.addValue("video/mp4", forHTTPHeaderField: "mimeType")
+            request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
+            
+            request.addValue("text/plain", forHTTPHeaderField: "Accept")
+            
+            let task = URLSession.shared.dataTask(with: request) { data, response, error in
+                print(data, response)
+                if error != nil || data == nil {
+                    print("Client error!")
+                    return
+                }
+                
+                guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
+                    print("Server error!")
+                    //                    print(data, response, error)
+                    return
+                }
+                print("SUCCESS")
+            }
+            
+            print("Upload Started")
+            task.resume()
+            
+        }catch{
+            
+        }
+    }
+}
+
 
 class MultiPartPost {
    
-
-/*
-
-
-    static func sendFile(
-        urlPath:String,
-            fileName:String,
-                data:NSData,
-                completionHandler: @escaping (URLResponse?, NSData?, NSError?) -> Void){
-        
-        var url: NSURL = NSURL(string: urlPath)!
-        var request1: NSMutableURLRequest = NSMutableURLRequest(url: url as URL)
-        
-        request1.httpMethod = "POST"
-        
-        let boundary = "???????"
-        let fullData = photoDataToFormData(data: data, boundary:boundary, fileName:fileName)
-        
-        request1.setValue("multipart/form-data; boundary=" + boundary,
-                          forHTTPHeaderField: "Content-Type")
-        
-        // REQUIRED!
-        request1.setValue(String(fullData.length), forHTTPHeaderField: "Content-Length")
-        
-        request1.httpBody = fullData as Data
-        request1.httpShouldHandleCookies = false
-        
-        let queue:OperationQueue = OperationQueue()
-        
-//        NSURLConnection.sendAsynchronousRequest(request1 as URLRequest, queue: queue, completionHandler:completionHandler)
-    }
-   */
-
     // this is a very verbose version of that function
     // you can shorten it, but i left it as-is for clarity
     // and as an example

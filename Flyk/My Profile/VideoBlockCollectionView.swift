@@ -5,7 +5,7 @@
 //  Created by Edward Chapman on 7/26/20.
 //  Copyright © 2020 Edward Chapman. All rights reserved.
 //
-
+/*
 import UIKit
 import AVFoundation
 
@@ -168,3 +168,4 @@ class VideoBlockCollectionView: UICollectionView, UICollectionViewDataSource, UI
         
     }
 }
+*/

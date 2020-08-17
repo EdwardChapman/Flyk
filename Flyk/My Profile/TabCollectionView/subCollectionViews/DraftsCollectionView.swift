@@ -12,7 +12,7 @@ import AVFoundation
 
 class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
-    var myProfileView: MyProfile!
+    var myProfileView: MyProfileVC!
     
     
     lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
@@ -46,7 +46,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         flowLayout.minimumInteritemSpacing = 0
         
         
-        self.backgroundColor = .flykDarkGrey
+//        self.backgroundColor = .flykDarkGrey
         
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
         self.delegate = self
@@ -293,7 +293,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         let pSvHeight = profileScrollView.frame.height
         
         //This is a down drag
-        let maxOffset = self.myProfileView.profileView.frame.height - self.myProfileView.view.safeAreaInsets.top
+        let maxOffset = self.myProfileView.profileHeaderView.frame.height - self.myProfileView.view.safeAreaInsets.top
         
         if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
             var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y

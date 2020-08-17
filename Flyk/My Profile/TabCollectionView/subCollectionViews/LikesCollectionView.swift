@@ -1,18 +1,19 @@
 //
-//  PostsCollectionView.swift
+//  LikesCollectionView.swift
 //  Flyk
 //
-//  Created by Edward Chapman on 8/1/20.
+//  Created by Edward Chapman on 8/8/20.
 //  Copyright © 2020 Edward Chapman. All rights reserved.
 //
+
 
 import UIKit
 import CoreData
 import AVFoundation
 
-class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
+class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
-    var myProfileView: MyProfile!
+    var myProfileView: MyProfileVC!
     
     
     var videoDataList: [NSDictionary] = [] {
@@ -27,7 +28,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     
     func fetchMyPosts(){
-        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/posts")!
+        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/likes")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
         request.addValue("application/json", forHTTPHeaderField: "Accept")
@@ -52,7 +53,6 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 do {
                     if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
                         self.videoDataList = videosList
-                        print("videoList", videosList)
                     }
                 } catch {
                     print("JSON error: \(error.localizedDescription)")
@@ -61,7 +61,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 print("Response not 200", response)
             }
             
-        }.resume()
+            }.resume()
         
     }
     
@@ -78,9 +78,9 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         flowLayout.minimumInteritemSpacing = 0
         
         
-        self.backgroundColor = .flykDarkGrey
+//        self.backgroundColor = .flykDarkGrey
         
-        self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
+        self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "likesCell")
         self.delegate = self
         self.dataSource = self
         self.contentInsetAdjustmentBehavior = .never
@@ -120,7 +120,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
+        let cell = self.dequeueReusableCell(withReuseIdentifier: "likesCell", for: indexPath)
         cell.backgroundColor = .flykMediumGrey
         
         
@@ -135,11 +135,11 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 
             }
         }
-
+        
         
         
         return cell
-
+        
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -154,7 +154,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     }
     
     func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-//        print("DID END DISPLAYING CELL")
+        //        print("DID END DISPLAYING CELL")
         
     }
     
@@ -184,21 +184,21 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         
     }
     func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-//        scrollView.isScrollEnabled = true
-//        self.bounces = false //STOP BOUNCING TO HOPEFULLY PASS UP
+        //        scrollView.isScrollEnabled = true
+        //        self.bounces = false //STOP BOUNCING TO HOPEFULLY PASS UP
     }
     var lastTargetOffsetY: CGFloat?
     var realTargetOffsetY: CGFloat?
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         
         lastTargetOffsetY = targetContentOffset.pointee.y
-        print(lastTargetOffsetY)
         
         
         
         
-//        print(lastTargetOffsetY)
-//        print(scrollView.decelerationRate)
+        
+        //        print(lastTargetOffsetY)
+        //        print(scrollView.decelerationRate)
         
     }
     
@@ -209,7 +209,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         let pSvHeight = profileScrollView.frame.height
         
         //This is a down drag
-        let maxOffset = self.myProfileView.profileView.frame.height - self.myProfileView.view.safeAreaInsets.top
+        let maxOffset = self.myProfileView.profileHeaderView.frame.height - self.myProfileView.view.safeAreaInsets.top
         
         if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
             var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
@@ -218,25 +218,25 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
             }
             
             profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-//            scrollView.setContentOffset(.zero, animated: false)
+            //            scrollView.setContentOffset(.zero, animated: false)
             scrollView.contentOffset = CGPoint.zero
             
             
-        //THIS is an up drag
+            //THIS is an up drag
         } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
             var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
             if newY < 0 {
                 newY = 0
             }
             
-//            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+            //            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
             profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-//            scrollView.setContentOffset(.zero, animated: false)
+            //            scrollView.setContentOffset(.zero, animated: false)
             scrollView.contentOffset = CGPoint.zero
             
-        //up drag with no content left
+            //up drag with no content left
         } else if scrollView.contentOffset.y < 0 {
-//            scrollView.setContentOffset(.zero, animated: false)
+            //            scrollView.setContentOffset(.zero, animated: false)
             scrollView.contentOffset = CGPoint.zero
         }
         
@@ -244,5 +244,6 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     
 }
+
 
 

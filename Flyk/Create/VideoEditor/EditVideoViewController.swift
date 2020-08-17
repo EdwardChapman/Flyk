@@ -201,8 +201,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
     }
     
-    deinit {
-        print("EDIT VIDEO VIEW CONTROLLER DEINIT")
+    func cleanupOnClose(){
         if let returnToForegroundObserver = returnToForegroundObserver {
             NotificationCenter.default.removeObserver(returnToForegroundObserver)
         }
@@ -210,6 +209,13 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             NotificationCenter.default.removeObserver(videoDidEndObserver)
         }
         removePeriodicTimeObserver()
+        self.videoPlaybackPlayer.pause()
+//        self.videoPlaybackPlayer.replaceCurrentItem(with: nil)
+    }
+    
+    deinit {
+        print("EDIT VIDEO VIEW CONTROLLER DEINIT")
+        cleanupOnClose()
     }
     
     
@@ -289,6 +295,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
     @objc func handleGoBackTap(tapGesture: UITapGestureRecognizer) {
         navigationController?.popViewController(animated: true)
+        cleanupOnClose()
     }
     
     

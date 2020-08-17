@@ -10,7 +10,7 @@ import UIKit
 
 class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
-    var myProfileView: MyProfile!
+    var myProfileView: MyProfileVC!
 
     var collectionTabs: UIView! {
         didSet{
@@ -32,6 +32,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     init(frame: CGRect){
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
         
+        self.backgroundColor = .flykLightBlack
         
         
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
@@ -43,6 +44,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "draftsCollectionView")
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "likesCollectionView")
+        
         self.delegate = self
         self.dataSource = self
         self.contentInsetAdjustmentBehavior = .never
@@ -96,7 +98,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
             cellCollectionView = postsCollectionView
         }else if indexPath.row == 2 {
             cell = self.dequeueReusableCell(withReuseIdentifier: "likesCollectionView", for: indexPath)
-            let postsCollectionView = PostsCollectionView(frame: self.frame )
+            let postsCollectionView = LikesCollectionView(frame: self.frame )
             postsCollectionView.myProfileView = self.myProfileView
             cellCollectionView = postsCollectionView
         }

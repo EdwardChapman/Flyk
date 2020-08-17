@@ -8,6 +8,99 @@
 
 import UIKit
 
+class DiscoverSearchController: UISearchController {
+
+    override func viewDidLoad() {
+        super.viewDidLoad()
+//        searchBar.delegate = self
+    }
+    
+    
+    
+    func styleSearchBar(){
+        
+        searchBar.searchBarStyle = .minimal
+        searchBar.tintColor = .flykDarkWhite
+        searchBar.barStyle = .black
+//        searchBar.delegate = self
+        searchBar.placeholder = "Search"
+        //        searchBar.showsCancelButton = true //This shouldn't be necessary.
+        
+        // self.searchTextField.clearButtonMode = .never //THIS WILL WORK IF I UPGRADE XCODE
+//        self.delegate = self
+//        self.isActive = true
+    }
+    /*
+    func didDismissSearchController(_ searchController: UISearchController) {
+        print("DISMISS")
+    }
+    func didPresentSearchController(_ searchController: UISearchController) {
+        print("DID PRESENT")
+    }
+    func presentSearchController(_ searchController: UISearchController) {
+        print("PRESERNT")
+    }
+    
+    func willDismissSearchController(_ searchController: UISearchController) {
+        print("WILL DISMISS")
+    }
+    
+    func willPresentSearchController(_ searchController: UISearchController) {
+        print("PRESENT")
+    }
+*/
+    
+    /*
+    func setupSearchBarConstraints(){
+        print(self.intrinsicContentSize.height)
+        self.superview?.layoutIfNeeded()
+        print(self.intrinsicContentSize.height)
+        self.translatesAutoresizingMaskIntoConstraints = false
+        self.leadingAnchor.constraint(equalTo: self.superview!.leadingAnchor).isActive = true
+        self.trailingAnchor.constraint(equalTo: self.superview!.trailingAnchor).isActive = true
+        self.topAnchor.constraint(equalTo: self.superview!.safeAreaLayoutGuide.topAnchor).isActive = true
+        self.heightAnchor.constraint(equalToConstant: self.intrinsicContentSize.height).isActive = true
+    }
+    */
+    
+    
+    
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    //SearchBarDelegate//////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+//    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String){
+//        // THIS IS WHERE WE QUERY WITH THE SEARCH TEXT
+//        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
+//        print(trimmedSearch)
+//    }
+//
+//    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
+//        searchBar.setShowsCancelButton(true, animated: true)
+//        print("searchbar did begin editing")
+//    }
+//    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
+//        searchBar.setShowsCancelButton(false, animated: true)
+//        searchBar.text = ""
+//        searchBar.endEditing(true)
+//        print("searchbar cancel button clicked.")
+//    }
+//
+//    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
+//        searchBar.endEditing(true)
+//        print("Search bar button clicked.")
+//    }
+}
+
+
+
+
+
+
+
+/*
+
 class DiscoverSearchBar: UISearchBar, UISearchBarDelegate {
     
     init() {
@@ -60,3 +153,4 @@ class DiscoverSearchBar: UISearchBar, UISearchBarDelegate {
     }
 
 }
+*/
