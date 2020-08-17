@@ -12,25 +12,17 @@ import AVFoundation
 
 
 
-class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
-    
-    let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    
-    var profileImage: UIImageView!
-    var videoScrollView : UIScrollView!
-    var usernameTextView : UITextView!
-    var bioTextView : UITextView!
-    
-    
+
+    //CORE DATA
     
     lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
     lazy var context = appDelegate.persistentContainer.viewContext
     
-    
+    /* I THINK THIS IS IMPLEMENTED IN THE DRAFTS COLLECTIONVIEW
+     
     lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
-    
-    
     
     func fetchDraftEntityList() -> [NSManagedObject]{
         let request = NSFetchRequest<NSFetchRequestResult>(entityName: "Draft")
@@ -45,17 +37,18 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
         //        print(data.entity.attributesByName.keys) //GET ALL KEYS
         //        print(data.value(forKey: "videoUrl") //GET VALUE
     }
+    */
 
     
     let profileScrollView = UIScrollView()
     var tabCollectionView: TabCollectionView!
     var profileHeaderView: ProfileHeaderView!
-    let draftsTab = UIView()
     
+    //This is so we can go to drafts
+    let draftsTab = UIView()
     var shouldGoToDrafts = false
     
 
-    
     var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
@@ -69,6 +62,8 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
             goToDrafts()
         }
         
+        //We store the navigation controllers interactive pop delegate before removing it
+        //We will place it back during viewWillDissappear
         if animated {
             if let rootVC = self.navigationController?.viewControllers[0] {
                 if rootVC != self {
@@ -78,118 +73,12 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
             }
         }
     }
-    override func viewWillDisappear(_ animated: Bool) {
-        if let prevDel = previousInteractivePopGestureDelegate {
-            self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
-        }
-    }
     
-    @objc func handleProfileImgTap(tapGesture: UITapGestureRecognizer){
-        let profileImgActionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        profileImgActionSheet.addAction(UIAlertAction(title: "Remove Current Image", style: .destructive,
-            handler: { _ in
-                // Delete current image
-            })
-        )
-        profileImgActionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default,
-            handler: { _ in
-                // popCamera taking view
-                self.imgFromCamera()
-            })
-        )
-        profileImgActionSheet.addAction(UIAlertAction(title: "Choose From Photos", style: .default,
-            handler: { _ in
-                // pop photo library
-                self.imgFromPhotos()
-            })
-        )
-        profileImgActionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel,
-            handler: { _ in
-                //closes the action sheet.
-            })
-        )
-        
-        self.present(profileImgActionSheet, animated: true, completion: nil)
-    }
-    
-    func imgFromCamera() {
-        let myPickerController = UIImagePickerController()
-        myPickerController.allowsEditing = true
-        myPickerController.delegate = self;
-        myPickerController.sourceType = UIImagePickerController.SourceType.camera
-        
-        self.present(myPickerController, animated: true, completion: nil)
-        
-    }
-    
-    func imgFromPhotos() {
-        
-        let myPickerController = UIImagePickerController()
-        myPickerController.allowsEditing = true
-//        myPickerController.preferredContentSize = CGSize(width: 100, height: 100)
-        
-        myPickerController.delegate = self
-        myPickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
-        
-        self.present(myPickerController, animated: true, completion: nil)
-        
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let img =  info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
-//            profileHeaderView.profileImageView.image = img
-            sendProfilePicToServer(newImg: img)
-        }
-        self.dismiss(animated: true, completion: nil)
-    }
-    
-    func sendProfilePicToServer(newImg : UIImage){
-        
-        
-        let endPointURL = FlykConfig.uploadEndpoint+"/upload/profilePhoto"
-        
-        let dataOpt: Data? = newImg.jpegData(compressionQuality: 1)
-        guard let dataNotConverted = dataOpt else { return }
-        let data = NSData(data: dataNotConverted)
-        
-        
-        let boundary = "?????"
-        var request = URLRequest(url: URL(string: endPointURL)!)
-        request.timeoutInterval = 30
-        request.httpMethod = "POST"
-        request.httpBody = MultiPartPost_2.photoDataToFormData(data: data, boundary: boundary, fileName: "profilePhoto") as Data
-        //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
-        request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
-                         forHTTPHeaderField: "Content-Type")
-        request.addValue("image/jpeg", forHTTPHeaderField: "mimeType")
-        request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
-        
-        request.addValue("text/plain", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-            print(data, response)
-            if error != nil || data == nil {
-                print("Client error!")
-                return
-            }
-            
-            guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
-                print("Server error!")
-                //                    print(data, response, error)
-                return
-            }
-            DispatchQueue.main.async {
-                self.profileHeaderView.fetchProfileData()
-            }
-            print("SUCCESS")
-        }
-        
-        print("Upload Started")
-        task.resume()
-            
 
-    }
+    
+    
+
+    
     
 
     override func viewDidLoad() {
@@ -300,7 +189,6 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
         let tabColViewHeightAnchor = tabCollectionView.heightAnchor.constraint(equalToConstant: 1000)
         tabColViewHeightAnchor.priority = UILayoutPriority(999)
         tabColViewHeightAnchor.isActive = true
-//        tabCollectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         self.view.layoutIfNeeded()
         tabCollectionView.reloadData()
         
@@ -311,39 +199,26 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
             width: self.view.frame.width,
             height: tabColViewHeight+colTabsHeight+profileViewHeight-45
         )
-        
-//        let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-//        flowLayout.scrollDirection = .vertical
-//        flowLayout.minimumLineSpacing = 0.5
-//        flowLayout.minimumInteritemSpacing = 0.5
-//
-//        collectionView.register(ProfileCell.self, forCellWithReuseIdentifier: "profileCell")
-//        collectionView.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "thumbnailVideo")
-//        collectionView.delegate = self
-//        collectionView.dataSource = self
-//        collectionView.contentInsetAdjustmentBehavior = .never
-//        self.view.addSubview(collectionView)
-//
-//
-//        collectionView.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-//        collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-//        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-//        collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-//
-//
-//        self.view.backgroundColor = UIColor.flykDarkGrey
-//        collectionView.backgroundColor = UIColor.flykLightBlack
-//
-//
-//        collectionView.refreshControl = UIRefreshControl()
-//        collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
-//        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
-//        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+
         profileHeaderView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
         
     }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        //We replace the interactive popGesture delegate that was there before.
+        if let prevDel = previousInteractivePopGestureDelegate {
+            self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
+        }
+    }
+    
+    
+    
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // Gesture Handling Functions //////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
     
     @objc func handleSettingsTap(tapGesture: UITapGestureRecognizer){
         self.navigationController?.pushViewController(SettingsViewController(), animated: true)
@@ -366,20 +241,142 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
     @objc func handleRefreshControl() {
         let generator = UIImpactFeedbackGenerator(style: .medium)
         generator.impactOccurred()
-//        fetchVideoList()
-        // Dismiss the refresh control.
-        
         DispatchQueue.main.async {
-//            self.savedVideosData = self.fetchDraftEntityList()
-//            self.collectionView.reloadData()
-//            self.collectionView.refreshControl!.endRefreshing()
+            //This function will dismiss the refresh control
             self.profileScrollView.refreshControl?.endRefreshing()
         }
  
     }
     
+    @objc func handleProfileImgTap(tapGesture: UITapGestureRecognizer) {
+        let profileImgActionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
+        
+        profileImgActionSheet.addAction(UIAlertAction(title: "Remove Current Image", style: .destructive, handler:
+            { _ in
+            // Delete current image
+            
+            }
+        ))
+        profileImgActionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default, handler:
+            {_ in
+            // popCamera taking view
+            self.imgFromCamera()
+            }
+        ))
+        profileImgActionSheet.addAction(UIAlertAction(title: "Choose From Photos", style: .default, handler:
+            { _ in
+                // pop photo library
+                self.imgFromPhotos()
+            }
+        ))
+        profileImgActionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
+            { _ in
+                //closes the action sheet.
+            }
+        ))
+        
+        self.present(profileImgActionSheet, animated: true, completion: nil)
+    }
+    
+    func imgFromCamera() {
+        let myPickerController = UIImagePickerController()
+        myPickerController.allowsEditing = true
+        myPickerController.delegate = self;
+        myPickerController.sourceType = UIImagePickerController.SourceType.camera
+        
+        self.present(myPickerController, animated: true, completion: nil)
+        
+    }
+    
+    func imgFromPhotos() {
+        
+        let myPickerController = UIImagePickerController()
+        myPickerController.allowsEditing = true
+        //        myPickerController.preferredContentSize = CGSize(width: 100, height: 100)
+        
+        myPickerController.delegate = self
+        myPickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
+        
+        self.present(myPickerController, animated: true, completion: nil)
+        
+    }
     
     
+    
+    
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    // UIImagePickerControllerDelegate /////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
+        if let img =  info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
+            
+            sendProfilePicToServer(newImg: img)
+        }
+        self.dismiss(animated: true, completion: nil)
+    }
+    
+    
+    
+    
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // NETWORKING FUNCTIONS //////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    
+    func sendProfilePicToServer(newImg : UIImage){
+        
+        
+        let endPointURL = FlykConfig.uploadEndpoint+"/upload/profilePhoto"
+        
+        let dataOpt: Data? = newImg.jpegData(compressionQuality: 1)
+        guard let dataNotConverted = dataOpt else { return }
+        let data = NSData(data: dataNotConverted)
+        
+        
+        let boundary = "?????"
+        var request = URLRequest(url: URL(string: endPointURL)!)
+        request.timeoutInterval = 30
+        request.httpMethod = "POST"
+        request.httpBody = MultiPartPost_2.photoDataToFormData(data: data, boundary: boundary, fileName: "profilePhoto") as Data
+        //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+        request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
+                         forHTTPHeaderField: "Content-Type")
+        request.addValue("image/jpeg", forHTTPHeaderField: "mimeType")
+        request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
+        
+        request.addValue("text/plain", forHTTPHeaderField: "Accept")
+        
+        let task = URLSession.shared.dataTask(with: request) { data, response, error in
+            print(data, response)
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
+                print("Server error!")
+                //                    print(data, response, error)
+                return
+            }
+            DispatchQueue.main.async {
+                self.profileHeaderView.fetchProfileData()
+            }
+            print("SUCCESS")
+        }
+        
+        print("Upload Started")
+        task.resume()
+        
+        
+    }
+    
+    
+    
+    /*
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // COLLECTIONVIEW DELEGATE ///////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -571,72 +568,5 @@ class MyProfileVC: UIViewController, UICollectionViewDataSource, UICollectionVie
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
 
     }
-    
-    
-    
-    
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    
-//    func getMyProfile() {
-//        
-//        URLSession.shared.dataTask(with: URL(string: FlykConfig.mainEndpoint+"/myProfile/")!) { data, response, error in
-//            
-//            if error != nil || data == nil {
-//                print("Client error!")
-//                return
-//            }
-//            
-//            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-//                print("Server error!")
-//                return
-//            }
-//            
-//            guard let mime = response.mimeType, mime == "application/json" else {
-//                print("Wrong MIME type!")
-//                return
-//            }
-//            
-//            do {
-//                let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
-//                //            {
-//                //                username: "Mr. Polar Bear",
-//                //                profile_photos: "polar_bear.jpg",
-//                //                videos: [
-//                //                "v09044e20000brmcq2ihl9acefv17icg.MP4",
-//                //                "v09044fa0000brfud6gpfrijil1melq0.MP4"
-//                //                ],
-//                //                bio: "I am a polar bear."
-//                //            }
-//                print(myProfileData)
-//                
-//                self.loadProfileImage(profileImgString: myProfileData["profile_photos"] as? String ?? "default.png")
-//                
-//                DispatchQueue.main.async {
-//                    self.usernameTextView.text = myProfileData["username"] as? String
-//                    self.bioTextView.text = myProfileData["bio"] as? String
-//                }
-//                
-//                
-//            } catch {
-//                print("JSON error: \(error.localizedDescription)")
-//            }
-//            
-//            }.resume()
-//    }
-//    
-//    func loadProfileImage(profileImgString: String){
-//        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/"+profileImgString)!
-//        print(pImgURL)
-//        URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
-//            DispatchQueue.main.async {
-//                print(data)
-//                self.profileImage.image = UIImage(data: data!)
-//            }
-//        }).resume()
-//        
-//    }
+    */
 }

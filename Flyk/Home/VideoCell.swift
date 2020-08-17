@@ -509,7 +509,6 @@ class VideoCell: UICollectionViewCell {
     }
     
     override func prepareForReuse() {
-        print("REUSE", (self.player.currentItem?.asset as! AVURLAsset).url)
         super.prepareForReuse()
         self.removeDidEndObserver()
         self.player.replaceCurrentItem(with: nil)

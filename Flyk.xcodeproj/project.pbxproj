@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		921B556924EB37480051C97B /* CommentsTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 921B556824EB37480051C97B /* CommentsTableViewCell.swift */; };
 		9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */; };
 		9238E35C24DCA87F00B9C8D9 /* FlykContainer.xcdatamodeld in Sources */ = {isa = PBXBuildFile; fileRef = 9238E35A24DCA87E00B9C8D9 /* FlykContainer.xcdatamodeld */; };
 		9238E35E24DCB48000B9C8D9 /* DraftsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 9238E35D24DCB48000B9C8D9 /* DraftsCollectionView.swift */; };
@@ -17,8 +18,8 @@
 		927BB61724AD590D002445B9 /* DiscoverViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB61624AD590D002445B9 /* DiscoverViewController.swift */; };
 		927BB61A24AD590D002445B9 /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 927BB61824AD590D002445B9 /* Main.storyboard */; };
 		927BB61F24AD590F002445B9 /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 927BB61D24AD590F002445B9 /* LaunchScreen.storyboard */; };
-		927BB62A24AD590F002445B9 /* DripDropTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB62924AD590F002445B9 /* DripDropTests.swift */; };
-		927BB63524AD590F002445B9 /* DripDropUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB63424AD590F002445B9 /* DripDropUITests.swift */; };
+		927BB62A24AD590F002445B9 /* FlykTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB62924AD590F002445B9 /* FlykTests.swift */; };
+		927BB63524AD590F002445B9 /* FlykUITests.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB63424AD590F002445B9 /* FlykUITests.swift */; };
 		927BB64524AD5DFD002445B9 /* NotificationViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64424AD5DFD002445B9 /* NotificationViewController.swift */; };
 		927BB64724AD5E23002445B9 /* MyProfileVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 927BB64624AD5E23002445B9 /* MyProfileVC.swift */; };
 		928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 928242C924BAAEAE0000C44A /* TextEditorView.swift */; };
@@ -73,6 +74,7 @@
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXFileReference section */
+		921B556824EB37480051C97B /* CommentsTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CommentsTableViewCell.swift; sourceTree = "<group>"; };
 		9223BDC024CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = TabBarIsHiddenExtension.swift; sourceTree = "<group>"; };
 		9238E35B24DCA87E00B9C8D9 /* Model.xcdatamodel */ = {isa = PBXFileReference; lastKnownFileType = wrapper.xcdatamodel; path = Model.xcdatamodel; sourceTree = "<group>"; };
 		9238E35D24DCB48000B9C8D9 /* DraftsCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DraftsCollectionView.swift; sourceTree = "<group>"; };
@@ -86,10 +88,10 @@
 		927BB61E24AD590F002445B9 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		927BB62024AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		927BB62524AD590F002445B9 /* FlykTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlykTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		927BB62924AD590F002445B9 /* DripDropTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DripDropTests.swift; sourceTree = "<group>"; };
+		927BB62924AD590F002445B9 /* FlykTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlykTests.swift; sourceTree = "<group>"; };
 		927BB62B24AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		927BB63024AD590F002445B9 /* FlykUITests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = FlykUITests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
-		927BB63424AD590F002445B9 /* DripDropUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DripDropUITests.swift; sourceTree = "<group>"; };
+		927BB63424AD590F002445B9 /* FlykUITests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlykUITests.swift; sourceTree = "<group>"; };
 		927BB63624AD590F002445B9 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
 		927BB64424AD5DFD002445B9 /* NotificationViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationViewController.swift; sourceTree = "<group>"; };
 		927BB64624AD5E23002445B9 /* MyProfileVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MyProfileVC.swift; sourceTree = "<group>"; };
@@ -152,6 +154,15 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		921B556624EB37110051C97B /* Comments */ = {
+			isa = PBXGroup;
+			children = (
+				92B74A1324CFB9750051FEA9 /* CommentsPresentationController.swift */,
+				921B556824EB37480051C97B /* CommentsTableViewCell.swift */,
+			);
+			path = Comments;
+			sourceTree = "<group>";
+		};
 		922EAC8B24DB2CD800C53B6D /* Settings */ = {
 			isa = PBXGroup;
 			children = (
@@ -216,7 +227,7 @@
 		927BB62824AD590F002445B9 /* FlykTests */ = {
 			isa = PBXGroup;
 			children = (
-				927BB62924AD590F002445B9 /* DripDropTests.swift */,
+				927BB62924AD590F002445B9 /* FlykTests.swift */,
 				927BB62B24AD590F002445B9 /* Info.plist */,
 			);
 			path = FlykTests;
@@ -225,7 +236,7 @@
 		927BB63324AD590F002445B9 /* FlykUITests */ = {
 			isa = PBXGroup;
 			children = (
-				927BB63424AD590F002445B9 /* DripDropUITests.swift */,
+				927BB63424AD590F002445B9 /* FlykUITests.swift */,
 				927BB63624AD590F002445B9 /* Info.plist */,
 			);
 			path = FlykUITests;
@@ -237,7 +248,7 @@
 				929AE76624B00CFD002FC64D /* Home.swift */,
 				92B74A1524D0B8E00051FEA9 /* GifTest.swift */,
 				92F87D0624BFB1B1002F75FD /* VideoCell.swift */,
-				92B74A1324CFB9750051FEA9 /* CommentsPresentationController.swift */,
+				921B556624EB37110051C97B /* Comments */,
 				927BB61424AD590D002445B9 /* FirstViewController.swift */,
 			);
 			path = Home;
@@ -502,6 +513,7 @@
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
 				92FE63B724E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift in Sources */,
 				92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */,
+				921B556924EB37480051C97B /* CommentsTableViewCell.swift in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* NotificationViewController.swift in Sources */,
 				92B74A1424CFB9750051FEA9 /* CommentsPresentationController.swift in Sources */,
@@ -525,7 +537,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				927BB62A24AD590F002445B9 /* DripDropTests.swift in Sources */,
+				927BB62A24AD590F002445B9 /* FlykTests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -533,7 +545,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				927BB63524AD590F002445B9 /* DripDropUITests.swift in Sources */,
+				927BB63524AD590F002445B9 /* FlykUITests.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};

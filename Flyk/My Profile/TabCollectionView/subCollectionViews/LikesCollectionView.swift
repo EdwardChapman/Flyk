@@ -16,7 +16,7 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     var myProfileView: MyProfileVC!
     
     
-    var videoDataList: [NSDictionary] = [] {
+    var videoDataList: [NSMutableDictionary] = [] {
         didSet {
             DispatchQueue.main.async {
                 self.reloadData()
@@ -52,7 +52,7 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
             if(response.statusCode == 200) {
                 do {
                     if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
-                        self.videoDataList = videosList
+                        self.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
                     }
                 } catch {
                     print("JSON error: \(error.localizedDescription)")
@@ -170,6 +170,27 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         
         
     }
+    
+    /*
+    func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+        // push view controller with swipe collectionview
+        let flowLayout = UICollectionViewFlowLayout()
+        flowLayout.scrollDirection = .vertical
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 0
+        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, parentCollectionView: self, startingIndexPath: indexPath)
+        
+        
+        newVC.view.layoutIfNeeded()
+        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        
+        
+        
+        
+        self.myProfileView?.navigationController?.pushViewController(newVC, animated: true)
+        return false
+    }
+    */
     
     
     

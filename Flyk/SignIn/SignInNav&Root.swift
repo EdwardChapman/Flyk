@@ -45,6 +45,7 @@ class SignInRootViewController: UIViewController {
         }
     }
     override func viewDidLoad() {
+        super.viewDidLoad()
         self.view.backgroundColor = .flykDarkGrey
         self.view.addSubview(signInLabel)
         signInLabel.translatesAutoresizingMaskIntoConstraints = false

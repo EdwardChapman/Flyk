@@ -14,7 +14,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
 
     
     // Data model: These strings will be the data for the table view cells
-    var notificationList: [NSDictionary] = [] {
+    var commentList: [NSDictionary] = [] {
         didSet{
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -29,7 +29,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         //SET CONTENT OFFSET TO ZERO
         //Fetch Comments for new videoId
         if videoId != currentVideoId {
-            notificationList = []
+            commentList = []
             currentVideoId = videoId
             fetchComments()
         }
@@ -77,7 +77,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
                     do {
                         let json : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as! [NSDictionary]
                         
-                        self.notificationList = json
+                        self.commentList = json
                     } catch let err {
                         print("JSON error: \(err.localizedDescription)")
                     }
@@ -100,7 +100,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     
     // cell reuse id (cells that scroll out of view can be reused)
-    let notificationCellId = "notificationCell"
+    let commentCellId = "commentCell"
     
     // don't forget to hook this up from the storyboard
     let tableView: UITableView = UITableView(frame: CGRect.zero, style: .plain)
@@ -142,7 +142,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         tableView.allowsSelection = false
         tableView.backgroundColor = .flykDarkGrey
         tableView.separatorStyle = UITableViewCell.SeparatorStyle.none
-        tableView.register(NoticationCell.self, forCellReuseIdentifier: notificationCellId)
+        tableView.register(CommentsTableViewCell.self, forCellReuseIdentifier: commentCellId)
         
         tableView.rowHeight = UITableView.automaticDimension
         tableView.estimatedRowHeight = 70
@@ -318,19 +318,19 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     // number of rows in table view
     func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.notificationList.count
+        return self.commentList.count
     }
     
     // create a cell for each table view row
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
         
         // create a new cell if needed or reuse an old one
-        let cell = (self.tableView.dequeueReusableCell(withIdentifier: notificationCellId) as! NoticationCell?)!
+        let cell = (self.tableView.dequeueReusableCell(withIdentifier: commentCellId) as! CommentsTableViewCell?)!
         
         // set the text from the data model
         //        cell.backgroundColor = .flykDarkGrey
-        cell.notificationLabel.text = self.notificationList[indexPath.row]["comment_text"] as? String
-        if let pImgFilename = self.notificationList[indexPath.row]["profile_img_filename"] as? String {
+        cell.commentLabel.text = self.commentList[indexPath.row]["comment_text"] as? String
+        if let pImgFilename = self.commentList[indexPath.row]["profile_img_filename"] as? String {
             let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profile/photo/"+pImgFilename)!
             URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
                 DispatchQueue.main.async {
