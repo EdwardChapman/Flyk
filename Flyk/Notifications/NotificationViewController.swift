@@ -1,6 +1,6 @@
 //
 //  FourthViewController.swift
-//  DripDrop
+//  Flyk
 //
 //  Created by Edward Chapman on 7/1/20.
 //  Copyright © 2020 Edward Chapman. All rights reserved.
@@ -75,6 +75,32 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
             }.resume()
     }
     
+    /* // THIS IS THE ADD A NAVIGATION TITLE AND SHOW NAVIGATION BAR
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.navigationController?.setNavigationBarHidden(false, animated: true)
+        self.navigationController?.navigationBar.backgroundColor = .flykDarkGrey
+        self.navigationController?.navigationBar.isTranslucent = false
+        self.navigationController?.navigationBar.barTintColor = .flykDarkGrey
+        self.navigationController?.navigationBar.setBackgroundImage(UIImage(), for: .default)
+        self.navigationController?.navigationBar.shadowImage = UIImage()
+        self.navigationController?.navigationBar.prefersLargeTitles = true
+        self.navigationController?.navigationBar.largeTitleTextAttributes = [NSAttributedString.Key.foregroundColor: UIColor.white]
+        self.navigationController?.navigationBar.backItem?.title = ""
+        self.navigationController?.navigationBar.tintColor = .flykDarkWhite
+//        self.navigationController?.title = "Notifications
+//        self.navigationItem.title = "Notifications"
+        
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        if animated {
+            self.navigationController?.setNavigationBarHidden(true, animated: true)
+        }
+    }
+    */
+    
     
     
     override func viewDidLoad() {
@@ -84,6 +110,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         // Register the table view cell class and its reuse id
         tableView.frame = CGRect(x: 0, y: 0, width: self.view.frame.width, height: self.view.frame.height)
         self.view.addSubview(tableView)
+        
         
         
         tableView.delegate = self

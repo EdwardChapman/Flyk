@@ -165,32 +165,42 @@ class VideoCell: UICollectionViewCell {
         
         if let comments_count = videoData["comments_count"] as? Int {
             var countText: String?
-            if comments_count > 1000 {
+            if comments_count >= 1000 {
                 let thousands = Float(comments_count)/1000
                 countText = String(format: "%.1fK", thousands)
-                if thousands > 1000 {
+                if thousands >= 1000 {
                     let millions = thousands / 1000
-                    countText = String(format: "%.1fM", thousands)
+                    countText = String(format: "%.1fM", millions)
                 }
             }else {
                 countText = String(comments_count)
             }
             commentsCounter.text = countText
+//            commentsCounter.text = "500K"
         }
         
         if let likes_count = videoData["likes_count"] as? Int {
             var likesText: String?
-            if likes_count > 1000 {
+            if likes_count >= 1000 {
                 let thousands = Float(likes_count)/1000
                 likesText = String(format: "%.1fK", thousands)
-                if thousands > 1000 {
+                if thousands >= 1000 {
                     let millions = thousands / 1000
-                    likesText = String(format: "%.1fM", thousands)
+                    likesText = String(format: "%.1fM", millions)
                 }
             }else {
                 likesText = String(likes_count)
             }
             likeCounter.text = likesText
+
+            // UPDATE THE CONSTRAINT CONSTANT TO KEEP TEXT WITHIN IMAGE
+            if let charCount = likeCounter.text?.count {
+                if charCount > 2 {
+                    self.likeCounterCenterYConstraint.constant = -7
+                }else{
+                    self.likeCounterCenterYConstraint.constant = -3
+                }
+            }
         }
     }
     
@@ -220,13 +230,6 @@ class VideoCell: UICollectionViewCell {
     }
     
     func addOverlay(){
-
-        let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profilePhotos/polar_bear.jpg")
-        URLSession.shared.dataTask(with:  pImgURL!, completionHandler: { data, response, error in
-            DispatchQueue.main.async {
-                self.profileImg.image = UIImage(data: data!)
-            }
-        }).resume()
         profileImg.contentMode = .scaleAspectFill
         profileImg.clipsToBounds = true
         profileImg.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
@@ -301,6 +304,8 @@ class VideoCell: UICollectionViewCell {
     let hiButtonButtonConst: CGFloat = -10
     let hiButtonGap: CGFloat = 15
     
+    var likeCounterCenterYConstraint: NSLayoutConstraint!
+    
     func setupLikeImgView(){
         heartImageView.contentMode = .scaleAspectFit
         heartImageView.translatesAutoresizingMaskIntoConstraints = false
@@ -321,8 +326,11 @@ class VideoCell: UICollectionViewCell {
         likeCounter.textColor = .white
         likeCounter.translatesAutoresizingMaskIntoConstraints = false
         likeCounter.centerXAnchor.constraint(equalTo: heartImageView.centerXAnchor, constant: 0).isActive = true
-        likeCounter.centerYAnchor.constraint(equalTo: heartImageView.centerYAnchor, constant: -2).isActive = true
-        likeCounter.widthAnchor.constraint(lessThanOrEqualTo: heartImageView.widthAnchor, multiplier: 0.6).isActive = true
+        
+        likeCounterCenterYConstraint = likeCounter.centerYAnchor.constraint(equalTo: heartImageView.centerYAnchor, constant: -3) //-6
+        likeCounterCenterYConstraint.isActive = true
+        
+        likeCounter.widthAnchor.constraint(lessThanOrEqualTo: heartImageView.widthAnchor, multiplier: 0.7).isActive = true
         likeCounter.heightAnchor.constraint(lessThanOrEqualTo: heartImageView.heightAnchor, multiplier: 0.8).isActive = true
     }
     
@@ -345,7 +353,7 @@ class VideoCell: UICollectionViewCell {
         commentsCounter.translatesAutoresizingMaskIntoConstraints = false
         commentsCounter.centerXAnchor.constraint(equalTo: comments.centerXAnchor, constant: 0).isActive = true
         commentsCounter.centerYAnchor.constraint(equalTo: comments.centerYAnchor, constant: -3).isActive = true
-        commentsCounter.widthAnchor.constraint(lessThanOrEqualTo: comments.widthAnchor, multiplier: 0.6).isActive = true
+        commentsCounter.widthAnchor.constraint(lessThanOrEqualTo: comments.widthAnchor, multiplier: 0.8).isActive = true
         commentsCounter.heightAnchor.constraint(lessThanOrEqualTo: comments.heightAnchor, multiplier: 0.8).isActive = true
         
     }
@@ -406,11 +414,10 @@ class VideoCell: UICollectionViewCell {
                                 
                                 self.currentVideoData?["is_liked_by_user"]? = true
                                 // NEED TO PASS THIS LIKE UP TO THE PARENT
-                                if let curCount = self.likeCounter.text {
-                                    if var curInt = Int(curCount) {
-                                        curInt += 1
-                                        self.likeCounter.text = String(curInt)
-                                    }
+                                if var curCount = self.currentVideoData?["likes_count"] as? Int {
+                                    curCount += 1
+                                    self.currentVideoData?["likes_count"] = curCount
+                                    self.likeCounter.text = String(curCount)
                                 }
                             }
                             //Worked....
@@ -461,11 +468,10 @@ class VideoCell: UICollectionViewCell {
                                 self.currentVideoData?["is_liked_by_user"]? = false
 //                                self.currentVideoData?.setValue(false, forKeyPath: "is_liked_by_user")
                                 // NEED TO PASS THIS DISLIKE UP TO THE PARENT
-                                if let curCount = self.likeCounter.text {
-                                    if var curInt = Int(curCount) {
-                                        curInt -= 1
-                                        self.likeCounter.text = String(curInt)
-                                    }
+                                if var curCount = self.currentVideoData?["likes_count"] as? Int {
+                                    curCount -= 1
+                                    self.currentVideoData?["likes_count"] = curCount
+                                    self.likeCounter.text = String(curCount)
                                 }
                             }
                         }else{

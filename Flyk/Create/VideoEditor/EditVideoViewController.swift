@@ -34,6 +34,8 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
     var currentDurationEditTarget: UIView?
     
+    let goBack = UIImageView(image: UIImage(named: "X"))
+    
     
     lazy var setDurationView : SetDurationView = {
         let durationView = SetDurationView(frame: CGRect(x: self.view.frame.minX, y: self.view.frame.maxY, width: self.view.frame.width, height: 200))
@@ -236,8 +238,9 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
             guard
                 let assetTrack = asset.tracks(withMediaType: .video).first
             else {
-                print("Something is wrong with the asset.")
-                return
+                print("Something is wrong with the asset --> REMOVING")
+                recordingUrlList.removeAll(where: { $0 == asset.url })
+                continue
             }
             
             
@@ -323,7 +326,16 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
         basketContainer = BasketView(superview: self.view)
         self.view.addSubview(basketContainer!)
-        self.view.addSubview((basketContainer?.getBasketButton())!)
+        let bsktBucket = basketContainer!.basketButton
+        self.view.addSubview(bsktBucket)
+        bsktBucket.translatesAutoresizingMaskIntoConstraints = false
+        bsktBucket.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 30).isActive = true
+        bsktBucket.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -30).isActive = true
+        bsktBucket.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        bsktBucket.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        
+        
+        
         for bskItem in (basketContainer?.getBasketItems())! {
             bskItem.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleBasketItemTap(tapGesture:))))
             basketContainer?.addSubview(bskItem)
@@ -331,7 +343,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         
         
         
-        let goBack = UIImageView(image: UIImage(named: "X"))
+        
         goBack.layer.opacity = 0.6
         goBack.frame = CGRect(x: 20, y: 40, width: 30, height: 30)
         goBack.contentMode = .scaleAspectFit
@@ -361,13 +373,16 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
         addPeriodicTimeObserver()
         
 
-        let finishVideoEditingView = UIView(frame: CGRect(x: self.view.frame.maxX - 60, y: self.view.frame.maxY - 60, width: 40, height: 40))
-        finishVideoEditingView.layer.borderWidth = 1
-        finishVideoEditingView.layer.cornerRadius = finishVideoEditingView.frame.height/2
-        finishVideoEditingView.layer.borderColor = UIColor.white.cgColor
-        finishVideoEditingView.alpha = 0.5
-        
+        let finishVideoEditingView = UIImageView(image: UIImage(named: "checkArrowHollow"))
+        finishVideoEditingView.contentMode = .scaleAspectFill
+        finishVideoEditingView.isUserInteractionEnabled = true
         self.view.addSubview(finishVideoEditingView)
+        finishVideoEditingView.translatesAutoresizingMaskIntoConstraints = false
+        finishVideoEditingView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor, constant: -30).isActive = true
+        finishVideoEditingView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -30).isActive = true
+        finishVideoEditingView.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        finishVideoEditingView.heightAnchor.constraint(equalToConstant: 35).isActive = true
+        
         
         finishVideoEditingView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleFinishEditingTap(tapGesture:))))
     }
@@ -702,6 +717,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     
     func activateSetDuration(){
         if self.videoPlaybackView.transform == CGAffineTransform.identity {
+            self.goBack.isHidden = true
             
             self.videoPlaybackView.layer.anchorPoint = CGPoint(x: 0.5,y: 0)
             self.videoPlaybackView.layer.position = CGPoint(x: self.videoPlaybackView.frame.midX, y: 0)
@@ -730,6 +746,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
                 
             }
         }else{
+            self.goBack.isHidden = false
             setDurationView.isHidden = true
             UIView.animate(withDuration: 0.3, animations: {
                 let vpvFr = self.videoPlaybackView.frame

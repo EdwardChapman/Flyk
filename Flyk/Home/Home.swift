@@ -15,22 +15,57 @@ extension AVPlayer {
     }
 }
 
-
 class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSourcePrefetching, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
+    let appDelegate = UIApplication.shared.delegate as! AppDelegate
 
     
-    var collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
-    var videosDataList : [NSMutableDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
+    lazy var collectionView: UICollectionView = {
+        let colV = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
+        
+        let flowLayout = colV.collectionViewLayout as! UICollectionViewFlowLayout
+        flowLayout.scrollDirection = .vertical
+        flowLayout.minimumInteritemSpacing = 0
+        flowLayout.minimumLineSpacing = 0
+        
+        colV.register(VideoCell.self, forCellWithReuseIdentifier: "videoCell")
+        colV.delegate = self
+        colV.dataSource = self
+        colV.prefetchDataSource = self
+        
+        colV.decelerationRate = .fast
+        colV.showsVerticalScrollIndicator = false
+        colV.showsHorizontalScrollIndicator = false
+        
+        colV.contentInsetAdjustmentBehavior = .never
+        colV.isPagingEnabled = true
+        
+        
+        colV.refreshControl = UIRefreshControl()
+
+        colV.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
+        colV.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
+        colV.refreshControl!.topAnchor.constraint(equalTo: colV.safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
+        colV.refreshControl!.centerXAnchor.constraint(equalTo: colV.centerXAnchor).isActive = true
+        colV.refreshControl?.beginRefreshing()
+        return colV
+    }()
+    
+    
+    
+    
+    
+    var videosDataList : [NSMutableDictionary] = [] {
+        didSet { DispatchQueue.main.async { self.collectionView.reloadData() } }
+    }
     
     var currentCell : VideoCell? {
-        didSet{
-            if let curCell = currentCell {
-                if let cellIndex = collectionView.indexPath(for: curCell){
-                    if videosDataList.count > 0 && cellIndex.row > (videosDataList.count - 2) {
-                        print("FETCH NEW ITEMS HERE")
-                    }
-                }
+        didSet {
+            guard let curCell = currentCell,
+                let cellIndex = collectionView.indexPath(for: curCell)
+                else { return }
+            if videosDataList.count > 0 && cellIndex.row > (videosDataList.count - 2) {
+                print("FETCH NEW ITEMS HERE")
             }
         }
     }
@@ -46,6 +81,29 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     }()
     
     
+    
+    
+    
+    
+    //////////////////////////////////////////////////////////////////////////////////////////
+    // LIFECYCLE METHODS /////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        self.view.addSubview(collectionView)
+
+        collectionView.translatesAutoresizingMaskIntoConstraints = false
+        collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+        collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
+        
+
+        //FETCH INITIAL DATA
+        fetchVideoList()
+    }
+    
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         addReturnToForegroundObserver()
@@ -56,97 +114,30 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         }
     }
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-        
-        if let rootVC = self.navigationController?.viewControllers[0] {
-            if rootVC != self {
-                self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
-            } else{
-                print(rootVC)
-            }
-        }
-        
-//        fetchVideoList() // THIS IS DISABLED FOR TESTING
-        let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 0
-        
-        collectionView.register(VideoCell.self, forCellWithReuseIdentifier: "videoCell")
-        collectionView.delegate = self
-        collectionView.dataSource = self
-        collectionView.prefetchDataSource = self
-//        collectionView.backgroundColor = UIColor.flykDarkGrey
-        self.view.addSubview(collectionView)
-        
-        
-        collectionView.contentInsetAdjustmentBehavior = .never
-        collectionView.isPagingEnabled = true
-        
-        collectionView.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-        collectionView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-        collectionView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-        
-        collectionView.decelerationRate = .fast
-        collectionView.showsVerticalScrollIndicator = false
-        collectionView.showsHorizontalScrollIndicator = false
-        
-        
-        
-        collectionView.refreshControl = UIRefreshControl()
-        
-        collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
-        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
-        collectionView.refreshControl!.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 10).isActive = true
-        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        
-        collectionView.refreshControl?.beginRefreshing()
-        fetchVideoList()
 
-        print(UIDevice.current.name, UIDevice.current.identifierForVendor?.uuidString)
-
-        //Cookie name is flyk
-        //All I need is the cookie value
-        
-//        var mainCookie = URLSession.shared.configuration.httpCookieStorage?.cookies(for: URL(string:FlykConfig.mainEndpoint)!)![0]
-//        mainCookie?.domain = FlykConfig.uploadEndpoint
-//        mainCookie.
-//        
-//        URLSession.shared.configuration.httpCookieStorage?.setCookies( [mainCookie],
-//            for: URL(string: FlykConfig.uploadEndpoint), mainDocumentURL: nil
-//        )
-//        print(URLSession.shared.configuration.httpCookieStorage?.cookies(for: URL(string:FlykConfig.uploadEndpoint)!))
-    }
-
+    var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
-//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-//        appDelegate.isFirstLaunch()
-        
-//        appDelegate.triggerSignInIfNoAccount(customMessgae: "hi")
-    }
-    @objc func handleAPNGTap(tapGesture: UITapGestureRecognizer){
-        if (tapGesture.view as! UIImageView).isAnimating {
-            (tapGesture.view as! UIImageView).stopAnimating()
-            (tapGesture.view as! UIImageView).animationImages = nil
-        }else{
-//            (tapGesture.view as! UIImageView).startAnimating()
+
+        //We store the navigation controllers interactive pop delegate before removing it
+        //We will place it back during viewWillDissappear
+        if animated {
+            if let rootVC = self.navigationController?.viewControllers[0] {
+                if rootVC != self {
+                    previousInteractivePopGestureDelegate = self.navigationController?.interactivePopGestureRecognizer?.delegate
+                    self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
+                }
+            }
         }
     }
-    @objc func handleRefreshControl() {
-        let generator = UIImpactFeedbackGenerator(style: .medium)
-        generator.impactOccurred()
-        // Update your content…
-//        videoURLs = []
-        fetchVideoList()
-        // Dismiss the refresh control.
-//        DispatchQueue.main.async {
-//            self.collectionView.refreshControl!.endRefreshing()
-//        }
+
+    override func viewWillDisappear(_ animated: Bool) {
+        //We replace the interactive popGesture delegate that was there before.
+        if let prevDel = previousInteractivePopGestureDelegate {
+            self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
+        }
     }
+    
     
     override func viewDidDisappear(_ animated: Bool) {
         super.viewDidDisappear(animated)
@@ -171,13 +162,16 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     //PREFETCH
     func collectionView(_ collectionView: UICollectionView, prefetchItemsAt indexPaths: [IndexPath]) {
         // Begin asynchronously fetching data for the requested index paths.
+/*
         for indexPath in indexPaths {
             let prefetchURL = videosDataList[indexPath.row]["videoFilename"]
 //            asyncFetcher.fetchAsync(model.identifier)
             print(indexPath)
             
         }
+ */
     }
+    
     func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         return videosDataList.count
     }
@@ -186,57 +180,26 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     // THIS CREATES/REUSES CELL
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "videoCell", for: indexPath) as! VideoCell
-        cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
-        
-        cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
-        
-//        print(videosDataList[indexPath.row])
-        
-        let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
-        let videoFilename =  videosDataList[indexPath.row]["video_filename"] as! String
-        let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
-        let remoteAsset = AVAsset(url: remoteAssetUrl)
-        
-        
+
         cell.setupNewVideo(fromDict: videosDataList[indexPath.row])
         
         cell.profileImg.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
         cell.usernameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
+        cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
+        cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
         
-        
-        /*
-
-        let newPlayer = AVPlayerItem(asset: remoteAsset)
-        cell.player.replaceCurrentItem(with: newPlayer)
-        
-        cell.usernameLabel.text = videosDataList[indexPath.row]["username"] as? String
-        print(cell.usernameLabel.attributedText!.size())
-        cell.usernameLabel.frame.size = cell.usernameLabel.attributedText!.size()
-        
-        
-        cell.descriptionTextView.text = videosDataList[indexPath.row]["video_description"] as? String
-        print(cell.descriptionTextView.attributedText!.size())
-        cell.descriptionTextView.frame.size = cell.descriptionTextView.attributedText!.size()
-        
-        if let profile_img_filename = videosDataList[indexPath.row]["profile_img_filename"] as? String {
-            print("PROFIELE IMG FILENAME ESITS")
-        }else{
-            print("PROFILE IMG FILENAME DNE")
-        }
-        */
 //        cell.player.playImmediately(atRate: 1.0)
-        
         cell.addDidEndObserver()
+        
         return cell
     }
     
-    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer){
-        
-        let vc = MyProfileVC()
-        //vc.profileUsername = xxxxx //THIS WILL ALLOW US TO REUSE THE SAME VC
-        self.navigationController?.pushViewController(vc, animated: true)
-        self.commentsViewController.dismiss(animated: true, completion: nil)
+    func collectionView(_ collectionView: UICollectionView, shouldHighlightItemAt indexPath: IndexPath) -> Bool {
+        return false
     }
+    
+
+
 
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
@@ -262,12 +225,6 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         return .zero
     }
     
-    func collectionView(_ collectionView: UICollectionView,
-                        didSelectItemAt indexPath: IndexPath) {
-        
-
-        
-    }
     
     
     
@@ -304,46 +261,41 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
     
 
     
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    func fetchVideoList(){
-        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/home/")!
-
-        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
-        request.httpMethod = "POST"
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
-            
-            if error != nil {
-                print(error)
-                return
-            }
-            guard let response = response as? HTTPURLResponse else {
-                print("not httpurlresponse...!")
-                return;
-            }
-            
-            if(response.statusCode == 200) {
-                do {
-                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
-                        
-                        self.videosDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
-                    }else{
-                        print("VIDEO LIST AS MUTABLE FAILED...")
-                    }
-                } catch {
-                    print("JSON error: \(error.localizedDescription)")
-                }
-            }else{
-                print("Response not 200", response)
-            }
-
-        }.resume()
+    
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    // USER ACTION SELECTOR FUNCTIONS //////////////////////////////////////////////////////////////////////
+    ////////////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    @objc func handleShareTap(tapGesture: UITapGestureRecognizer){
+        let shareURL = ((tapGesture.view?.superview as! VideoCell).player.currentItem?.asset as! AVURLAsset).url
+        let vc = UIActivityViewController(activityItems: [shareURL], applicationActivities: [])
+        self.present(vc, animated: true)
     }
     
+    @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer) {
+        if !appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Write Comments") { return }
+        guard let vidCell = tapGesture.view?.superview as? VideoCell, let vidData = vidCell.currentVideoData else { return }
+        
+        let vidID =  vidData["video_id"] as? String
+        self.commentsViewController.setupComments(forVideo: vidID)
+        self.present(self.commentsViewController, animated: true) {
+            /*CompletionHandler*/
+        }
+    }
     
+    @objc func handleRefreshControl() {
+        let generator = UIImpactFeedbackGenerator(style: .medium)
+        generator.prepare()
+        fetchVideoList()
+        generator.impactOccurred()
+    }
     
+    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer){
+        let vc = MyProfileVC()
+        //vc.profileUsername = xxxxx //THIS WILL ALLOW US TO REUSE THE SAME VC
+        self.navigationController?.pushViewController(vc, animated: true)
+        self.commentsViewController.dismiss(animated: true, completion: nil)
+    }
     
     
     
@@ -364,27 +316,45 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         }
     }
     
-        
-    @objc func handleShareTap(tapGesture: UITapGestureRecognizer){
-        let shareURL = ((tapGesture.view?.superview as! VideoCell).player.currentItem?.asset as! AVURLAsset).url
-        let vc = UIActivityViewController(activityItems: [shareURL], applicationActivities: [])
-        self.present(vc, animated: true)
-    }
     
-    @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Write Comments") {
-            if let vidCell = tapGesture.view?.superview as? VideoCell {
-                if let vidData = vidCell.currentVideoData {
-                    let vidID =  vidData["video_id"] as? String
-                    self.commentsViewController.setupComments(forVideo: vidID)
-                    self.present(self.commentsViewController, animated: true) {
-                        /*CompletionHandler*/
-                    }
-                    
-                }
+    
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    // NETWORKING CALLS //////////////////////////////////////////////////////////////////////////////
+    //////////////////////////////////////////////////////////////////////////////////////////////////
+    
+    func fetchVideoList() {
+        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/home/")!
+        
+        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.httpMethod = "POST"
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async { self.collectionView.refreshControl!.endRefreshing() }
+            
+            if error != nil {
+                print(error)
+                return
             }
-        }
+            guard let response = response as? HTTPURLResponse else {
+                print("not httpurlresponse...!")
+                return
+            }
+            
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        
+                        self.videosDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+                    }else{
+                        print("VIDEO LIST AS MUTABLE FAILED...")
+                    }
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            } else {
+                print("Response not 200", response)
+            }
+            
+        }.resume()
     }
 
 

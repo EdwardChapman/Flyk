@@ -18,13 +18,23 @@ class SetDurationView : UIView{
     private var _leftDrag_per :CGFloat = 0
     private var _rightDrag_per :CGFloat = 1
     
-    lazy var doneButton: UIView = {
-        let doneB = UIView(frame: CGRect(x: self.bounds.maxX - 60, y: self.bounds.maxY - 60, width: 45, height: 45))
-        doneB.layer.cornerRadius = doneB.frame.height/2
-        doneB.backgroundColor = UIColor.flykBlue
-        doneB.layer.borderWidth = 1
-        doneB.layer.borderColor = UIColor.white.cgColor
+    lazy var doneButton: UIImageView = {
+        let doneB = UIImageView(frame: .zero)
         self.addSubview(doneB)
+        doneB.translatesAutoresizingMaskIntoConstraints = false
+        
+        doneB.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -30).isActive = true
+        doneB.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: -30).isActive = true
+        doneB.widthAnchor.constraint(equalToConstant: 30).isActive = true
+        doneB.heightAnchor.constraint(equalToConstant: 30).isActive = true
+//        doneB.layer.cornerRadius = doneB.frame.height/2
+//        doneB.backgroundColor = UIColor.flykBlue
+//        doneB.layer.borderWidth = 1
+//        doneB.layer.borderColor = UIColor.white.cgColor
+        doneB.image = UIImage(named: "blueCheckAlone")
+        doneB.isUserInteractionEnabled = true
+        doneB.contentMode = UIView.ContentMode.scaleAspectFit
+        
         return doneB
     }()
     

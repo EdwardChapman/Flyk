@@ -16,7 +16,7 @@ class ProfileHeaderView: UIView {
     
     let profileImageView = UIImageView()
     let usernameLabel = UILabel()
-    let bioTextView = UITextView()
+    let bioTextView = UILabel()
     let settingsImgView = UIImageView(image: UIImage(named: "settings"))
     let signInButton = UIButton(frame: .zero)
     
@@ -32,40 +32,45 @@ class ProfileHeaderView: UIView {
         profileImageView.backgroundColor = UIColor.flykLoadingGrey
         profileImageView.isUserInteractionEnabled = true
         profileImageView.contentMode = .scaleToFill
+//        profileImageView.image = FlykConfig.defaultProfileImage
         
-        
+        let leftInset: CGFloat = 17
+        let rightInset: CGFloat = -17
         
         
         usernameLabel.backgroundColor = .clear
         usernameLabel.textColor = .white
         usernameLabel.text = ""
-        usernameLabel.font = usernameLabel.font.withSize(20)
+        usernameLabel.font = usernameLabel.font.withSize(17)
         
         bioTextView.backgroundColor = .clear
         bioTextView.textColor = .flykDarkWhite
-        bioTextView.text = ""
-        bioTextView.font = UIFont.systemFont(ofSize: 16)
-        bioTextView.isEditable = false
+        bioTextView.text = "This is my bio...\nIt can be multiple lines and take up the full space."
+        bioTextView.font = UIFont.systemFont(ofSize: 15)
+        bioTextView.numberOfLines = 50
+//        bioTextView.isEditable = false
+        
         
         
         settingsImgView.isUserInteractionEnabled = true
         settingsImgView.contentMode = .scaleAspectFit
-        settingsImgView.frame = CGRect(
-            x: self.frame.width - 50,
-            y: 50,
-            width: 30,
-            height: 30
-        )
-
+        
+        
         self.addSubview(settingsImgView)
-        
-        
         self.addSubview(profileImageView)
         self.addSubview(usernameLabel)
         self.addSubview(bioTextView)
+
         
-        let leftInset: CGFloat = 18
-        let rightInset: CGFloat = -18
+        settingsImgView.translatesAutoresizingMaskIntoConstraints = false
+        settingsImgView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: rightInset).isActive = true
+        settingsImgView.topAnchor.constraint(equalTo: profileImageView.topAnchor).isActive = true
+        settingsImgView.widthAnchor.constraint(equalToConstant: 28).isActive = true
+        settingsImgView.heightAnchor.constraint(equalTo: settingsImgView.widthAnchor).isActive = true
+
+
+
+
         
         profileImageView.translatesAutoresizingMaskIntoConstraints = false
         profileImageView.leadingAnchor.constraint(equalTo: self.leadingAnchor, constant: leftInset).isActive = true
@@ -73,31 +78,108 @@ class ProfileHeaderView: UIView {
         profileImageView.heightAnchor.constraint(equalTo: profileImageView.widthAnchor).isActive = true
         profileImageView.topAnchor.constraint(equalTo: self.topAnchor, constant: 50).isActive = true
         
-        bioTextView.translatesAutoresizingMaskIntoConstraints = false
-        bioTextView.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor).isActive = true
-        bioTextView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: rightInset).isActive = true
-        bioTextView.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: leftInset).isActive = true
-        bioTextView.bottomAnchor.constraint(equalTo: self.bottomAnchor, constant: rightInset).isActive = true
-        
-        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
-        usernameLabel.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: -6).isActive = true
-        usernameLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: leftInset).isActive = true
-        usernameLabel.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
-//        usernameLabel.topAnchor.constraint(equalTo: self.topAnchor, constant: 50).isActive = true
-        
         
         self.addSubview(signInButton)
         signInButton.backgroundColor = .flykBlue
-        signInButton.layer.cornerRadius = 13
+        signInButton.layer.cornerRadius = 8
         signInButton.translatesAutoresizingMaskIntoConstraints = false
-        signInButton.leadingAnchor.constraint(equalTo: self.centerXAnchor, constant: 0).isActive = true
-        signInButton.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: -30).isActive = true
-        signInButton.topAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
-//            signInButton.widthAnchor.constraint(equalToConstant: 160).isActive = true
-        signInButton.heightAnchor.constraint(equalToConstant: 40).isActive = true
+        signInButton.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8).isActive = true
+        signInButton.widthAnchor.constraint(equalToConstant: 125).isActive = true
+        signInButton.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
+        signInButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
         signInButton.setTitle("Sign In", for: .normal)
+        signInButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
         signInButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
         signInButton.isHidden = true
+        
+        let followButton = UIButton()
+        self.addSubview(followButton)
+        followButton.backgroundColor = .flykBlue
+        followButton.layer.cornerRadius = 8
+        followButton.translatesAutoresizingMaskIntoConstraints = false
+        followButton.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8).isActive = true
+        followButton.widthAnchor.constraint(equalToConstant: 125).isActive = true
+        followButton.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
+        followButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        followButton.setTitle("Follow", for: .normal)
+        followButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
+        followButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+        followButton.isHidden = false
+        
+        
+        var oneTwoTwoGrey = UIColor(red: 112/255, green: 112/255, blue: 112/255, alpha: 1)
+        
+        let editProfileButton = UIButton()
+        self.addSubview(editProfileButton)
+        editProfileButton.backgroundColor = .clear
+        editProfileButton.layer.borderColor = oneTwoTwoGrey.cgColor
+        editProfileButton.layer.borderWidth = 1
+        editProfileButton.layer.cornerRadius = 8
+        editProfileButton.translatesAutoresizingMaskIntoConstraints = false
+        editProfileButton.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8).isActive = true
+        editProfileButton.widthAnchor.constraint(equalToConstant: 125).isActive = true
+        editProfileButton.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
+        editProfileButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        editProfileButton.setTitle("Edit Profile", for: .normal)
+        editProfileButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
+        editProfileButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+        editProfileButton.setTitleColor(oneTwoTwoGrey, for: .normal)
+        editProfileButton.isHidden = true
+        
+        let followingButton = UIButton()
+        self.addSubview(followingButton)
+        followingButton.backgroundColor = .clear
+        followingButton.layer.borderColor = oneTwoTwoGrey.cgColor
+        followingButton.layer.borderWidth = 1
+        followingButton.layer.cornerRadius = 8
+        followingButton.translatesAutoresizingMaskIntoConstraints = false
+        followingButton.leadingAnchor.constraint(equalTo: profileImageView.trailingAnchor, constant: 8).isActive = true
+        followingButton.widthAnchor.constraint(equalToConstant: 125).isActive = true
+        followingButton.bottomAnchor.constraint(equalTo: profileImageView.bottomAnchor).isActive = true
+        followingButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        followingButton.setTitle("Following", for: .normal)
+        followingButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
+        followingButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+        followingButton.setTitleColor(oneTwoTwoGrey, for: .normal)
+        followingButton.isHidden = true
+        followingButton.titleEdgeInsets.right = 20
+//            = UIEdgeInsets(top: , left: 10.0, bottom: 0.0, right: 0.0)
+        
+        let origImage = UIImage(named: "blueCheckAlone")
+        let tintedImage = origImage?.withRenderingMode(.alwaysTemplate)
+        
+        let checkImgView = UIImageView(image: tintedImage)
+        checkImgView.tintColor = oneTwoTwoGrey
+        followingButton.addSubview(checkImgView)
+        checkImgView.translatesAutoresizingMaskIntoConstraints = false
+        checkImgView.leadingAnchor.constraint(equalTo: followingButton.titleLabel!.trailingAnchor, constant: 5).isActive = true
+        checkImgView.centerYAnchor.constraint(equalTo: followingButton.centerYAnchor).isActive = true
+        checkImgView.widthAnchor.constraint(equalToConstant: 15).isActive = true
+        checkImgView.heightAnchor.constraint(equalTo: checkImgView.widthAnchor).isActive = true
+        checkImgView.contentMode = .scaleAspectFit
+        
+//        let origImage = UIImage(named: "imageName")
+//        let tintedImage = origImage?.withRenderingMode(.alwaysTemplate)
+//        btn.setImage(tintedImage, for: .normal)
+//        btn.tintColor = .red
+
+        
+        usernameLabel.translatesAutoresizingMaskIntoConstraints = false
+        usernameLabel.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor, constant: 0).isActive = true
+        usernameLabel.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: rightInset).isActive = true
+        usernameLabel.topAnchor.constraint(equalTo: profileImageView.bottomAnchor, constant: 12).isActive = true
+
+        
+        bioTextView.translatesAutoresizingMaskIntoConstraints = false
+        
+        bioTextView.leadingAnchor.constraint(equalTo: profileImageView.leadingAnchor).isActive = true
+        bioTextView.trailingAnchor.constraint(equalTo: self.trailingAnchor, constant: rightInset).isActive = true
+        bioTextView.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 17).isActive = true
+
+        
+        self.bottomAnchor.constraint(equalTo: bioTextView.bottomAnchor, constant: leftInset).isActive = true
+        
+
         
     }
     
@@ -158,10 +240,16 @@ class ProfileHeaderView: UIView {
                     let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profile/photo/"+profile_img_filename)!
                     print(pImgURL)
                     URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
-                        DispatchQueue.main.async {
-                            self.profileImageView.image = UIImage(data: data!)
+                        if let d = data {
+                            DispatchQueue.main.async {
+                                self.profileImageView.image = UIImage(data: d)
+                            }
                         }
                     }).resume()
+                }else {
+                    DispatchQueue.main.async {
+                        self.profileImageView.image = FlykConfig.defaultProfileImage
+                    }
                 }
                 
 //                print(myProfileData)

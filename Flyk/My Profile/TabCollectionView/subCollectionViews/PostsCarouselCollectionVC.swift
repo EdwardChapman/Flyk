@@ -12,18 +12,33 @@ import AVFoundation
 private let reuseIdentifier = "CarouselCell"
 
 class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDelegateFlowLayout {
-    weak var parentCollectionView: PostsCollectionView?
+//    weak var parentCollectionView: PostsCollectionView?
+    var videoDataList: [NSMutableDictionary] = []
     var returnToForegroundObserver: NSObjectProtocol?
+    
+    lazy var commentsViewController: CommentsViewController = {
+        let cVc = CommentsViewController()
+        cVc.goToProfileFunction = self.handleGoToProfileTap
+        cVc.transitioningDelegate = cVc
+        cVc.modalPresentationStyle = .custom
+        return cVc
+    }()
+    
+    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer){
+        
+        let vc = MyProfileVC()
+        //vc.profileUsername = xxxxx //THIS WILL ALLOW US TO REUSE THE SAME VC
+        self.navigationController?.pushViewController(vc, animated: true)
+        self.commentsViewController.dismiss(animated: true, completion: nil)
+    }
     
     
     var currentCell : VideoCell? {
         didSet{
             if let curCell = currentCell {
                 if let cellIndex = collectionView.indexPath(for: curCell){
-                    if let videosDataList = parentCollectionView?.videoDataList {
-                        if videosDataList.count > 0 && cellIndex.row > (videosDataList.count - 2) {
-                            print("FETCH NEW ITEMS HERE")
-                        }
+                    if videoDataList.count > 0 && cellIndex.row > (videoDataList.count - 2) {
+                        print("FETCH NEW ITEMS HERE")
                     }
                 }
             }
@@ -32,9 +47,10 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
     
     var startingIndexPath: IndexPath?
     
-    init(collectionViewLayout layout: UICollectionViewLayout, parentCollectionView: PostsCollectionView, startingIndexPath: IndexPath) {
+    init(collectionViewLayout layout: UICollectionViewLayout, videoDataList: [NSMutableDictionary], startingIndexPath: IndexPath) {
         super.init(collectionViewLayout: layout)
-        self.parentCollectionView = parentCollectionView
+        self.videoDataList = videoDataList
+//        self.parentCollectionView = parentCollectionView
         self.startingIndexPath = startingIndexPath
         
     }
@@ -52,6 +68,24 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
 //            shouldScrollToIndexPath = nil
 //        }
 //    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        
+//        self.collectionView.reloadData()
+//        if animated {
+//            if let startInd = self.startingIndexPath {
+//                self.view.setNeedsLayout()
+//                self.view.layoutIfNeeded()
+//                self.collectionView.setNeedsLayout()
+//                self.collectionView.layoutIfNeeded()
+//
+//                self.collectionView.reloadData()
+//                self.collectionView.scrollToItem(at: startInd, at: .top, animated: false)
+//            }
+//        }
+    }
+    
 
     var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
     override func viewDidAppear(_ animated: Bool) {
@@ -63,6 +97,12 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
                     self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
                 }
             }
+//            if let startInd = self.startingIndexPath {
+//                self.view.layoutIfNeeded()
+//                self.collectionView.reloadData()
+//                self.collectionView.scrollToItem(at: startInd, at: .top, animated: false)
+//            }
+            
         }
     }
     override func viewWillDisappear(_ animated: Bool) {
@@ -140,33 +180,58 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
 
     override func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
         // #warning Incomplete implementation, return the number of items
-        if let superVC = self.parentCollectionView {
-            return superVC.videoDataList.count
-        }
+
+        return videoDataList.count
         return 0
+    }
+    
+    
+    @objc func handleShareTap(tapGesture: UITapGestureRecognizer){
+        let shareURL = ((tapGesture.view?.superview as! VideoCell).player.currentItem?.asset as! AVURLAsset).url
+        let vc = UIActivityViewController(activityItems: [shareURL], applicationActivities: [])
+        self.present(vc, animated: true)
+    }
+    
+    @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
+        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+        if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Write Comments") {
+            if let vidCell = tapGesture.view?.superview as? VideoCell {
+                if let vidData = vidCell.currentVideoData {
+                    let vidID =  vidData["video_id"] as? String
+                    self.commentsViewController.setupComments(forVideo: vidID)
+                    self.present(self.commentsViewController, animated: true) {
+                        /*CompletionHandler*/
+                    }
+                    
+                }
+            }
+        }
     }
 
     override func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: reuseIdentifier, for: indexPath) as! VideoCell
         
-        if let superVC = self.parentCollectionView {
-            let videosDataList = superVC.videoDataList
-//            cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
-            
-//            cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
-            
+        
+        cell.playerLayer.frame = cell.bounds
+        
+        cell.share.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleShareTap(tapGesture:))))
+        
+        cell.comments.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleCommentsTap(tapGesture:))))
+        cell.profileImg.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
+        cell.usernameLabel.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleGoToProfileTap(tapGesture:))))
+        
 //            print(videosDataList[indexPath.row])
+        
+        let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
+        let videoFilename =  videoDataList[indexPath.row]["video_filename"] as! String
+        let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
+        let remoteAsset = AVAsset(url: remoteAssetUrl)
+        
+        
+        cell.setupNewVideo(fromDict: videoDataList[indexPath.row])
+        cell.addDidEndObserver()
             
-            let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
-            let videoFilename =  videosDataList[indexPath.row]["video_filename"] as! String
-            let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
-            let remoteAsset = AVAsset(url: remoteAssetUrl)
-            
-            
-            cell.setupNewVideo(fromDict: videosDataList[indexPath.row])
-            cell.addDidEndObserver()
-            
-        }
+        
         return cell
     }
     
@@ -262,11 +327,7 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
     }
     
     
-    @objc func handleShareTap(tapGesture: UITapGestureRecognizer){
-        let shareURL = ((tapGesture.view?.superview as! VideoCell).player.currentItem?.asset as! AVURLAsset).url
-        let vc = UIActivityViewController(activityItems: [shareURL], applicationActivities: [])
-        self.present(vc, animated: true)
-    }
+
     /*
     @objc func handleCommentsTap(tapGesture: UITapGestureRecognizer){
         let appDelegate = UIApplication.shared.delegate as! AppDelegate

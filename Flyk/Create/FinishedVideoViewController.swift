@@ -83,20 +83,23 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         return videoPlaybackPlayer
     }()
     
-    let backButton = UIView()
+    let backButton = UIImageView()
     
     override func viewDidLoad() {
         super.viewDidLoad()
         self.view.backgroundColor = UIColor.flykDarkGrey
-        backButton.layer.cornerRadius = 45/2
-        backButton.layer.borderColor = UIColor.white.cgColor
-        backButton.layer.borderWidth = 1
-        backButton.backgroundColor = UIColor.flykMediumGrey
+//        backButton.layer.cornerRadius = 45/2
+//        backButton.layer.borderColor = UIColor.white.cgColor
+//        backButton.layer.borderWidth = 1
+//        backButton.backgroundColor = UIColor.flykMediumGrey
+        backButton.image = UIImage(named: "xArrowHollowGrey")
+        backButton.contentMode = .scaleAspectFill
+        backButton.isUserInteractionEnabled = true
         self.view.addSubview(backButton)
         backButton.translatesAutoresizingMaskIntoConstraints = false
         backButton.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 15).isActive = true
-        backButton.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
-        backButton.widthAnchor.constraint(equalToConstant: 45).isActive = true
+        backButton.bottomAnchor.constraint(equalTo: self.view.bottomAnchor, constant: -30).isActive = true
+        backButton.widthAnchor.constraint(equalToConstant: 35).isActive = true
         backButton.heightAnchor.constraint(equalTo: backButton.widthAnchor).isActive = true
         backButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleBackButtonTap(tapGesture:))))
         
@@ -378,7 +381,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         reactionsLabel.leadingAnchor.constraint(equalTo: self.view.leadingAnchor, constant: 16).isActive = true
         reactionsLabel.trailingAnchor.constraint(equalTo: reactionsSwitch.leadingAnchor, constant: -8).isActive = true
         reactionsLabel.centerYAnchor.constraint(equalTo: reactionsSwitch.centerYAnchor).isActive = true
-        reactionsLabel.text = "Allow Tandem"
+        reactionsLabel.text = "Allow Reactions"
         reactionsLabel.adjustsFontSizeToFitWidth = true
         
         

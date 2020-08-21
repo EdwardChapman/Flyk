@@ -10,26 +10,9 @@ import UIKit
 
 class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
-    var myProfileView: MyProfileVC!
+    weak var myProfileVC: MyProfileVC?
 
-    var collectionTabs: UIView! {
-        didSet{
-            tabScrollBar.backgroundColor = .white
-        }
-    }
-    var tabScrollBarLeadingAnchor: NSLayoutConstraint!
-    lazy var tabScrollBar: UIView = {
-        let ts = UIView()
-        collectionTabs.addSubview(ts)
-        ts.translatesAutoresizingMaskIntoConstraints = false
-        ts.bottomAnchor.constraint(equalTo: self.collectionTabs.bottomAnchor).isActive = true
-        self.tabScrollBarLeadingAnchor = ts.leadingAnchor.constraint(equalTo: self.collectionTabs.leadingAnchor)
-        self.tabScrollBarLeadingAnchor.isActive = true
-        ts.heightAnchor.constraint(equalToConstant: 5).isActive = true
-        ts.widthAnchor.constraint(equalTo: self.collectionTabs.widthAnchor, multiplier: 1/3).isActive = true
-        return ts
-    }()
-    init(frame: CGRect){
+    init(frame: CGRect) {
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
         
         self.backgroundColor = .flykLightBlack
@@ -69,6 +52,24 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         DispatchQueue.main.async { self.refreshControl!.endRefreshing() }
     }
     
+    let cellIdentifierList = [
+        "postsCollectionView",
+        "draftsCollectionView",
+        "likesCollectionView"
+    ]
+    
+    lazy var collectionViewsList: [UICollectionView] = {
+        
+        let p = PostsCollectionView(frame: .zero )
+        let d = DraftsCollectionView(frame: .zero )
+        let l = LikesCollectionView(frame: .zero )
+
+        p.myProfileVC = self.myProfileVC
+        d.myProfileVC = self.myProfileVC
+        l.myProfileVC = self.myProfileVC
+        return [p, d, l]
+    }()
+    
     
     
     //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -83,25 +84,27 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        var cell: UICollectionViewCell!
-        var cellCollectionView: UICollectionView!
+        var cell: UICollectionViewCell = self.dequeueReusableCell(withReuseIdentifier: cellIdentifierList[indexPath.row], for: indexPath)
+        var cellCollectionView: UICollectionView = collectionViewsList[indexPath.row]
+        cellCollectionView.reloadData()
         
-        if indexPath.row == 0 {
-            cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
-            let postsCollectionView = PostsCollectionView(frame: self.frame )
-            postsCollectionView.myProfileView = self.myProfileView
-            cellCollectionView = postsCollectionView
-        }else if indexPath.row == 1 {
-            cell = self.dequeueReusableCell(withReuseIdentifier: "draftsCollectionView", for: indexPath)
-            let postsCollectionView = DraftsCollectionView(frame: self.frame )
-            postsCollectionView.myProfileView = self.myProfileView
-            cellCollectionView = postsCollectionView
-        }else if indexPath.row == 2 {
-            cell = self.dequeueReusableCell(withReuseIdentifier: "likesCollectionView", for: indexPath)
-            let postsCollectionView = LikesCollectionView(frame: self.frame )
-            postsCollectionView.myProfileView = self.myProfileView
-            cellCollectionView = postsCollectionView
-        }
+        
+//        if indexPath.row == 0 {
+//            cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
+//            let postsCollectionView = PostsCollectionView(frame: self.frame )
+//            postsCollectionView.myProfileVC = self.myProfileVC
+//            cellCollectionView = postsCollectionView
+//        }else if indexPath.row == 1 {
+//            cell = self.dequeueReusableCell(withReuseIdentifier: "draftsCollectionView", for: indexPath)
+//            let postsCollectionView = DraftsCollectionView(frame: self.frame )
+//            postsCollectionView.myProfileVC = self.myProfileVC
+//            cellCollectionView = postsCollectionView
+//        }else if indexPath.row == 2 {
+//            cell = self.dequeueReusableCell(withReuseIdentifier: "likesCollectionView", for: indexPath)
+//            let postsCollectionView = LikesCollectionView(frame: self.frame )
+//            postsCollectionView.myProfileVC = self.myProfileVC
+//            cellCollectionView = postsCollectionView
+//        }
 
         
         cell.addSubview(cellCollectionView)
@@ -162,7 +165,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
 //        print("SCROLL")
-        self.tabScrollBarLeadingAnchor.constant = scrollView.contentOffset.x/3
+        self.myProfileVC?.tabScrollBarLeadingAnchor.constant = scrollView.contentOffset.x/3
         self.superview?.layoutIfNeeded()
     }
     

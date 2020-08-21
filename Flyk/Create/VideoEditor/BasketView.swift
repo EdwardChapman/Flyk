@@ -29,6 +29,15 @@ class BasketView : UIView{
         }
     }
     
+    lazy var basketButton: UIImageView = {
+        let basketButton = UIImageView(image: UIImage(named: "basketV2"))
+        basketButton.contentMode = .scaleAspectFill
+        
+        basketButton.isUserInteractionEnabled = true
+        basketButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleBasketTap(tapGesture:))))
+        return basketButton
+    }()
+    
     
     
     init(superview: UIView){
@@ -50,14 +59,7 @@ class BasketView : UIView{
         fatalError("init(coder:) has not been implemented")
     }
     
-    func getBasketButton() -> UIImageView{
-        let basketButton = UIImageView(image: UIImage(named: "basketV2"))
-        basketButton.frame = CGRect(x: 25, y: self.superview!.frame.maxY - 80, width: 50, height: 50)
-        basketButton.contentMode = .scaleAspectFit
-        basketButton.isUserInteractionEnabled = true
-        basketButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(self.handleBasketTap(tapGesture:))))
-        return basketButton
-    }
+    
     
     func getBasketItems() -> [UIView]{
         var itemList: [UIView] = []

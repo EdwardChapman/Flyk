@@ -20,7 +20,7 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="PQr-Ze-W5v"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="home_hollow" selectedImage="home" id="acW-dT-cKf"/>
+                    <tabBarItem key="tabBarItem" title="" image="newHomeV1" selectedImage="newHomeV1Selected" id="acW-dT-cKf"/>
                     <navigationItem key="navigationItem" id="yyy-gj-Ojf"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="W5J-7L-Pyd" sceneMemberID="firstResponder"/>
@@ -53,7 +53,7 @@
                         <color key="backgroundColor" red="1" green="1" blue="1" alpha="1" colorSpace="custom" customColorSpace="sRGB"/>
                         <viewLayoutGuide key="safeArea" id="O1u-W8-tvY"/>
                     </view>
-                    <tabBarItem key="tabBarItem" title="" image="Discover_hollow" selectedImage="Discover" id="cPa-gy-q4n"/>
+                    <tabBarItem key="tabBarItem" title="" image="newDiscoverV1" selectedImage="newDiscoverV1Selected" id="cPa-gy-q4n"/>
                     <navigationItem key="navigationItem" id="MyY-i3-KyP"/>
                 </viewController>
                 <placeholder placeholderIdentifier="IBFirstResponder" id="4Nw-L8-lE0" sceneMemberID="firstResponder"/>
@@ -201,12 +201,12 @@
         </scene>
     </scenes>
     <resources>
-        <image name="Discover" width="19" height="19"/>
-        <image name="Discover_hollow" width="19" height="19"/>
         <image name="centerTabBarPlus3" width="24" height="24"/>
         <image name="centerTabBarPlus3Selected" width="24" height="24"/>
-        <image name="home" width="22" height="20"/>
-        <image name="home_hollow" width="22" height="20"/>
+        <image name="newDiscoverV1" width="23" height="23"/>
+        <image name="newDiscoverV1Selected" width="23" height="23"/>
+        <image name="newHomeV1" width="23" height="23"/>
+        <image name="newHomeV1Selected" width="22" height="22"/>
         <image name="newMailV1" width="30" height="23"/>
         <image name="newMailV1Active" width="30" height="22"/>
         <image name="newProfileV1" width="21" height="23"/>

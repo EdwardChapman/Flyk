@@ -30,6 +30,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         }
         
         self.isFirstLaunch()
+        print(UIDevice.current.name, UIDevice.current.identifierForVendor?.uuidString)
         
         return true
     }
@@ -78,6 +79,15 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
         } catch let err {
             print("Failed fetching saved videos", err)
         }
+    }
+    
+    func signOutOfCurrentAccount(){
+        fatalError("NOT IMPLEMENTED")
+        /*
+        self.currentUserAccount.setValue(false, forKey: "signed_in")
+        self.currentUserAccount.setValue("", forKey: "cookie_value")
+        */
+        
     }
     
     func triggerSignInIfNoAccount(customMessgae: String?) -> Bool{

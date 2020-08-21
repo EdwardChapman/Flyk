@@ -8,7 +8,11 @@
 
 import UIKit
 
-class DiscoverSearchController: UISearchController {
+class DiscoverSearchController: UISearchController, UISearchResultsUpdating {
+    func updateSearchResults(for searchController: UISearchController) {
+        print("UPDATE SEARCH RESULTS")
+    }
+    
 
     override func viewDidLoad() {
         super.viewDidLoad()

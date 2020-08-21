@@ -33,7 +33,7 @@ class EmailSignInViewController: UIViewController, UITextFieldDelegate {
         self.view.addSubview(emailInput)
         emailInput.translatesAutoresizingMaskIntoConstraints = false
         emailInput.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
-        emailInput.centerYAnchor.constraint(equalTo: self.view.centerYAnchor, constant: -250).isActive = true
+        emailInput.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor, constant: 50).isActive = true
         emailInput.widthAnchor.constraint(equalTo: self.view.widthAnchor, multiplier: 0.8).isActive = true
         emailInput.heightAnchor.constraint(equalToConstant: 35).isActive = true
 
@@ -205,6 +205,7 @@ class EmailSignInViewController: UIViewController, UITextFieldDelegate {
                             let appDelegate = UIApplication.shared.delegate as! AppDelegate
                             appDelegate.currentUserAccount.setValue(cookie.value, forKey: "cookie_value")
                             appDelegate.currentUserAccount.setValue(true, forKey: "signed_in")
+                            appDelegate.saveContext()
                         }
                     }
                 }

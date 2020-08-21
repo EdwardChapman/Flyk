@@ -8,13 +8,13 @@
 
 import UIKit
 
-class CommentsViewController : UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate {
+class CommentsViewController : UIViewController, UITableViewDelegate, UITableViewDataSource, UIViewControllerTransitioningDelegate, UITextFieldDelegate {
     
     
 
     
     // Data model: These strings will be the data for the table view cells
-    var commentList: [NSDictionary] = [] {
+    var commentList: [NSMutableDictionary] = [] {
         didSet{
             DispatchQueue.main.async {
                 self.tableView.reloadData()
@@ -31,6 +31,13 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         if videoId != currentVideoId {
             commentList = []
             currentVideoId = videoId
+            
+            if let constr = self.sendCommentShownAnchor {
+                self.commentTextField.text = ""
+                self.sendCommentShownAnchor.isActive = false
+                self.sendCommentHiddenAnchor.isActive = true
+            }
+            
             fetchComments()
         }
     }
@@ -77,7 +84,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
                     do {
                         let json : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as! [NSDictionary]
                         
-                        self.commentList = json
+                        self.commentList = json.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
                     } catch let err {
                         print("JSON error: \(err.localizedDescription)")
                     }
@@ -108,8 +115,19 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     let dragOverlayView = UIView()
     
     let commentInputView = UIView()
-    let commentTextField = UITextView()
+    let commentTextField = UITextField()
     var commentInputViewBottomAnchor: NSLayoutConstraint!
+    
+    let sendCommentImgView: UIImageView = {
+        let img = UIImage(named: "lessPointyArrowBlue")!
+        let tintedImage = img.withRenderingMode(.alwaysTemplate)
+        let imgV = UIImageView(image: tintedImage)
+        imgV.tintColor = UIColor.flykBlue
+        return imgV
+    }()
+    
+    var sendCommentShownAnchor: NSLayoutConstraint!
+    var sendCommentHiddenAnchor: NSLayoutConstraint!
     
     var keyboardHeight: CGFloat? {
         didSet {
@@ -150,52 +168,79 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         
         
         dragOverlayView.addSubview(commentInputView)
+        
+        let commentInputViewHeight: CGFloat = 50
 //        commentInputView.backgroundColor = .white
         commentInputView.translatesAutoresizingMaskIntoConstraints = false
         commentInputView.leadingAnchor.constraint(equalTo: dragOverlayView.leadingAnchor).isActive = true
         commentInputView.trailingAnchor.constraint(equalTo: dragOverlayView.trailingAnchor).isActive = true
-        commentInputView.heightAnchor.constraint(equalToConstant: 45).isActive = true
+        commentInputView.heightAnchor.constraint(equalToConstant: commentInputViewHeight).isActive = true
         commentInputViewBottomAnchor = commentInputView.bottomAnchor.constraint(equalTo: dragOverlayView.safeAreaLayoutGuide.bottomAnchor)
         commentInputViewBottomAnchor.isActive = true
         
+        let cIVTopBorder = UIView()
+        commentInputView.addSubview(cIVTopBorder)
+        cIVTopBorder.backgroundColor = .flykDarkWhite
+        cIVTopBorder.alpha = 0.2
+        cIVTopBorder.translatesAutoresizingMaskIntoConstraints = false
+        cIVTopBorder.leadingAnchor.constraint(equalTo: commentInputView.leadingAnchor).isActive = true
+        cIVTopBorder.trailingAnchor.constraint(equalTo: commentInputView.trailingAnchor).isActive = true
+        cIVTopBorder.topAnchor.constraint(equalTo: commentInputView.topAnchor).isActive = true
+        cIVTopBorder.heightAnchor.constraint(equalToConstant: 0.5).isActive = true
         
-        commentTextField.text = "Comment..."
+        commentTextField.placeholder = "Comment..."
+        let mutAttrPl = commentTextField.attributedPlaceholder?.mutableCopy() as! NSMutableAttributedString
+        mutAttrPl.addAttributes([NSAttributedString.Key.foregroundColor: UIColor.flykDarkWhite], range: NSRange(location: 0, length: mutAttrPl.length))
+        commentTextField.attributedPlaceholder = mutAttrPl
         commentTextField.textColor = .white
         commentInputView.addSubview(commentTextField)
-        commentTextField.backgroundColor = .black
+        commentTextField.delegate = self
+        
+//        commentTextField.backgroundColor = .black
+        
+        
         commentTextField.font = UIFont.systemFont(ofSize: 18)
         commentTextField.layer.cornerRadius = 45/2
-        commentTextField.textContainerInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 45)
+//        commentTextField.textContainerInset = UIEdgeInsets(top: 0, left: 5, bottom: 0, right: 45)
         self.view.layoutIfNeeded()
         
-        let profileImgView = UIImageView(image: UIImage())
+        let profileImgView = UIImageView(image: FlykConfig.defaultProfileImage)
+        profileImgView.contentMode = .scaleAspectFill
+        let profileImgWidth: CGFloat = 40
         commentInputView.addSubview(profileImgView)
         profileImgView.backgroundColor = .flykLoadingGrey
         profileImgView.translatesAutoresizingMaskIntoConstraints = false
         profileImgView.leadingAnchor.constraint(equalTo: commentInputView.leadingAnchor, constant: 10).isActive = true
         profileImgView.bottomAnchor.constraint(equalTo: commentInputView.bottomAnchor, constant: -5).isActive = true
-        profileImgView.widthAnchor.constraint(equalToConstant: 35).isActive = true
+        profileImgView.widthAnchor.constraint(equalToConstant: profileImgWidth).isActive = true
         profileImgView.heightAnchor.constraint(equalTo: profileImgView.widthAnchor).isActive = true
-        profileImgView.layer.cornerRadius = 35/2
+        profileImgView.layer.cornerRadius = profileImgWidth/2
         
+        
+        
+        
+        sendCommentImgView.isUserInteractionEnabled = true
+        sendCommentImgView.contentMode = .scaleAspectFit
+        commentInputView.addSubview(sendCommentImgView)
+        sendCommentImgView.translatesAutoresizingMaskIntoConstraints = false
+        
+        sendCommentShownAnchor = sendCommentImgView.trailingAnchor.constraint(equalTo: commentInputView.trailingAnchor, constant: -10)
+        
+        sendCommentHiddenAnchor = sendCommentImgView.leadingAnchor.constraint(equalTo: commentInputView.trailingAnchor)
+        sendCommentHiddenAnchor.isActive = true
+        sendCommentImgView.bottomAnchor.constraint(equalTo: commentTextField.bottomAnchor, constant: -12.5).isActive = true
+        sendCommentImgView.heightAnchor.constraint(equalToConstant: 25).isActive = true
+        sendCommentImgView.widthAnchor.constraint(equalTo: sendCommentImgView.heightAnchor).isActive = true
+        sendCommentImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSendCommentTap(tapGesture:))))
         
         
         commentTextField.translatesAutoresizingMaskIntoConstraints = false
         commentTextField.leadingAnchor.constraint(equalTo: profileImgView.trailingAnchor, constant: 10).isActive = true
-        commentTextField.trailingAnchor.constraint(equalTo: commentInputView.trailingAnchor, constant: -10).isActive = true
+        commentTextField.trailingAnchor.constraint(equalTo: sendCommentImgView.leadingAnchor, constant: -5).isActive = true
         commentTextField.bottomAnchor.constraint(equalTo: commentInputView.bottomAnchor, constant: 0).isActive = true
-        commentTextField.heightAnchor.constraint(greaterThanOrEqualToConstant: 45).isActive = true
+        commentTextField.heightAnchor.constraint(greaterThanOrEqualTo: commentInputView.heightAnchor).isActive = true
         
-        let sendComment = UIImageView(image: UIImage(named: "lessPointyArrowBlue"))
-        sendComment.isUserInteractionEnabled = true
-        sendComment.contentMode = .scaleAspectFit
-        commentInputView.addSubview(sendComment)
-        sendComment.translatesAutoresizingMaskIntoConstraints = false
-        sendComment.trailingAnchor.constraint(equalTo: commentTextField.trailingAnchor, constant: -4).isActive = true
-        sendComment.bottomAnchor.constraint(equalTo: commentTextField.bottomAnchor, constant: -7.5).isActive = true
-        sendComment.heightAnchor.constraint(equalToConstant: 30).isActive = true
-        sendComment.widthAnchor.constraint(equalTo: sendComment.heightAnchor).isActive = true
-        sendComment.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSendCommentTap(tapGesture:))))
+
         
         tableView.translatesAutoresizingMaskIntoConstraints = false
         tableView.leadingAnchor.constraint(equalTo: dragOverlayView.leadingAnchor).isActive = true
@@ -215,6 +260,11 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     @objc func handleSendCommentTap(tapGesture: UITapGestureRecognizer){
         self.commentTextField.resignFirstResponder()
+        self.sendCommentShownAnchor.isActive = false
+        self.sendCommentHiddenAnchor.isActive = true
+        UIView.animate(withDuration: 0.3) {
+            self.view.layoutIfNeeded()
+        }
         if let videoId = self.currentVideoId {
             if let commentText = commentTextField.text {
                 let trimmedComment = commentText.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -323,27 +373,15 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     
     // create a cell for each table view row
     func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        // create a new cell if needed or reuse an old one
+
         let cell = (self.tableView.dequeueReusableCell(withIdentifier: commentCellId) as! CommentsTableViewCell?)!
         
-        // set the text from the data model
-        //        cell.backgroundColor = .flykDarkGrey
-        cell.commentLabel.text = self.commentList[indexPath.row]["comment_text"] as? String
-        if let pImgFilename = self.commentList[indexPath.row]["profile_img_filename"] as? String {
-            let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profile/photo/"+pImgFilename)!
-            URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
-                DispatchQueue.main.async {
-                    cell.contextProfileImg.image = UIImage(data: data!)
-                }
-            }).resume()
-        }
+        cell.setupNewComment(commentData: self.commentList[indexPath.row])
+
         if let goToProfileFunc = self.goToProfileFunction {
             let gestReq = UITapGestureRecognizer(target: self, action: #selector(handleCellProfileImgTap(tapGesture:)))
-            cell.contextProfileImg.addGestureRecognizer(gestReq)
+            cell.profileImageView.addGestureRecognizer(gestReq)
         }
-        
-        //        cell.textLabel?.textColor = .white
         return cell
     }
     
@@ -351,6 +389,35 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
         print("You tapped cell number \(indexPath.row).")
     }
+    
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    // UITEXTFIELDDELEGATE  /////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////////
+    func textField(_ textField: UITextField, shouldChangeCharactersIn range: NSRange, replacementString string: String) -> Bool {
+        
+        let updatedString = (textField.text as NSString?)?.replacingCharacters(in: range, with: string)
+        textField.text = updatedString
+//        var newSize = textField.attributedText!.size()
+        
+        if updatedString?.count == 0 {
+            self.sendCommentShownAnchor.isActive = false
+            self.sendCommentHiddenAnchor.isActive = true
+            UIView.animate(withDuration: 0.3) {
+                self.view.layoutIfNeeded()
+            }
+        } else {
+            self.sendCommentHiddenAnchor.isActive = false
+            self.sendCommentShownAnchor.isActive = true
+            UIView.animate(withDuration: 0.3) {
+                self.view.layoutIfNeeded()
+            }
+        }
+//        textField.frame.size = newSize
+//        textField.center.x = self.center.x
+        //        textField.frame = CGRect(origin: textField.frame.origin, size: newSize)
+        return false
+    }
+    
     
     /////////////////////////////////////////////////////////////////////////////////////////////////
     // UIViewControllerTransitioningDelegate ////////////////////////////////////////////////////////
@@ -399,6 +466,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         
         // if dismissing it will handle itself...
         // we need to handle when it isn't a dismisisng
+        self.view.endEditing(true)
         if(scrollView.contentOffset.y < 0 && (isCurDragging)){
             isDismissingDrag = true
             dragOverlayView.center.y -= scrollView.contentOffset.y
@@ -407,6 +475,30 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         }
     }
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

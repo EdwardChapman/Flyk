@@ -77,7 +77,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     
     
-    func cameraSetup(){
+    func cameraSetup() {
         if let backCamVideoInput = self.backCamVideoInput {
             captureSession.beginConfiguration()
             if captureSession.canAddInput(backCamVideoInput) {
@@ -214,16 +214,146 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     }
     
     
-    override func viewDidLoad() {
-        super.viewDidLoad()
-
-        self.view.backgroundColor = UIColor.flykLightBlack
-
+    func goToAppSettings(){
+        if let settingsUrl = NSURL(string: UIApplication.openSettingsURLString) as URL? {
+            UIApplication.shared.open(settingsUrl, options: [:]) { (success) in
+                print(success)
+            }
+        }
+    }
+    
+    @objc func requestAudioPermission(){
+        if AVCaptureDevice.authorizationStatus(for: .audio) ==  .authorized {
+            self.requestAudioView.isHidden = true
+            if self.requestVideoView.isHidden && self.requestAudioView.isHidden {
+                self.requestOverlayView.isHidden = true
+                self.fullCaptureSetup()
+            }
+        }
+        if AVCaptureDevice.authorizationStatus(for: .audio) ==  .denied {
+            goToAppSettings()
+        }else{
+            AVCaptureDevice.requestAccess(for: .audio, completionHandler: { (granted: Bool) in
+                if granted {
+                    //access allowed
+                    DispatchQueue.main.async {
+                        self.requestAudioView.isHidden = true
+                        if self.requestVideoView.isHidden && self.requestAudioView.isHidden {
+                            self.requestOverlayView.isHidden = true
+                            self.fullCaptureSetup()
+                        }
+                    }
+                } else {
+                    //access denied
+                }
+            })
+        }
+    }
+    
+    @objc func requestVideoPermission(){
+        if AVCaptureDevice.authorizationStatus(for: .video) ==  .authorized {
+            self.requestVideoView.isHidden = true
+            if self.requestVideoView.isHidden && self.requestAudioView.isHidden {
+                self.requestOverlayView.isHidden = true
+                self.fullCaptureSetup()
+            }
+            
+        }
+        if AVCaptureDevice.authorizationStatus(for: .video) ==  .denied {
+            goToAppSettings()
+        }else{
+            AVCaptureDevice.requestAccess(for: .video, completionHandler: { (granted: Bool) in
+                if granted {
+                    //access allowed
+                    DispatchQueue.main.async {
+                        self.requestVideoView.isHidden = true
+                        if self.requestVideoView.isHidden && self.requestAudioView.isHidden {
+                            self.requestOverlayView.isHidden = true
+                            self.fullCaptureSetup()
+                        }
+                    }
+                } else {
+                    //access denied
+                }
+            })
+        }
+    }
+    
+    
+    func fullCaptureSetup(){
         cameraSetup()
         microphonesSetup()
         movieOutputSetup()
         previewViewSetup()
         overlaySetup()
+    }
+    
+    lazy var requestVideoView: UILabel = {
+        let v = UILabel()
+        v.textColor = UIColor.flykBlue
+        v.font = UIFont.systemFont(ofSize: 18)
+        v.isUserInteractionEnabled = true
+                v.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(requestVideoPermission)))
+        v.text = "Allow Video"
+        return v
+    }()
+    
+    lazy var requestAudioView: UILabel = {
+        let v = UILabel()
+        v.textColor = UIColor.flykBlue
+        v.font = UIFont.systemFont(ofSize: 18)
+        v.isUserInteractionEnabled = true
+        v.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(requestAudioPermission)))
+        v.text = "Allow Audio"
+        return v
+    }()
+    
+    lazy var requestOverlayView: UIView = {
+        let overlay = UIView()
+        overlay.addSubview(self.requestAudioView)
+        overlay.addSubview(self.requestVideoView)
+        self.requestAudioView.translatesAutoresizingMaskIntoConstraints = false
+        self.requestAudioView.centerXAnchor.constraint(equalTo: overlay.centerXAnchor).isActive = true
+        self.requestAudioView.bottomAnchor.constraint(equalTo: overlay.centerYAnchor, constant: -10).isActive = true
+        
+        self.requestVideoView.translatesAutoresizingMaskIntoConstraints = false
+        self.requestVideoView.centerXAnchor.constraint(equalTo: overlay.centerXAnchor).isActive = true
+        self.requestVideoView.topAnchor.constraint(equalTo: self.requestAudioView.bottomAnchor, constant: 25).isActive = true
+        
+        let reqDesc = UILabel()
+        overlay.addSubview(reqDesc)
+        reqDesc.textColor = UIColor.flykDarkWhite
+        reqDesc.font = UIFont.systemFont(ofSize: 20)
+        reqDesc.numberOfLines = 10
+        reqDesc.textAlignment = NSTextAlignment.center
+        reqDesc.text = "To create videos Flyk needs access to your camera and microphone. \nThese will only be used while you are creating content."
+        reqDesc.translatesAutoresizingMaskIntoConstraints = false
+        reqDesc.bottomAnchor.constraint(equalTo: self.requestAudioView.topAnchor, constant: -40).isActive = true
+        reqDesc.centerXAnchor.constraint(equalTo: overlay.centerXAnchor).isActive = true
+        reqDesc.widthAnchor.constraint(equalTo: overlay.widthAnchor, multiplier: 0.8).isActive = true
+        
+        return overlay
+    }()
+    
+    
+    override func viewDidLoad() {
+        super.viewDidLoad()
+
+        self.view.backgroundColor = UIColor.flykLightBlack
+
+        if AVCaptureDevice.authorizationStatus(for: .video) ==  .authorized && AVCaptureDevice.authorizationStatus(for: .audio) ==  .authorized {
+            //already authorized
+            fullCaptureSetup()
+        } else {
+           self.view.addSubview(requestOverlayView)
+            requestOverlayView.translatesAutoresizingMaskIntoConstraints = false
+            requestOverlayView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+            requestOverlayView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+            requestOverlayView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
+            requestOverlayView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        }
+
+
         
         
     }

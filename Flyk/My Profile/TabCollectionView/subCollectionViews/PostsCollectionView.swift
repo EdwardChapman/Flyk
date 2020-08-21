@@ -12,7 +12,7 @@ import AVFoundation
 
 class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
-    weak var myProfileView: MyProfileVC?
+    weak var myProfileVC: MyProfileVC?
     
     
     var videoDataList: [NSMutableDictionary] = [] {
@@ -170,20 +170,22 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         // push view controller with swipe collectionview
+        guard let myProfileVC = self.myProfileVC else {return false}
         let flowLayout = UICollectionViewFlowLayout()
         flowLayout.scrollDirection = .vertical
         flowLayout.minimumInteritemSpacing = 0
         flowLayout.minimumLineSpacing = 0
-        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, parentCollectionView: self, startingIndexPath: indexPath)
+        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, videoDataList: self.videoDataList, startingIndexPath: indexPath)
         
 
+//        newVC.view.layoutIfNeeded()
+//        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        
         newVC.view.layoutIfNeeded()
-        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        newVC.collectionView.setContentOffset(CGPoint(x: .zero, y: (myProfileVC.view.frame.height - myProfileVC.tabBarController!.tabBar.frame.height) * CGFloat(indexPath.row)), animated: false)
         
         
-        
-        
-        self.myProfileView?.navigationController?.pushViewController(newVC, animated: true)
+        self.myProfileVC?.navigationController?.pushViewController(newVC, animated: true)
         return false
     }
     
@@ -219,7 +221,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        if let myProfileVC = self.myProfileView {
+        if let myProfileVC = self.myProfileVC {
             
             let profileScrollView = myProfileVC.profileScrollView
             
