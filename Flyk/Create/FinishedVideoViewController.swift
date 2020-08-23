@@ -12,13 +12,49 @@ import AVFoundation
 
 
 
-class FinishedVideoViewController : UIViewController, UITextViewDelegate {
+class FinishedVideoViewController : UIViewController, UITextViewDelegate, URLSessionTaskDelegate {
+    
+    lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
+    lazy var context = appDelegate.persistentContainer.viewContext
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
+    
     var finishedViewURL: URL? {
         didSet{
-            self.videoLoadingSpinner.stopAnimating()
             playerLayer.player = videoPlaybackPlayer
+            self.videoLoadingSpinner.stopAnimating()
         }
     }
+    
+    var savedVideoData: NSManagedObject? {
+        didSet {
+            guard let savedVideoData = self.savedVideoData else {return}
+            if let savedVidDesc = savedVideoData.value(forKey: "videoDescription") as? String {
+                self.descriptionInput.text = savedVidDesc
+                if self.descriptionInput.text.count > 0 {
+                    self.descriptionLabel.isHidden = true
+                }
+            }
+            if let allowReac = savedVideoData.value(forKey: "allowReactions") as? Bool {
+                self.reactionsSwitch.isOn = allowReac
+            }
+            if let allowComms = savedVideoData.value(forKey: "allowComments") as? Bool {
+                self.commentsSwitch.isOn = allowComms
+            }
+            if let savedURL = savedVideoData.value(forKey: "filename") as? String {
+                let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                    .appendingPathComponent(savedURL)
+                self.finishedViewURL = documentsUrl
+            }
+            self.backButton.isHidden = true
+        }
+    }
+    
+    
+    
     let playerLayer = AVPlayerLayer()
     var videoPlaybackViewLeadingAnchor : NSLayoutConstraint!
     var videoPlaybackViewTopAnchor : NSLayoutConstraint!
@@ -29,10 +65,22 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     let characterCounter = UILabel()
     let descriptionInput = UITextView()
     
-    let reactionsSwitch = UISwitch(frame: .zero)
-    let commentsSwitch = UISwitch(frame: .zero)
+    let reactionsSwitch: UISwitch = {
+        let s = UISwitch(frame: .zero)
+        s.setOn(true, animated: false)
+        return s
+    }()
+    let commentsSwitch: UISwitch = {
+        let s = UISwitch(frame: .zero)
+        s.setOn(true, animated: false)
+        return s
+    }()
     
-    let videoLoadingSpinner = UIActivityIndicatorView(style: .white)
+    let videoLoadingSpinner: UIActivityIndicatorView = {
+        let spn = UIActivityIndicatorView(style: .white)
+        spn.startAnimating()
+        return spn
+    }()
     
     lazy var videoPlaybackView : UIView = {
         let videoPlaybackView = UIView()
@@ -64,7 +112,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         self.videoLoadingSpinner.centerYAnchor.constraint(equalTo: videoPlaybackView.centerYAnchor).isActive = true
         self.videoLoadingSpinner.widthAnchor.constraint(equalToConstant: 60).isActive = true
         self.videoLoadingSpinner.heightAnchor.constraint(equalToConstant: 60).isActive = true
-        self.videoLoadingSpinner.startAnimating()
+//        self.videoLoadingSpinner.startAnimating()
         self.view.layoutSubviews()
         
         
@@ -84,6 +132,118 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     }()
     
     let backButton = UIImageView()
+    
+    let uploadLater = UIView()
+    let uploadNow = UIView()
+    
+    let blueProgressView = UIView()
+    var blueProgressViewWidthAnchor: NSLayoutConstraint?
+    
+    var isProcessing: Bool = false {
+        didSet {
+            if self.isProcessing {
+                self.blueProgressView.backgroundColor = .white
+                
+                let processingBar = self.uploadProgressBar
+                var pBStart: CGFloat = -processingBar.frame.width - 35
+                var counter = 0
+                while(pBStart < processingBar.frame.width){
+                    counter+=1
+                    let slantBar = UIView()
+                    processingBar.addSubview(slantBar)
+                    slantBar.backgroundColor = .flykBlue
+                    slantBar.frame = CGRect(
+                        x: pBStart,
+                        y: 0,
+                        width: 25,
+                        height: processingBar.frame.height*1.5
+                    )
+                    slantBar.center.y = processingBar.bounds.height/2
+                    pBStart += 2*slantBar.frame.width
+                    slantBar.transform = slantBar.transform.rotated(by: 3.14*(1/6))
+                }
+                let posMov: CGFloat = CGFloat((Int(processingBar.frame.width/10)+2)*10)
+                for slant in processingBar.subviews {
+                    if slant == self.blueProgressView {continue}
+                    if let _ = slant as? UILabel {continue}
+                    UIView.animate(withDuration: 4, delay: 0, options: [.curveLinear, .repeat], animations: {
+//                        UIView.setAnimationRepeatCount(1)
+                        slant.center.x += posMov
+                    }, completion: { (finished) in
+                        
+                        
+                    })
+                }
+            } else {
+                
+            }
+        }
+    }
+    
+    func updateProgressPercentage(newPercent: CGFloat) {
+        print(newPercent)
+        blueProgressViewWidthAnchor?.constant = newPercent * (self.view.frame.width)
+        UIView.animate(withDuration: 1, animations: {
+            self.view.layoutIfNeeded()
+        }) { (finished) in
+            if newPercent == 1 {
+                self.isProcessing = true
+            }
+            }
+    }
+    
+    lazy var uploadProgressBar: UIView = {
+        let v = UIView()
+        self.view.addSubview(v)
+        v.layer.cornerRadius = 12
+        v.layer.borderWidth = 1
+        v.layer.borderColor = UIColor.flykDarkWhite.cgColor
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.trailingAnchor.constraint(equalTo: self.uploadNow.trailingAnchor).isActive = true
+        v.bottomAnchor.constraint(equalTo: self.uploadNow.bottomAnchor).isActive = true
+        v.leadingAnchor.constraint(equalTo: self.uploadLater.leadingAnchor).isActive = true
+        v.topAnchor.constraint(equalTo: self.uploadNow.topAnchor).isActive = true
+        v.clipsToBounds = true
+        let bV = self.blueProgressView
+        v.addSubview(bV)
+        bV.backgroundColor = UIColor.flykBlue
+        bV.translatesAutoresizingMaskIntoConstraints = false
+        bV.leadingAnchor.constraint(equalTo: v.leadingAnchor).isActive = true
+        bV.topAnchor.constraint(equalTo: v.topAnchor).isActive = true
+        bV.bottomAnchor.constraint(equalTo: v.bottomAnchor).isActive = true
+        blueProgressViewWidthAnchor = bV.widthAnchor.constraint(equalToConstant: 0)
+        self.blueProgressViewWidthAnchor?.isActive = true
+        
+        let vLabel = UILabel()
+        vLabel.text = "Uploading"
+        vLabel.font = UIFont.boldSystemFont(ofSize: 16.0)
+        vLabel.textColor = UIColor.flykDarkWhite
+        vLabel.textAlignment = .center
+        v.addSubview(vLabel)
+        vLabel.translatesAutoresizingMaskIntoConstraints = false
+        vLabel.leadingAnchor.constraint(equalTo: v.leadingAnchor).isActive = true
+        vLabel.trailingAnchor.constraint(equalTo: v.trailingAnchor).isActive = true
+        vLabel.topAnchor.constraint(equalTo: v.topAnchor).isActive = true
+        vLabel.bottomAnchor.constraint(equalTo: v.bottomAnchor).isActive = true
+//        v.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleLaterUpload)))
+        
+        
+        
+        v.isHidden = true
+        return v
+    }()
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        self.tabBarController?.hideTabBarView()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        self.videoPlaybackPlayer.pause()
+        if let _ = self.savedVideoData {
+            self.tabBarController?.showTabBarView()
+        }
+    }
     
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -150,7 +310,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     }
     
     func setupUploadButtons(){
-        let uploadLater = UIView()
+        
         self.view.addSubview(uploadLater)
         uploadLater.backgroundColor = .flykDarkWhite
         uploadLater.layer.cornerRadius = 12
@@ -173,7 +333,6 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         uploadLater.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleLaterUpload)))
         
         
-        let uploadNow = UIView()
         uploadNow.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleUploadTap)))
         self.view.addSubview(uploadNow)
         uploadNow.backgroundColor = .flykBlue
@@ -198,8 +357,11 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     }
     
     
-    func playbackViewStoreAnimation(){
-        if (self.tabBarController?.tabBar.isHidden)! {
+    func playbackViewStoreAnimation(goToDrafts: Bool) {
+        guard let tbc = self.tabBarController else { return }
+        
+        if tbc.tabBar.isHidden {
+            
             self.view.isUserInteractionEnabled = false
             self.tabBarController?.showTabBarView()
             
@@ -247,7 +409,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
                 if let profileNavController = self.tabBarController?.viewControllers?[4] as? UINavigationController {
                     if let myProfile = profileNavController.viewControllers.first as? MyProfileVC {
                         self.tabBarController?.showTabBarView()
-                        myProfile.shouldGoToDrafts = true
+                        myProfile.shouldGoToDrafts = goToDrafts
                     }
                 }
                 oldNav?.popToRootViewController(animated: false)
@@ -260,48 +422,68 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
     }
     
     
-    @objc func handleLaterUpload(tapGesture: UITapGestureRecognizer){
+    @objc func handleLaterUpload(tapGesture: UITapGestureRecognizer) {
 
         if finishedViewURL == nil {return}
         let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.prepare()
         generator.impactOccurred()
-        playbackViewStoreAnimation()
-        
-        
-        let videoName = UUID().uuidString+".mov"
-        let videoDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(videoName)
-        
-        do{
-            try FileManager.default.moveItem(at: finishedViewURL!, to: videoDocumentsURL)
-        }catch {
-            print("FAILED MOVING VIDEO FILE")
-            return;
+        if let savedVideoData = self.savedVideoData {
+            
+            
+            savedVideoData.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
+            savedVideoData.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
+            savedVideoData.setValue(descriptionInput.text, forKey: "videoDescription")
+            savedVideoData.setValue("Saved", forKey: "uploadStatus")
+            savedVideoData.setValue(0, forKey: "uploadProgress")
+            
+            
+            
+            do {
+                try context.save()
+            } catch {
+                print("Failed saving")
+                return;
+            }
+            self.navigationController?.popToRootViewController(animated: true)
+            
+            
+        } else {
+            playbackViewStoreAnimation(goToDrafts: true)
+            
+            
+            let videoName = UUID().uuidString+".mov"
+            let videoDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
+                .appendingPathComponent(videoName)
+            
+            do{
+                try FileManager.default.moveItem(at: finishedViewURL!, to: videoDocumentsURL)
+            }catch {
+                print("FAILED MOVING VIDEO FILE")
+                return;
+            }
+            
+            let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
+            let draft = NSManagedObject(entity: entity!, insertInto: context)
+            
+            
+            draft.setValue(videoName, forKey: "filename")
+            draft.setValue(Date(), forKey: "creationDate")
+            draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
+            draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
+            draft.setValue(descriptionInput.text, forKey: "videoDescription")
+            draft.setValue("Saved", forKey: "uploadStatus")
+            draft.setValue(0, forKey: "uploadProgress")
+     
+            
+            
+            do {
+                try context.save()
+            } catch {
+                print("Failed saving")
+                return;
+            }
         }
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let context = appDelegate.persistentContainer.viewContext
-        
-        let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
-        let draft = NSManagedObject(entity: entity!, insertInto: context)
-        
-        
-        draft.setValue(videoName, forKey: "filename")
-        draft.setValue(Date(), forKey: "creationDate")
-        draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
-        draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
-        draft.setValue(descriptionInput.text, forKey: "videoDescription")
-        draft.setValue("Saved", forKey: "uploadStatus")
-        draft.setValue(0, forKey: "uploadProgress")
- 
-        
-        
-//        do {
-//            try context.save()
-//        } catch {
-//            print("Failed saving")
-//            return;
-//        }
 
         
         
@@ -309,38 +491,210 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         
         
     }
-    @objc func handleUploadTap(tapGesture: UITapGestureRecognizer){
+    @objc func handleUploadTap(tapGesture: UITapGestureRecognizer) {
         if finishedViewURL == nil {return}
         let generator = UIImpactFeedbackGenerator(style: .heavy)
         generator.prepare()
         generator.impactOccurred()
-        playbackViewStoreAnimation()
+//        playbackViewStoreAnimation()
         // HERE WE PASS THE STUFF TO ALLOW THE UPLOAD TO HAPPEN
         // USE COREDATA TO STORE IT HERE
         
-        let videoName = UUID().uuidString+".mov"
-        let videoDocumentsURL = FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(videoName)
+        self.uploadLater.isHidden = true
+        self.uploadNow.isHidden = true
+        self.uploadProgressBar.isHidden = false
         
-        do{
-            try FileManager.default.moveItem(at: finishedViewURL!, to: videoDocumentsURL)
-        }catch {
-            print("FAILED MOVING VIDEO FILE")
-            return;
+
+            
+            
+            
+        ////////////////////////////////////////////
+        /*
+        let cellOverlay = UIView()
+        cell.addSubview(cellOverlay)
+        cellOverlay.translatesAutoresizingMaskIntoConstraints = false
+        cellOverlay.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
+        cellOverlay.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
+        cellOverlay.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
+        cellOverlay.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
+        
+        let uploadProgressView = UIView()
+        uploadProgressView.backgroundColor = .flykBlue
+        uploadProgressView.alpha = 0.7
+        cellOverlay.addSubview(uploadProgressView)
+        uploadProgressView.translatesAutoresizingMaskIntoConstraints = false
+        let bottomTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.bottomAnchor)
+        bottomTopAnchor.isActive = true
+        let topTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.topAnchor)
+        topTopAnchor.isActive = false
+        uploadProgressView.bottomAnchor.constraint(equalTo: cellOverlay.bottomAnchor).isActive = true
+        uploadProgressView.leadingAnchor.constraint(equalTo: cellOverlay.leadingAnchor).isActive = true
+        uploadProgressView.trailingAnchor.constraint(equalTo: cellOverlay.trailingAnchor).isActive = true
+        
+        let uploadingLabel = UILabel()
+        cellOverlay.addSubview(uploadingLabel)
+        uploadingLabel.text = "Uploading"
+        uploadingLabel.textColor = .white
+        uploadingLabel.translatesAutoresizingMaskIntoConstraints = false
+        uploadingLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
+        uploadingLabel.centerYAnchor.constraint(equalTo: cellOverlay.centerYAnchor).isActive = true
+        */
+        ///////////////////////////////////////////////////////
+        
+        
+        //            ServerUpload.videoUpload(videoUrl: documentsUrl, allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription)
+        guard let finishedViewURL = self.finishedViewURL,
+            let videoDescription = self.descriptionInput.text
+            else {return}
+        
+        let allowReactions = self.reactionsSwitch.isOn
+        let allowComments = self.commentsSwitch.isOn
+        
+    
+        
+        let endPointURL = FlykConfig.uploadEndpoint+"/upload"
+        //        let img = UIImage(contentsOfFile: fullPath)
+        var data: NSData;
+        do {
+            try data = NSData(contentsOf: finishedViewURL)
+        }catch{
+            print("URL FAIL")
+            return
         }
-        let appDelegate = UIApplication.shared.delegate as! AppDelegate
-        let context = appDelegate.persistentContainer.viewContext
         
-        let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
-        let draft = NSManagedObject(entity: entity!, insertInto: context)
         
-        draft.setValue(videoName, forKey: "filename")
-        draft.setValue(Date(), forKey: "creationDate")
-        draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
-        draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
-        draft.setValue(descriptionInput.text, forKey: "videoDescription")
-        draft.setValue("ShouldUpload", forKey: "uploadStatus")
-        draft.setValue(0, forKey: "uploadProgress")
+        
+        let boundary = "?????"
+        var request = URLRequest(url: URL(string: endPointURL)!)
+        request.timeoutInterval = 660
+        request.httpMethod = "POST"
+        //                request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data
+        //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
+        request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
+                         forHTTPHeaderField: "Content-Type")
+        request.addValue("video/mp4", forHTTPHeaderField: "mimeType")
+        //                request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
+        
+        request.addValue("text/plain", forHTTPHeaderField: "Accept")
+        
+        let prevDataTaskDel = URLSession.shared.delegate
+        
+        var session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: OperationQueue.main)
+        session = URLSession.shared
+        let uploadTask = session.uploadTask(with: request, from: MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data) { data, response, error in
+//            print(data, response)
+            if error != nil || data == nil {
+                print("Client error!")
+//                        self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
+                DispatchQueue.main.async {
+//                            self.reloadData()
+                    self.uploadNow.isHidden = false
+                    self.uploadLater.isHidden = false
+                    self.uploadProgressBar.isHidden = true
+                }
+                return
+            }
+            guard let response = response as? HTTPURLResponse
+                else{print("resopnse is not httpurlResponse"); return;}
+            print("Status: ", response.statusCode)
+            
+            
+            
+            if response.statusCode == 200 {
+                print("SUCCESS")
+                DispatchQueue.main.async {
+                    if let vidDataObj = self.savedVideoData {
+                        self.context.delete(vidDataObj)
+                        self.navigationController?.popToRootViewController(animated: true)
+                    } else {
+                        self.playbackViewStoreAnimation(goToDrafts: false)
+                    }
+                }
+//                        self.savedVideosData = self.fetchDraftEntityList()
+
+                
+            } else {
+                DispatchQueue.main.async {
+//                            self.reloadData()
+                    self.uploadNow.isHidden = false
+                    self.uploadLater.isHidden = false
+                    self.uploadProgressBar.isHidden = true
+                }
+            }
+        }
+        print("Upload Started")
+        uploadTask.resume()
+        
+        
+//        func watchProgress() {
+//            print(uploadTask.progress.fractionCompleted)
+//            if uploadTask.progress.isFinished ||
+//                uploadTask.progress.isCancelled ||
+//                uploadTask.progress.isIndeterminate {
+//                return
+//            }
+//            DispatchQueue.main.asyncAfter(deadline: .now() + 0.2) {
+//                self.updateProgressPercentage(newPercent: CGFloat(uploadTask.progress.fractionCompleted))
+//                watchProgress()
+//            }
+//        }
+//        watchProgress()
+        
+        
+        
+        
+        
+        /*
+         let task = URLSession.shared.dataTask(with: request) { data, response, error in
+         print(data, response)
+         if error != nil || data == nil {
+         print("Client error!")
+         self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
+         DispatchQueue.main.async {
+         self.reloadData()
+         }
+         return
+         }
+         guard let response = response as? HTTPURLResponse
+         else{print("resopnse is not httpurlResponse"); return;}
+         print("Status: ", response.statusCode)
+         
+         
+         
+         if response.statusCode == 200 {
+         print("SUCCESS")
+         self.context.delete(self.savedVideosData[indexPath.row])
+         self.savedVideosData = self.fetchDraftEntityList()
+         DispatchQueue.main.async {
+         self.reloadData()
+         }
+         
+         } else {
+         self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
+         DispatchQueue.main.async {
+         self.reloadData()
+         }
+         }
+         }
+         
+         print("Upload Started")
+         task.resume()
+         */
+
+        
+//        let appDelegate = UIApplication.shared.delegate as! AppDelegate
+//        let context = appDelegate.persistentContainer.viewContext
+//
+//        let entity = NSEntityDescription.entity(forEntityName: "Draft", in: context)
+//        let draft = NSManagedObject(entity: entity!, insertInto: context)
+//
+//        draft.setValue(videoName, forKey: "filename")
+//        draft.setValue(Date(), forKey: "creationDate")
+//        draft.setValue(self.commentsSwitch.isOn, forKey: "allowComments")
+//        draft.setValue(self.reactionsSwitch.isOn, forKey: "allowReactions")
+//        draft.setValue(descriptionInput.text, forKey: "videoDescription")
+//        draft.setValue("ShouldUpload", forKey: "uploadStatus")
+//        draft.setValue(0, forKey: "uploadProgress")
         
         
 //        ServerUpload.videoUpload(videoUrl: videoDocumentsURL)
@@ -355,12 +709,19 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         
     }
     
+    func urlSession(_ session: URLSession, task: URLSessionTask, didSendBodyData bytesSent: Int64, totalBytesSent: Int64, totalBytesExpectedToSend: Int64) {
+        print(totalBytesSent, totalBytesExpectedToSend)
+        self.updateProgressPercentage(newPercent: CGFloat(totalBytesSent/totalBytesExpectedToSend))
+    }
+    
+    
+    
     
     
     func setupSwitches(){
 
         self.view.addSubview(reactionsSwitch)
-        reactionsSwitch.isOn = true
+//        reactionsSwitch.isOn = true
         reactionsSwitch.translatesAutoresizingMaskIntoConstraints = false
         reactionsSwitch.frame.size = reactionsSwitch.intrinsicContentSize
         reactionsSwitch.tintColor = .flykLightDarkGrey
@@ -388,7 +749,7 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate {
         
         
         commentsSwitch.tintColor = .flykLightDarkGrey
-        commentsSwitch.isOn = true
+//        commentsSwitch.isOn = true
         self.view.addSubview(commentsSwitch)
         commentsSwitch.translatesAutoresizingMaskIntoConstraints = false
         commentsSwitch.frame.size = commentsSwitch.intrinsicContentSize

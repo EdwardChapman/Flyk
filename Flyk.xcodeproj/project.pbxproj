@@ -50,7 +50,7 @@
 		92DD729A24CA32BA002BC233 /* ProfileHeaderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729924CA32BA002BC233 /* ProfileHeaderView.swift */; };
 		92DD729C24CA4C7C002BC233 /* NotificationCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DD729B24CA4C7C002BC233 /* NotificationCell.swift */; };
 		92DFF57624D5C82B00ED5CEA /* PostsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */; };
-		92DFF57824D6291F00ED5CEA /* Settings.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57724D6291F00ED5CEA /* Settings.swift */; };
+		92DFF57824D6291F00ED5CEA /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57724D6291F00ED5CEA /* SettingsViewController.swift */; };
 		92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57924D7600400ED5CEA /* FlykConfig.swift */; };
 		92E2977124EB47E500CF18C9 /* CarouselCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */; };
 		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
@@ -125,7 +125,7 @@
 		92DD729924CA32BA002BC233 /* ProfileHeaderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ProfileHeaderView.swift; sourceTree = "<group>"; };
 		92DD729B24CA4C7C002BC233 /* NotificationCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationCell.swift; sourceTree = "<group>"; };
 		92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsCollectionView.swift; sourceTree = "<group>"; };
-		92DFF57724D6291F00ED5CEA /* Settings.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Settings.swift; sourceTree = "<group>"; };
+		92DFF57724D6291F00ED5CEA /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		92DFF57924D7600400ED5CEA /* FlykConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlykConfig.swift; sourceTree = "<group>"; };
 		92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselCollectionView.swift; sourceTree = "<group>"; };
 		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
@@ -170,7 +170,7 @@
 		922EAC8B24DB2CD800C53B6D /* Settings */ = {
 			isa = PBXGroup;
 			children = (
-				92DFF57724D6291F00ED5CEA /* Settings.swift */,
+				92DFF57724D6291F00ED5CEA /* SettingsViewController.swift */,
 			);
 			path = Settings;
 			sourceTree = "<group>";
@@ -515,7 +515,7 @@
 				924A142624C29CE100B8929F /* UploadFiles.swift in Sources */,
 				927BB61524AD590D002445B9 /* FirstViewController.swift in Sources */,
 				925493DE24EE434200BAF1A9 /* MultiLineTextWrapTest.swift in Sources */,
-				92DFF57824D6291F00ED5CEA /* Settings.swift in Sources */,
+				92DFF57824D6291F00ED5CEA /* SettingsViewController.swift in Sources */,
 				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
 				9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */,
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,

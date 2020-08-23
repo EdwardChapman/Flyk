@@ -32,7 +32,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
             commentList = []
             currentVideoId = videoId
             
-            if let constr = self.sendCommentShownAnchor {
+            if let _ = self.sendCommentShownAnchor {
                 self.commentTextField.text = ""
                 self.sendCommentShownAnchor.isActive = false
                 self.sendCommentHiddenAnchor.isActive = true

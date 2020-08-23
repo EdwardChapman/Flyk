@@ -33,13 +33,18 @@ extension UIImageView {
                             }
                         }
                         let origLength = images.count - 1
-                        if autoReverse { for i in 0..<images.count { images.append(images[origLength-i]) } }
+                        if autoReverse {
+                            for i in 0..<images.count {
+                                images.append(images[origLength-i])
+                            }
+                        }
                         
                         
                         DispatchQueue.main.async {
                             gifImageView.animationImages = images
                             gifImageView.isUserInteractionEnabled = false
                             gifImageView.startAnimating()
+                            
                         }
                     }
                 }

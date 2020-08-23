@@ -276,42 +276,52 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        guard let myProfileVC = self.myProfileVC else {return}
-        
-        let profileScrollView = myProfileVC.profileScrollView
-        
-        let pSvHeight = profileScrollView.frame.height
-        
-        //This is a down drag
-        let maxOffset = myProfileVC.profileHeaderView.frame.height - myProfileVC.view.safeAreaInsets.top
-        
-        if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
-            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
-            if newY > maxOffset {
-                newY = maxOffset
+        if let myProfileVC = self.myProfileVC {
+            
+            let profileScrollView = myProfileVC.profileScrollView
+            
+            
+            /* This is a drag to bottom */
+            let maxOffset = myProfileVC.profileHeaderView.frame.height - myProfileVC.view.safeAreaInsets.top
+            
+            
+            let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
+            
+            
+            if scrollView.contentOffset.y > 0 && scrollDif < -1 {
+                var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+                if newY > maxOffset {
+                    newY = maxOffset
+                }
+                
+                profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+                
+                // removed this to stop jumping content inset on return from push.
+                // scrollView.contentOffset = CGPoint.zero
+                scrollView.contentOffset = CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentOffset.y / 2.3
+                )
+                
+                
+                /* This is drag to top when top of profile is hidden */
+            } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+                var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+                if newY < 0 {
+                    newY = 0
+                }
+                
+                profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
+                scrollView.contentOffset = CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentOffset.y / 2.3
+                )
+                
+                
+                /* This is drag to top when top of profile is fully shown */
+            } else if scrollView.contentOffset.y < 0 {
+                scrollView.contentOffset = CGPoint.zero
             }
-            
-            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
-            
-            
-            //THIS is an up drag
-        } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
-            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
-            if newY < 0 {
-                newY = 0
-            }
-            
-            //            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-            profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
-            
-            //up drag with no content left
-        } else if scrollView.contentOffset.y < 0 {
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
         }
         
     }

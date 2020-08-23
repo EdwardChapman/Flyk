@@ -3,6 +3,7 @@
     <entity name="Accounts" representedClassName="Accounts" syncable="YES" codeGenerationType="class">
         <attribute name="cookie_value" optional="YES" attributeType="String" syncable="YES"/>
         <attribute name="signed_in" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
+        <attribute name="user_id" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <entity name="Draft" representedClassName="Draft" syncable="YES" codeGenerationType="class">
         <attribute name="allowComments" optional="YES" attributeType="Boolean" usesScalarValueType="YES" syncable="YES"/>
@@ -14,7 +15,7 @@
         <attribute name="videoDescription" optional="YES" attributeType="String" syncable="YES"/>
     </entity>
     <elements>
-        <element name="Accounts" positionX="204.3046875" positionY="92.9453125" width="128" height="75"/>
+        <element name="Accounts" positionX="204.3046875" positionY="92.9453125" width="128" height="90"/>
         <element name="Draft" positionX="-101.1171875" positionY="62.4375" width="178.12890625" height="148"/>
     </elements>
 </model>

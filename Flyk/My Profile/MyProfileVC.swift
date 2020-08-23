@@ -14,11 +14,65 @@ import AVFoundation
 
 class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
+
+    
+    var currentProfileData: NSMutableDictionary? {
+        didSet {
+            self.profileHeaderView.currentProfileData = self.currentProfileData
+            guard let curProfileData = self.currentProfileData,
+                let cur_id = curProfileData["creator_id"] as? String else {
+                // handle exit condition here ...
+                return;
+            }
+            if let signed_in_id = appDelegate.currentUserAccount.value(forKey: "signed_in") as? String {
+                if signed_in_id == cur_id {
+                    if self.profileDisplayStatus != .signedIn {
+                        self.profileDisplayStatus = .signedIn
+                    }
+                } 
+            }
+           
+           
+        }
+    }
+    
+   
+    
+    var profileDisplayStatus : profileDisplayType = .notSignedIn {
+        didSet {
+            if self.profileDisplayStatus == .notSignedIn {
+                self.profileHeaderView.profileDisplayStatus = .notSignedIn
+                
+                
+            } else if self.profileDisplayStatus == .signedIn {
+                self.profileHeaderView.profileDisplayStatus = .signedIn
+                self.fetchMyProfileData()
+                
+            } else if self.profileDisplayStatus == .following {
+                self.profileHeaderView.profileDisplayStatus = .following
+                
+                
+            } else if self.profileDisplayStatus == .notFollowing {
+                self.profileHeaderView.profileDisplayStatus = .notFollowing
+                
+                
+            }
+        }
+    }
+    
+
+    
     
 
     //CORE DATA
     lazy var appDelegate = (UIApplication.shared.delegate as! AppDelegate)
     lazy var context = appDelegate.persistentContainer.viewContext
+    
+    
     
     
     let profileScrollView = UIScrollView()
@@ -116,11 +170,32 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         return collectionTabs
     }()
     
+    
+    
+
+    
 
     
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        
+        if let rootVC = self.navigationController?.viewControllers[0] {
+            if rootVC != self {
+                if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+                    //            profileHeaderView.signInButton.isHidden = false
+                    print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
+                }else{
+                    //            profileHeaderView.signInButton.isHidden = true
+                    print("USER IS SIGNED IN")
+                    if self.profileDisplayStatus == .notSignedIn {
+                        self.profileDisplayStatus = .signedIn
+                    }
+                }
+            }
+        }
+        // IF WE ARE NOT ROOT VC WE DO NOTHING... THE DID SET WILL FETCH THE INFO WE WANT...
+        
         
         self.view.backgroundColor = .flykLightBlack
         self.view.addSubview(profileScrollView)
@@ -140,7 +215,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         profileHeaderView.topAnchor.constraint(equalTo: profileScrollView.topAnchor, constant: 0).isActive = true
         
         
-        profileHeaderView.fetchProfileData()
+//        profileHeaderView.fetchMyProfile()
         
         profileScrollView.refreshControl = UIRefreshControl()
         profileScrollView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
@@ -194,20 +269,36 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
 
         profileHeaderView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
         
+        
+//        profileHeaderView.bioTextView.text = "This is my bio...\nIt can be multiple lines and take up the full space."
+//        profileHeaderView.profileDisplayStatus = .notSignedIn
+        
+    }
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        self.addContextObserver()
+        /*
+        if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+            //            profileHeaderView.signInButton.isHidden = false
+            print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
+        }else{
+            //            profileHeaderView.signInButton.isHidden = true
+            print("USER IS SIGNED IN")
+            if self.profileDisplayStatus == .notSignedIn {
+                self.profileDisplayStatus = .signedIn
+            }
+        }
+        */
     }
     
     var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
     override func viewDidAppear(_ animated: Bool) {
         super.viewDidAppear(animated)
         
-        if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
-            profileHeaderView.signInButton.isHidden = false
-            print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
-        }else{
-            profileHeaderView.signInButton.isHidden = true
-        }
         if(shouldGoToDrafts){
             goToDrafts()
+            print("RELOAD DRAFTS HERE")
         }
         
         //We store the navigation controllers interactive pop delegate before removing it
@@ -220,10 +311,12 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
                 }
             }
         }
+        
     }
     
     override func viewWillDisappear(_ animated: Bool) {
         //We replace the interactive popGesture delegate that was there before.
+        self.removeContextObserver()
         if let prevDel = previousInteractivePopGestureDelegate {
             self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
         }
@@ -238,15 +331,15 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     // Gesture Handling Functions //////////////////////////////////////////////////////////////////
     ////////////////////////////////////////////////////////////////////////////////////////////////
     
-    @objc func handleSettingsTap(tapGesture: UITapGestureRecognizer){
+    @objc func handleSettingsTap(tapGesture: UITapGestureRecognizer) {
         self.navigationController?.pushViewController(SettingsViewController(), animated: true)
     }
     
-    @objc func handleTabTap(tapGesture: UITapGestureRecognizer){
+    @objc func handleTabTap(tapGesture: UITapGestureRecognizer) {
         let scrollToX = (tapGesture.view?.frame.minX)! * 3
         self.tabCollectionView.setContentOffset(CGPoint(x: scrollToX, y: 0), animated: true)
     }
-    func goToDrafts(){
+    func goToDrafts() {
         tabCollectionView.reloadData()
         let scrollToX = self.draftsTab.frame.minX * 3
         self.tabCollectionView.setContentOffset(CGPoint(x: scrollToX, y: 0), animated: true)
@@ -261,7 +354,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         generator.impactOccurred()
         DispatchQueue.main.async {
             //This function will dismiss the refresh control
-            self.profileHeaderView.fetchProfileData()
+//            self.profileHeaderView.fetchMyProfile()
             self.tabCollectionView.reloadData()
             self.profileScrollView.refreshControl?.endRefreshing()
         }
@@ -269,14 +362,14 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     }
     
     
+
     
     
     
     
-    
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
-    // UIImagePickerControllerDelegate /////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // UIImagePickerControllerDelegate //////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
     
     @objc func handleProfileImgTap(tapGesture: UITapGestureRecognizer) {
         if !appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign in to create a profile photo") {
@@ -351,6 +444,46 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     // NETWORKING FUNCTIONS //////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
     
+    func fetchMyProfileData() {
+        
+        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            do {
+                if let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as? NSDictionary {
+                    self.currentProfileData = myProfileData.mutableCopy() as? NSMutableDictionary
+                }
+                
+            } catch {
+                print("JSON error: \(error.localizedDescription)")
+            }
+            
+            }.resume()
+    }
+    
+    
+    
+    
     
     func sendProfilePicToServer(newImg : UIImage) {
         
@@ -387,7 +520,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
                 return
             }
             DispatchQueue.main.async {
-                self.profileHeaderView.fetchProfileData()
+//                self.profileHeaderView.fetchMyProfile()
             }
             print("SUCCESS")
         }
@@ -398,6 +531,34 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     }
     
     
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // OBSERVERS ////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    
+    var contextObserverObj: NSObjectProtocol?
+    func addContextObserver() {
+        self.contextObserverObj = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSManagedObjectContextObjectsDidChange, object: context, queue: .main){ [unowned self] notification in
+            //Add Actions to do when context changes....
+            if self.profileDisplayStatus == .notSignedIn {
+                if self.appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == true {
+                    self.profileDisplayStatus = .signedIn
+                }
+            } else if self.profileDisplayStatus == .signedIn {
+                if self.appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+                    self.profileDisplayStatus = .notSignedIn
+                }
+            }
+            
+        }
+    }
+    func removeContextObserver() {
+        if let obs = self.contextObserverObj {
+            NotificationCenter.default.removeObserver(obs)
+            self.contextObserverObj = nil
+        }
+    }
+    
+    
     
     /////////////////////////////////////////////////////////////////////////////////////////////
     //SubCollectionView Data ////////////////////////////////////////////////////////////////////
@@ -405,197 +566,5 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     
     
     
-    /*
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // COLLECTIONVIEW DELEGATE ///////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    func numberOfSections(in collectionView: UICollectionView) -> Int {
-        return 2
-    }
-    func collectionView(_ collectionView: UICollectionView, numberOfItemsInSection section: Int) -> Int {
-        if section == 0 {return 1}
-        return savedVideosData.count
-    }
     
-    func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
-        if(indexPath.section == 0){
-            let profileCell = collectionView.dequeueReusableCell(withReuseIdentifier: "profileCell", for: indexPath)
-            
-            return profileCell
-        }else{
-            let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "thumbnailVideo", for: indexPath)
-            cell.backgroundColor = .flykMediumGrey
-            
-            let savedURL = savedVideosData[indexPath.row].value(forKey: "filename") as! String
-            let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-                .appendingPathComponent(savedURL)
-            
-            
-            let videoAsset = AVAsset(url: documentsUrl)
-            let newPlayer = AVPlayer(url: documentsUrl)
-            let playerLayer = AVPlayerLayer()
-            playerLayer.player = newPlayer
-            playerLayer.videoGravity = .resizeAspectFill
-            playerLayer.frame = cell.layer.bounds
-            cell.layer.addSublayer(playerLayer)
-            
-            
-            
-            let cellOverlay = UIView()
-            cell.addSubview(cellOverlay)
-            cellOverlay.translatesAutoresizingMaskIntoConstraints = false
-            cellOverlay.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
-            cellOverlay.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
-            cellOverlay.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
-            cellOverlay.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
-            
-            let uploadProgressView = UIView()
-            uploadProgressView.backgroundColor = .flykBlue
-            uploadProgressView.alpha = 0.7
-            cellOverlay.addSubview(uploadProgressView)
-            uploadProgressView.translatesAutoresizingMaskIntoConstraints = false
-            let bottomTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.bottomAnchor)
-            bottomTopAnchor.isActive = true
-            let topTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.topAnchor)
-            topTopAnchor.isActive = false
-            uploadProgressView.bottomAnchor.constraint(equalTo: cellOverlay.bottomAnchor).isActive = true
-            uploadProgressView.leadingAnchor.constraint(equalTo: cellOverlay.leadingAnchor).isActive = true
-            uploadProgressView.trailingAnchor.constraint(equalTo: cellOverlay.trailingAnchor).isActive = true
-            
-            let uploadingLabel = UILabel()
-            cellOverlay.addSubview(uploadingLabel)
-            uploadingLabel.text = "Uploading"
-            uploadingLabel.textColor = .white
-            uploadingLabel.translatesAutoresizingMaskIntoConstraints = false
-            uploadingLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-            uploadingLabel.centerYAnchor.constraint(equalTo: cellOverlay.centerYAnchor).isActive = true
-            
-            let cancelLabel = UILabel()
-            cellOverlay.addSubview(cancelLabel)
-            cancelLabel.text = "CANCEL"
-            cancelLabel.textColor = .white
-            cancelLabel.backgroundColor = .red
-            cancelLabel.alpha = 0.7
-            cancelLabel.layer.cornerRadius = 5
-            cancelLabel.clipsToBounds = true
-            cancelLabel.translatesAutoresizingMaskIntoConstraints = false
-            cancelLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-            cancelLabel.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 20).isActive = true
-            
-            cell.layoutIfNeeded()
-            
-            bottomTopAnchor.isActive = false
-            topTopAnchor.isActive = true
-            
-            UIView.animate(withDuration: 5, animations: {
-                cell.layoutIfNeeded()
-            }) { (finished) in
-                
-                uploadingLabel.text = "Processing"
-                
-                cancelLabel.isHidden = true
-                let processingBar = UIView()
-                cellOverlay.addSubview(processingBar)
-                processingBar.translatesAutoresizingMaskIntoConstraints = false
-                processingBar.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-                processingBar.topAnchor.constraint(equalTo: uploadingLabel.bottomAnchor, constant: 15).isActive = true
-                processingBar.widthAnchor.constraint(equalTo: cellOverlay.widthAnchor, multiplier: 0.7).isActive = true
-                processingBar.heightAnchor.constraint(equalToConstant: 25).isActive = true
-                processingBar.layer.cornerRadius = 25/2
-                processingBar.backgroundColor = .white
-                processingBar.clipsToBounds = true
-                cell.layoutIfNeeded()
-                var pBStart: CGFloat = -processingBar.frame.width - 35
-                var counter = 0
-                while(pBStart < processingBar.frame.width){
-                    counter+=1
-                    let slantBar = UIView()
-                    processingBar.addSubview(slantBar)
-                    slantBar.backgroundColor = .flykBlue
-                    slantBar.frame = CGRect(
-                        x: pBStart,
-                        y: 0,
-                        width: 10,
-                        height: processingBar.frame.height*1.5
-                    )
-                    slantBar.center.y = processingBar.bounds.height/2
-                    pBStart += 2*slantBar.frame.width
-                    slantBar.transform = slantBar.transform.rotated(by: 3.14*(1/6))
-                }
-                let posMov: CGFloat = CGFloat((Int(processingBar.frame.width/10)+2)*10)
-                for slant in processingBar.subviews {
-                    UIView.animate(withDuration: 4, delay: 0, options: [.curveLinear, .repeat], animations: {
-                        UIView.setAnimationRepeatCount(1)
-                        slant.center.x += posMov
-                    }, completion: { (finished) in
-//                        print("COMPLETED")
-                        if slant == processingBar.subviews.last {
-                            UIView.animate(withDuration: 0.3, delay: 0, options: [], animations: {
-                                cellOverlay.alpha = 0
-                            }, completion: {(fin) in
-                                print(fin)
-                                cellOverlay.isHidden = true
-                            })
-                        }
-                    })
-                }
-            }
-            
-            newPlayer.play()
-            return cell
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-        if(indexPath.section == 0) {
-            return CGSize(width: self.view.frame.width, height: self.view.frame.height/3)
-        }else{
-            let cellWidth = (self.collectionView.frame.width/3) - 0.5
-            return CGSize(width: cellWidth, height: cellWidth*(16/9))
-        }
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        
-    }
-    
-    func collectionView(_ collectionView: UICollectionView, didEndDisplaying cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
-        print("DID END DISPLAYING CELL")
-    }
-    
-    
-    
-    func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, insetForSectionAt section: Int) -> UIEdgeInsets {
-        return .zero
-    }
-    
-    func collectionView(_ collectionView: UICollectionView,
-                        didSelectItemAt indexPath: IndexPath) {
-        
-        
-        
-    }
-    
-    
-    
-    
-    
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // SCROLLVIEW DELEGATE ///////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
-        
-    }
-    func scrollViewDidEndDragging(_ scrollView: UIScrollView, willDecelerate decelerate: Bool) {
-        
-    }
-    func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
-        
-    }
-    func scrollViewDidScroll(_ scrollView: UIScrollView) {
-
-    }
-    */
 }

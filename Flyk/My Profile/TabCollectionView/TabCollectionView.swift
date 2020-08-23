@@ -33,6 +33,8 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         self.contentInsetAdjustmentBehavior = .never
         self.isPagingEnabled = true
         
+        self.contentInsetAdjustmentBehavior = .never
+        
         self.contentMode = .top
         
     }
@@ -70,6 +72,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         return [p, d, l]
     }()
     
+
     
     
     //////////////////////////////////////////////////////////////////////////////////////////////////
@@ -86,7 +89,12 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         
         var cell: UICollectionViewCell = self.dequeueReusableCell(withReuseIdentifier: cellIdentifierList[indexPath.row], for: indexPath)
         var cellCollectionView: UICollectionView = collectionViewsList[indexPath.row]
-        cellCollectionView.reloadData()
+//        cellCollectionView.reloadData()
+        if let postCells = cellCollectionView.visibleCells as? [PostsCell] {
+            for p in postCells {
+                p.gifImageView?.startAnimating()
+            }
+        }
         
         
 //        if indexPath.row == 0 {

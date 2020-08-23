@@ -10,6 +10,10 @@ import UIKit
 
 class SettingsViewController: UITableViewController {
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
     lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
     lazy var context = appDelegate.persistentContainer.viewContext
     

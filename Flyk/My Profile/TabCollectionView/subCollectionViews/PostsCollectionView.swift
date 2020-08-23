@@ -26,7 +26,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     lazy var context = appDelegate.persistentContainer.viewContext
     
     
-    func fetchMyPosts(){
+    func fetchMyPosts() {
         let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/posts")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -52,6 +52,8 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 do {
                     if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
                         self.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+//                        self.videoDataList.append(contentsOf: self.videoDataList)
+//                        self.videoDataList.append(contentsOf: self.videoDataList)
 //                        print("videoList", videosList)
                     }
                 } catch {
@@ -83,7 +85,11 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         self.register(PostsCell.self, forCellWithReuseIdentifier: "postsCell")
         self.delegate = self
         self.dataSource = self
+//        self.contentInsetAdjustmentBehavior = .never
+//        self.contentInsetAdjustmentBehavior = .automatic //This sets content offset to zero on push
         self.contentInsetAdjustmentBehavior = .never
+        
+        
         
         
         
@@ -119,7 +125,6 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
         let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCell", for: indexPath) as! PostsCell
-        
         
         
         /* APNG/GIF SETUP */
@@ -196,7 +201,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     //////////////////////////////////////////////////////////////////////////////////////////////////
     // SCROLLVIEW DELEGATE ///////////////////////////////////////////////////////////////////////////
     //////////////////////////////////////////////////////////////////////////////////////////////////
-    
+    /*
     func scrollViewDidEndDecelerating(_ scrollView: UIScrollView) {
         
     }
@@ -218,48 +223,60 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
 //        print(scrollView.decelerationRate)
         
     }
+    */
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
         if let myProfileVC = self.myProfileVC {
-            
+
             let profileScrollView = myProfileVC.profileScrollView
-            
-            let pSvHeight = profileScrollView.frame.height
-            
-            //This is a down drag
+
+
+            /* This is a drag to bottom */
             let maxOffset = myProfileVC.profileHeaderView.frame.height - myProfileVC.view.safeAreaInsets.top
             
-            if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
+            
+            let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
+            
+            print("ORIG", scrollView.contentOffset.y)
+            
+            if scrollView.contentOffset.y > 0 && scrollDif < -1 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY > maxOffset {
                     newY = maxOffset
                 }
-                
+                print(1, scrollView.contentOffset.y)
+
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-                //            scrollView.setContentOffset(.zero, animated: false)
-                scrollView.contentOffset = CGPoint.zero
                 
-                
-                //THIS is an up drag
+                // removed this to stop jumping content inset on return from push.
+                // scrollView.contentOffset = CGPoint.zero
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.3
+
+
+                /* This is drag to top when top of profile is hidden */
             } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY < 0 {
                     newY = 0
                 }
                 
-                //            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-                profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-                //            scrollView.setContentOffset(.zero, animated: false)
+
+                profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.3
+
+                
+                /* This is drag to top when top of profile is fully shown */
+            } else if scrollView.contentOffset.y < 0 {
+                print(3)
                 scrollView.contentOffset = CGPoint.zero
                 
-                //up drag with no content left
-            } else if scrollView.contentOffset.y < 0 {
-                //            scrollView.setContentOffset(.zero, animated: false)
-                scrollView.contentOffset = CGPoint.zero
+                
             }
         }
-        
+
     }
     
     

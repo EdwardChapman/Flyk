@@ -109,162 +109,11 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         
         
         
-        if uploadStatus == "ShouldUpload" {
-            savedVideosData[indexPath.row].setValue("uploading", forKey: "uploadStatus")
-            
-            let allowComments = savedVideosData[indexPath.row].value(forKey: "allowComments") as! Bool
-            let allowReactions = savedVideosData[indexPath.row].value(forKey: "allowReactions") as! Bool
-            let videoDescription = savedVideosData[indexPath.row].value(forKey: "videoDescription") as! String
             
             
             
-            ////////////////////////////////////////////
-            let cellOverlay = UIView()
-            cell.addSubview(cellOverlay)
-            cellOverlay.translatesAutoresizingMaskIntoConstraints = false
-            cellOverlay.leadingAnchor.constraint(equalTo: cell.leadingAnchor).isActive = true
-            cellOverlay.trailingAnchor.constraint(equalTo: cell.trailingAnchor).isActive = true
-            cellOverlay.topAnchor.constraint(equalTo: cell.topAnchor).isActive = true
-            cellOverlay.bottomAnchor.constraint(equalTo: cell.bottomAnchor).isActive = true
             
-            let uploadProgressView = UIView()
-            uploadProgressView.backgroundColor = .flykBlue
-            uploadProgressView.alpha = 0.7
-            cellOverlay.addSubview(uploadProgressView)
-            uploadProgressView.translatesAutoresizingMaskIntoConstraints = false
-            let bottomTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.bottomAnchor)
-            bottomTopAnchor.isActive = true
-            let topTopAnchor = uploadProgressView.topAnchor.constraint(equalTo: cellOverlay.topAnchor)
-            topTopAnchor.isActive = false
-            uploadProgressView.bottomAnchor.constraint(equalTo: cellOverlay.bottomAnchor).isActive = true
-            uploadProgressView.leadingAnchor.constraint(equalTo: cellOverlay.leadingAnchor).isActive = true
-            uploadProgressView.trailingAnchor.constraint(equalTo: cellOverlay.trailingAnchor).isActive = true
-            
-            let uploadingLabel = UILabel()
-            cellOverlay.addSubview(uploadingLabel)
-            uploadingLabel.text = "Uploading"
-            uploadingLabel.textColor = .white
-            uploadingLabel.translatesAutoresizingMaskIntoConstraints = false
-            uploadingLabel.centerXAnchor.constraint(equalTo: cellOverlay.centerXAnchor).isActive = true
-            uploadingLabel.centerYAnchor.constraint(equalTo: cellOverlay.centerYAnchor).isActive = true
-            ////////////////////////////////////////////////////////
-            
-            
-//            ServerUpload.videoUpload(videoUrl: documentsUrl, allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription)
-            
-            let videoUrl = documentsUrl
-            
-            
-            let endPointURL = FlykConfig.uploadEndpoint+"/upload"
-            //        let img = UIImage(contentsOfFile: fullPath)
-            var data: NSData;
-            do {
-                try data = NSData(contentsOf: videoUrl)
-            }catch{
-                print("URL FAIL")
-                return cell
-            }
-            
-            
-            do {
-                let boundary = "?????"
-                var request = URLRequest(url: URL(string: endPointURL)!)
-                request.timeoutInterval = 660
-                request.httpMethod = "POST"
-//                request.httpBody = MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data
-                //            request.addValue("multipart/form-data", forHTTPHeaderField: "Content-Type")
-                request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
-                                 forHTTPHeaderField: "Content-Type")
-                request.addValue("video/mp4", forHTTPHeaderField: "mimeType")
-//                request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
-                
-                request.addValue("text/plain", forHTTPHeaderField: "Accept")
-                
-                
-                let uploadTask = URLSession.shared.uploadTask(with: request, from: MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data) { data, response, error in
-                    print(data, response)
-                    if error != nil || data == nil {
-                        print("Client error!")
-                        self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                        return
-                    }
-                    guard let response = response as? HTTPURLResponse
-                        else{print("resopnse is not httpurlResponse"); return;}
-                    print("Status: ", response.statusCode)
-                    
-                    
-                    
-                    if response.statusCode == 200 {
-                        print("SUCCESS")
-                        self.context.delete(self.savedVideosData[indexPath.row])
-                        self.savedVideosData = self.fetchDraftEntityList()
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                        
-                    } else {
-                        self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                    }
-                }
-                print("Upload Started")
-                uploadTask.resume()
-                    
-                
-
         
-
-
-            
-            /*
-                let task = URLSession.shared.dataTask(with: request) { data, response, error in
-                    print(data, response)
-                    if error != nil || data == nil {
-                        print("Client error!")
-                        self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                        return
-                    }
-                    guard let response = response as? HTTPURLResponse
-                        else{print("resopnse is not httpurlResponse"); return;}
-                    print("Status: ", response.statusCode)
-                    
-                    
-                    
-                    if response.statusCode == 200 {
-                        print("SUCCESS")
-                        self.context.delete(self.savedVideosData[indexPath.row])
-                        self.savedVideosData = self.fetchDraftEntityList()
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                        
-                    } else {
-                        self.savedVideosData[indexPath.row].setValue("failed", forKey: "uploadStatus")
-                        DispatchQueue.main.async {
-                            self.reloadData()
-                        }
-                    }
-                }
-                
-                print("Upload Started")
-                task.resume()
-                */
-            }catch{
-                
-            }
-            
-            
-            
-            
-        }
         
         /* THIS IS
          
@@ -374,6 +223,17 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         
     }
     
+    func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
+        // push view controller with swipe collectionview
+        guard let myProfileVC = self.myProfileVC else {return false}
+       
+        let finishedVideoVC = FinishedVideoViewController()
+        finishedVideoVC.savedVideoData = self.savedVideosData[indexPath.row]
+        
+        self.myProfileVC?.navigationController?.pushViewController(finishedVideoVC, animated: true)
+        return false
+    }
+    
     
     
     
@@ -407,42 +267,52 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
         
-        guard let myProfileVC = self.myProfileVC else {return}
-        
-        let profileScrollView = myProfileVC.profileScrollView
-        
-        let pSvHeight = profileScrollView.frame.height
-        
-        //This is a down drag
-        let maxOffset = myProfileVC.profileHeaderView.frame.height - myProfileVC.view.safeAreaInsets.top
-        
-        if scrollView.contentOffset.y > 0 && profileScrollView.contentOffset.y.rounded(.down) < maxOffset.rounded(.down) {
-            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
-            if newY > maxOffset {
-                newY = maxOffset
+        if let myProfileVC = self.myProfileVC {
+            
+            let profileScrollView = myProfileVC.profileScrollView
+            
+            
+            /* This is a drag to bottom */
+            let maxOffset = myProfileVC.profileHeaderView.frame.height - myProfileVC.view.safeAreaInsets.top
+            
+            
+            let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
+            
+            
+            if scrollView.contentOffset.y > 0 && scrollDif < -1 {
+                var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+                if newY > maxOffset {
+                    newY = maxOffset
+                }
+                
+                profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+                
+                // removed this to stop jumping content inset on return from push.
+                // scrollView.contentOffset = CGPoint.zero
+                scrollView.contentOffset = CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentOffset.y / 2.3
+                )
+                
+                
+                /* This is drag to top when top of profile is hidden */
+            } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+                var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
+                if newY < 0 {
+                    newY = 0
+                }
+                
+                profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
+                scrollView.contentOffset = CGPoint(
+                    x: scrollView.contentOffset.x,
+                    y: scrollView.contentOffset.y / 2.3
+                )
+                
+                
+                /* This is drag to top when top of profile is fully shown */
+            } else if scrollView.contentOffset.y < 0 {
+                scrollView.contentOffset = CGPoint.zero
             }
-            
-            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
-            
-            
-            //THIS is an up drag
-        } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
-            var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
-            if newY < 0 {
-                newY = 0
-            }
-            
-            //            profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-            profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
-            
-            //up drag with no content left
-        } else if scrollView.contentOffset.y < 0 {
-            //            scrollView.setContentOffset(.zero, animated: false)
-            scrollView.contentOffset = CGPoint.zero
         }
         
     }

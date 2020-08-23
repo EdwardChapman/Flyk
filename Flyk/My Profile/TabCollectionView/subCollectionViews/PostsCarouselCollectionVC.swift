@@ -182,7 +182,6 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
         // #warning Incomplete implementation, return the number of items
 
         return videoDataList.count
-        return 0
     }
     
     

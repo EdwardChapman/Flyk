@@ -12,6 +12,11 @@ import AVFoundation
 class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource {
     
     
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
+    
+    
     
     let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     var videoDataList : [NSMutableDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }

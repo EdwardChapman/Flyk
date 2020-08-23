@@ -101,7 +101,7 @@ class VideoCell: UICollectionViewCell {
             formatter.formatOptions =  [.withInternetDateTime, .withFractionalSeconds]
             
             if let postDate = formatter.date(from: postDateString) {
-                let dateStamp = String(postDate.description(with: .current).split(separator: " ")[0])
+                let dateStamp = String(postDate.description.split(separator: " ")[0])
                 
                 let secondsSincePost = abs(postDate.timeIntervalSinceNow)
                 let minutes = Int(secondsSincePost/60)
@@ -229,7 +229,7 @@ class VideoCell: UICollectionViewCell {
         self.isPaused = !self.isPaused
     }
     
-    func addOverlay(){
+    func addOverlay() {
         profileImg.contentMode = .scaleAspectFill
         profileImg.clipsToBounds = true
         profileImg.backgroundColor = UIColor(red: 0.5, green: 0.5, blue: 0.5, alpha: 0.5)
@@ -373,7 +373,7 @@ class VideoCell: UICollectionViewCell {
     @objc func handleHeartTap(tapGesture: UITapGestureRecognizer){
         let appDelegate = UIApplication.shared.delegate as! AppDelegate
         if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To Like Posts") {
-            if let imgView = tapGesture.view as? UIImageView {
+            if let _ = tapGesture.view as? UIImageView {
                 let generator = UINotificationFeedbackGenerator()
                 generator.notificationOccurred(.success)
                 
@@ -500,7 +500,7 @@ class VideoCell: UICollectionViewCell {
 //    }
     
     func addDidEndObserver(){
-        if let currentItem = self.player.currentItem {
+        if let _ = self.player.currentItem {
             videoDidEndObserver = NotificationCenter.default.addObserver(forName: .AVPlayerItemDidPlayToEndTime, object: self.player.currentItem, queue: .main) { [weak self] _ in
                 self?.player.seek(to: CMTime.zero)
                 self?.player.play()

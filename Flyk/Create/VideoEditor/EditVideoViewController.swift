@@ -590,7 +590,7 @@ class EditVideoViewController: UIViewController, UIGestureRecognizerDelegate {
     func exportVideo(finalVideoComposition: AVMutableVideoComposition){
         guard let export = AVAssetExportSession(
             asset: self.videoPlaybackPlayer.currentItem!.asset,
-            presetName: AVAssetExportPresetHighestQuality)
+            presetName: AVAssetExportPreset960x540)
             else {
                 print("Cannot create export session.")
                 return

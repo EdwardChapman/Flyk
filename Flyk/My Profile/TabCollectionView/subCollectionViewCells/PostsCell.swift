@@ -30,10 +30,11 @@ class PostsCell: UICollectionViewCell {
 
     override func prepareForReuse() {
         super.prepareForReuse()
+        
         if let gifImageView = self.gifImageView {
-            self.gifImageView!.stopAnimating()
-            self.gifImageView!.animationImages = nil
-            self.gifImageView!.removeFromSuperview()
+            gifImageView.stopAnimating()
+            gifImageView.animationImages = nil
+            gifImageView.removeFromSuperview()
             self.gifImageView = nil
         }
         

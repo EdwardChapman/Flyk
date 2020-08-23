@@ -7,10 +7,18 @@
 //
 
 import UIKit
+import CoreData
 
 class NotificationViewController: UIViewController, UITableViewDelegate, UITableViewDataSource {
     let notificationCellId = "notificationCell"
     let tableView: UITableView = UITableView(frame: CGRect.zero, style: .plain)
+    
+
+
+    
+    override var preferredStatusBarStyle: UIStatusBarStyle {
+        return .lightContent
+    }
     
     // Data model: These strings will be the data for the table view cells
     lazy var zeroNotificationsLabel: UILabel = {
@@ -24,6 +32,59 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         label.isHidden = true
         return label
     }()
+    
+    lazy var signInView: UIView = {
+        let v = UIView()
+        self.view.addSubview(v)
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
+        v.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
+        
+        
+        let label = UILabel()
+        v.addSubview(label)
+        label.translatesAutoresizingMaskIntoConstraints = false
+        label.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        label.centerYAnchor.constraint(equalTo: self.view.centerYAnchor, constant: -50).isActive = true
+        label.text = "Sign in to view notifications"
+        label.textColor = UIColor.flykDarkWhite
+        
+        let signInButton = UIButton(frame: .zero)
+        v.addSubview(signInButton)
+        signInButton.backgroundColor = .flykBlue
+        signInButton.layer.cornerRadius = 8
+        signInButton.translatesAutoresizingMaskIntoConstraints = false
+        signInButton.widthAnchor.constraint(equalToConstant: 125).isActive = true
+        signInButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        signInButton.topAnchor.constraint(equalTo: label.bottomAnchor, constant: 15).isActive = true
+        signInButton.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        
+        signInButton.setTitle("Sign In", for: .normal)
+        signInButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
+        signInButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+        
+        
+        v.isHidden = true
+        
+        
+        v.bottomAnchor.constraint(equalTo: signInButton.bottomAnchor).isActive = true
+        v.topAnchor.constraint(equalTo: label.topAnchor).isActive = true
+        
+        
+        
+        return v
+    }()
+    
+    @objc func signInButtonTapped(tapGesture: UITapGestureRecognizer) {
+        if appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign In To View Notifications") {
+            self.signInView.isHidden = true
+            
+        }
+        
+    }
+
+    
+    
     var notificationList: [NSDictionary] = [] {
         didSet{
             DispatchQueue.main.async {
@@ -49,7 +110,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
             
             guard let response = response as? HTTPURLResponse
                 else{print("resopnse is not httpurlResponse"); return;}
-            print("Status: ", response.statusCode)
+            print("Fetch Notifications Status: ", response.statusCode)
             
             if response.statusCode == 200 {
                 guard let mime = response.mimeType, mime == "application/json" else {
@@ -74,6 +135,60 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
             }
             }.resume()
     }
+    
+    lazy var appDelegate: AppDelegate = {
+        let a = UIApplication.shared.delegate as! AppDelegate
+
+        
+        
+        return a
+    }()
+    lazy var context = self.appDelegate.persistentContainer.viewContext
+    
+//    @objc func managedObjectContextObjectsDidChange(notification: NSNotification) {
+//        checkUserSignInStatus()
+//    }
+    
+    
+    func checkUserSignInStatusAndFetchNotifications(){
+        if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+            DispatchQueue.main.async {
+                self.signInView.isHidden = false
+            }
+        }else{
+            DispatchQueue.main.async {
+                self.signInView.isHidden = true
+                self.fetchNotifications()
+            }
+        }
+    }
+    
+    
+    override func viewWillAppear(_ animated: Bool) {
+        super.viewWillAppear(animated)
+        checkUserSignInStatusAndFetchNotifications()
+        addContextObserver()
+    }
+    
+    override func viewWillDisappear(_ animated: Bool) {
+        super.viewWillDisappear(animated)
+        removeContextObserver()
+    }
+    
+    func addContextObserver() {
+        self.contextObserverObj = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSManagedObjectContextObjectsDidChange, object: context, queue: .main){ [unowned self] notification in
+             self.checkUserSignInStatusAndFetchNotifications()
+        }
+    }
+    var contextObserverObj: NSObjectProtocol?
+    func removeContextObserver() {
+        if let obs = self.contextObserverObj {
+            NotificationCenter.default.removeObserver(obs)
+            self.contextObserverObj = nil
+        }
+    }
+    
+    
     
     /* // THIS IS THE ADD A NAVIGATION TITLE AND SHOW NAVIGATION BAR
     override func viewWillAppear(_ animated: Bool) {
@@ -126,8 +241,8 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         tableView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
         tableView.allowsSelection = false
         self.tableView.refreshControl!.beginRefreshing()
-        fetchNotifications()
-
+        
+        checkUserSignInStatusAndFetchNotifications()
     }
     
     @objc func handleRefreshControl() {

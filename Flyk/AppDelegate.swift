@@ -21,7 +21,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
     
 
     func application(_ application: UIApplication, didFinishLaunchingWithOptions launchOptions: [UIApplication.LaunchOptionsKey: Any]?) -> Bool {
-        // Override point for customization after application launch.
+        // Override point for customization after application 
         do {
             try AVAudioSession.sharedInstance().setCategory(AVAudioSession.Category.playback)
             try AVAudioSession.sharedInstance().setActive(true)
@@ -64,6 +64,7 @@ class AppDelegate: UIResponder, UIApplicationDelegate {
                 
                 newAccount.setValue(false, forKey: "signed_in")
                 newAccount.setValue("", forKey: "cookie_value")
+                newAccount.setValue("", forKey: "user_id")
                 
                 self.currentUserAccount = newAccount
                 
