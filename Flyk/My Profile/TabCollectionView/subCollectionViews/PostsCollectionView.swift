@@ -26,52 +26,12 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     lazy var context = appDelegate.persistentContainer.viewContext
     
     
-    func fetchMyPosts() {
-        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/posts")!
-        var request = URLRequest(url: url)
-        request.httpMethod = "POST"
-        request.addValue("application/json", forHTTPHeaderField: "Accept")
-        URLSession.shared.dataTask(with: request) { data, response, error in
-            
-            if error != nil || data == nil {
-                print("Client error!")
-                return
-            }
-            
-            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
-                print("Server error!")
-                return
-            }
-            
-            guard let mime = response.mimeType, mime == "application/json" else {
-                print("Wrong MIME type!")
-                return
-            }
-            
-            if(response.statusCode == 200) {
-                do {
-                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
-                        self.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
-//                        self.videoDataList.append(contentsOf: self.videoDataList)
-//                        self.videoDataList.append(contentsOf: self.videoDataList)
-//                        print("videoList", videosList)
-                    }
-                } catch {
-                    print("JSON error: \(error.localizedDescription)")
-                }
-            }else{
-                print("Response not 200", response)
-            }
-            
-        }.resume()
-        
-    }
     
     
     init(frame: CGRect){
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
-        print("PostsCollecitonview init")
-        fetchMyPosts()
+//        print("PostsCollecitonview init")
+
         
         
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
@@ -238,7 +198,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
             
             let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
             
-            print("ORIG", scrollView.contentOffset.y)
+            
             
             if scrollView.contentOffset.y > 0 && scrollDif < -1 {
                 
@@ -246,7 +206,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 if newY > maxOffset {
                     newY = maxOffset
                 }
-                print(1, scrollView.contentOffset.y)
+                
 
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
                 
@@ -270,7 +230,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 
                 /* This is drag to top when top of profile is fully shown */
             } else if scrollView.contentOffset.y < 0 {
-                print(3)
+                
                 scrollView.contentOffset = CGPoint.zero
                 
                 

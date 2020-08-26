@@ -15,7 +15,11 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
     weak var myProfileVC: MyProfileVC?
     
     
-    lazy var savedVideosData: [NSManagedObject] = fetchDraftEntityList()
+    var savedVideosData: [NSManagedObject] = [] {
+        didSet {
+            self.reloadData()
+        }
+    }
     lazy var appDelegate = UIApplication.shared.delegate as! AppDelegate
     lazy var context = appDelegate.persistentContainer.viewContext
     
@@ -55,7 +59,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         
         
         
-        
+        self.savedVideosData = fetchDraftEntityList()
         
     }
     
@@ -255,7 +259,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
     func scrollViewWillEndDragging(_ scrollView: UIScrollView, withVelocity velocity: CGPoint, targetContentOffset: UnsafeMutablePointer<CGPoint>) {
         
         lastTargetOffsetY = targetContentOffset.pointee.y
-        print(lastTargetOffsetY)
+//        print(lastTargetOffsetY)
         
         
         

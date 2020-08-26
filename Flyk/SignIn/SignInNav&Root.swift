@@ -37,6 +37,8 @@ class SignInRootViewController: UIViewController {
         signInLabel.textColor = .white
         //        signInLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
         //        signInLabel.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+        signInLabel.numberOfLines = 3
+        signInLabel.textAlignment = .center
         return signInLabel
     }()
     var customMessage: String? {

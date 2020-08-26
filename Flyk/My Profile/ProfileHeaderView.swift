@@ -13,7 +13,7 @@ import AVFoundation
 
 
 enum profileDisplayType {
-    case signedIn, notSignedIn, following, notFollowing
+    case signedIn, notSignedIn, following, notFollowing, undetermined
 }
 
 
@@ -23,10 +23,33 @@ class ProfileHeaderView: UIView {
     
     var oneTwoTwoGrey = UIColor(red: 112/255, green: 112/255, blue: 112/255, alpha: 1)
     
-    let profileImageView = UIImageView(image: FlykConfig.defaultProfileImage)
-    let usernameLabel = UILabel()
-    let bioTextView = UILabel()
-    let settingsImgView = UIImageView(image: UIImage(named: "settings"))
+    let profileImageView = UIImageView(image: UIImage())
+    let usernameLabel: UILabel = {
+        let l = UILabel()
+        l.backgroundColor = .clear
+        l.textColor = .white
+        l.text = ""
+        l.font = l.font.withSize(17)
+        return l
+    }()
+    
+    let bioTextView: UILabel = {
+        let l = UILabel()
+        l.backgroundColor = .clear
+        l.textColor = .flykDarkWhite
+        l.text = ""
+        l.font = UIFont.systemFont(ofSize: 15)
+        l.numberOfLines = 50
+        return l
+    }()
+    
+    lazy var settingsImgView: UIImageView = {
+        let img = UIImageView(image: UIImage(named: "settings"))
+        img.isUserInteractionEnabled = true
+        img.contentMode = .scaleAspectFit
+        img.isHidden = true
+        return img
+    }()
     
     
     
@@ -52,7 +75,8 @@ class ProfileHeaderView: UIView {
             if let profile_img_filename = currentProfileData["profile_img_filename"] as? String {
                 //TODO: this
                 let pImgURL = URL(string: FlykConfig.mainEndpoint+"/profile/photo/"+profile_img_filename)!
-                print(pImgURL)
+                print("FETCHING PIMG", pImgURL)
+                
                 URLSession.shared.dataTask(with:  pImgURL, completionHandler: { data, response, error in
                     if let d = data {
                         DispatchQueue.main.async {
@@ -68,28 +92,37 @@ class ProfileHeaderView: UIView {
         }
     }
     
-    var profileDisplayStatus : profileDisplayType = .notSignedIn {
+    var profileDisplayStatus : profileDisplayType = .undetermined {
         didSet{
             if self.profileDisplayStatus == .notSignedIn {
-                self.signInButton.isHidden = false
-                self.followingButton.isHidden = true
-                self.followButton.isHidden = true
-                self.editProfileButton.isHidden = true
+                DispatchQueue.main.async {
+                    self.signInButton.isHidden = false
+                    self.followingButton.isHidden = true
+                    self.followButton.isHidden = true
+                    self.editProfileButton.isHidden = true
+                    self.profileImageView.image = FlykConfig.defaultProfileImage
+                }
             } else if self.profileDisplayStatus == .signedIn {
-                self.signInButton.isHidden = true
-                self.followingButton.isHidden = true
-                self.followButton.isHidden = true
-                self.editProfileButton.isHidden = false
+                DispatchQueue.main.async {
+                    self.signInButton.isHidden = true
+                    self.followingButton.isHidden = true
+                    self.followButton.isHidden = true
+                    self.editProfileButton.isHidden = false
+                }
             } else if self.profileDisplayStatus == .following {
-                self.signInButton.isHidden = true
-                self.followingButton.isHidden = false
-                self.followButton.isHidden = true
-                self.editProfileButton.isHidden = true
+                DispatchQueue.main.async {
+                    self.signInButton.isHidden = true
+                    self.followingButton.isHidden = false
+                    self.followButton.isHidden = true
+                    self.editProfileButton.isHidden = true
+                }
             } else if self.profileDisplayStatus == .notFollowing {
-                self.signInButton.isHidden = true
-                self.followingButton.isHidden = true
-                self.followButton.isHidden = false
-                self.editProfileButton.isHidden = true
+                DispatchQueue.main.async {
+                    self.signInButton.isHidden = true
+                    self.followingButton.isHidden = true
+                    self.followButton.isHidden = false
+                    self.editProfileButton.isHidden = true
+                }
             }
         }
     }
@@ -127,7 +160,7 @@ class ProfileHeaderView: UIView {
         editProfileButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
         editProfileButton.setTitle("Edit Profile", for: .normal)
         editProfileButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
-        editProfileButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+//        editProfileButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
         editProfileButton.setTitleColor(oneTwoTwoGrey, for: .normal)
         editProfileButton.isHidden = true
         return editProfileButton
@@ -146,10 +179,11 @@ class ProfileHeaderView: UIView {
         followButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
         followButton.setTitle("Follow", for: .normal)
         followButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
-        followButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+//        followButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
         followButton.isHidden = true
         return followButton
     }()
+    
     lazy var followingButton: UIButton = {
         let followingButton = UIButton()
         self.addSubview(followingButton)
@@ -164,7 +198,7 @@ class ProfileHeaderView: UIView {
         followingButton.heightAnchor.constraint(equalToConstant: 30).isActive = true
         followingButton.setTitle("Following", for: .normal)
         followingButton.titleLabel?.font = UIFont.systemFont(ofSize: 17)
-        followingButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
+//        followingButton.addTarget(self, action: #selector(signInButtonTapped), for: .touchUpInside)
         followingButton.setTitleColor(oneTwoTwoGrey, for: .normal)
         followingButton.isHidden = true
         followingButton.titleEdgeInsets.right = 20
@@ -200,22 +234,8 @@ class ProfileHeaderView: UIView {
         let rightInset: CGFloat = -17
         
         
-        usernameLabel.backgroundColor = .clear
-        usernameLabel.textColor = .white
-        usernameLabel.text = ""
-        usernameLabel.font = usernameLabel.font.withSize(17)
-        
-        bioTextView.backgroundColor = .clear
-        bioTextView.textColor = .flykDarkWhite
-        bioTextView.text = ""
-        bioTextView.font = UIFont.systemFont(ofSize: 15)
-        bioTextView.numberOfLines = 50
-//        bioTextView.isEditable = false
-        
-        
-        
-        settingsImgView.isUserInteractionEnabled = true
-        settingsImgView.contentMode = .scaleAspectFit
+
+
         
         
         self.addSubview(settingsImgView)
@@ -265,7 +285,7 @@ class ProfileHeaderView: UIView {
         bioTextView.topAnchor.constraint(equalTo: usernameLabel.bottomAnchor, constant: 17).isActive = true
 
     
-        self.bottomAnchor.constraint(equalTo: bioTextView.bottomAnchor, constant: leftInset).isActive = true
+        self.bottomAnchor.constraint(greaterThanOrEqualTo: bioTextView.bottomAnchor, constant: leftInset).isActive = true
         
 
     }

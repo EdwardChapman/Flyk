@@ -140,6 +140,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         searchBar.barStyle = .black
         searchBar.delegate = self
         searchBar.placeholder = "Search"
+        searchBar.keyboardAppearance = .dark
         
         
         self.view.layoutIfNeeded()

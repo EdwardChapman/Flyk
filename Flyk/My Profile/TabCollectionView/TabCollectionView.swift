@@ -11,6 +11,57 @@ import UIKit
 class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
     weak var myProfileVC: MyProfileVC?
+    
+    
+    
+    
+    var profileDisplayStatus : profileDisplayType = .undetermined {
+        didSet{
+            if self.profileDisplayStatus == .notSignedIn {
+                DispatchQueue.main.async {
+                    let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+                    let dcv = (self.collectionViewsList[1] as! DraftsCollectionView)
+                    let lcv = (self.collectionViewsList[2] as! LikesCollectionView)
+                    pcv.videoDataList = []
+                    dcv.savedVideosData = dcv.fetchDraftEntityList()
+                    lcv.videoDataList = []
+                }
+            } else if self.profileDisplayStatus == .signedIn {
+                DispatchQueue.main.async {
+                    self.fetchMyPosts()
+                    self.fetchMyLikes()
+                    let dcv = (self.collectionViewsList[1] as! DraftsCollectionView)
+                    dcv.savedVideosData = dcv.fetchDraftEntityList()
+                    
+                }
+            } else if self.profileDisplayStatus == .following {
+                DispatchQueue.main.async {
+                    let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+                    let dcv = (self.collectionViewsList[1] as! DraftsCollectionView)
+                    let lcv = (self.collectionViewsList[2] as! LikesCollectionView)
+                    dcv.savedVideosData = []
+                    lcv.videoDataList = []
+                    self.fetchMyPostsByUserId()
+                }
+            } else if self.profileDisplayStatus == .notFollowing {
+                DispatchQueue.main.async {
+                    let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+                    let dcv = (self.collectionViewsList[1] as! DraftsCollectionView)
+                    let lcv = (self.collectionViewsList[2] as! LikesCollectionView)
+                    dcv.savedVideosData = []
+                    lcv.videoDataList = []
+                    self.fetchMyPostsByUserId()
+                }
+            }
+            DispatchQueue.main.async {
+                self.reloadData()
+            }
+        }
+    }
+    
+   
+
+    
 
     init(frame: CGRect) {
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
@@ -184,5 +235,155 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
     //////////////////////////////////////////////////////////////////////////////////////////////////
     
 
+    
+    func fetchMyPosts() {
+        print("FETCHING POSTS HERE")
+        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/posts")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        
+                        let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+
+                        pcv.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+//                        print(pcv.videoDataList)
+                    }
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
+            }
+            
+            }.resume()
+        
+    }
+    
+    
+    
+    func fetchMyLikes() {
+        print("FETCHING LIKES HERE")
+        let url = URL(string: FlykConfig.mainEndpoint + "/myProfile/likes")!
+        var request = URLRequest(url: url)
+        request.httpMethod = "POST"
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        let lcv = (self.collectionViewsList[2] as! LikesCollectionView)
+                        lcv.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+                    }
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
+            }
+            
+        }.resume()
+        
+    }
+    
+    
+    
+    func fetchMyPostsByUserId() {
+//        print(self.myProfileVC)
+        guard let curProfData = self.myProfileVC?.currentProfileData else {
+            print("fetchMyPostsGuardFailure")
+            return}
+        
+        
+        let videoListURL = URL(string: FlykConfig.mainEndpoint + "/user/posts")!
+        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        let parameters: NSDictionary = ["userId": curProfData["user_id"]]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+        } catch let error {
+            print(error.localizedDescription)
+            return;
+        }
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
+        request.httpMethod = "POST"
+        
+        
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            if error != nil || data == nil {
+                print("Client error!")
+                return
+            }
+            
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
+                print("Server error!")
+                return
+            }
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
+            }
+            
+            if(response.statusCode == 200) {
+                do {
+                    if let videosList : [NSDictionary] = try JSONSerialization.jsonObject(with: data!, options: []) as? [NSDictionary] {
+                        
+                        let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+                        
+                        pcv.videoDataList = videosList.map{ dict -> NSMutableDictionary in dict.mutableCopy() as! NSMutableDictionary}
+//                        print(pcv.videoDataList)
+                    } else {
+                        print("Couln't fetch user's posts")
+                    }
+                } catch {
+                    print("JSON error: \(error.localizedDescription)")
+                }
+            }else{
+                print("Response not 200", response)
+            }
+            
+            }.resume()
+        
+    }
+    
+    
+    
 }
 

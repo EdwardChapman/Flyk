@@ -43,6 +43,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
     }
     
     var goToProfileFunction: ((UITapGestureRecognizer)->())?
+    
     @objc func handleCellProfileImgTap(tapGesture: UITapGestureRecognizer){
         if let goToProfileFunction = self.goToProfileFunction {
             goToProfileFunction(tapGesture)
@@ -195,6 +196,7 @@ class CommentsViewController : UIViewController, UITableViewDelegate, UITableVie
         commentTextField.textColor = .white
         commentInputView.addSubview(commentTextField)
         commentTextField.delegate = self
+        commentTextField.keyboardAppearance = .dark
         
 //        commentTextField.backgroundColor = .black
         

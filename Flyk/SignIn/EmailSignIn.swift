@@ -464,6 +464,19 @@ class SendCreateAccountViewController: UIViewController {
                         let appDelegate = UIApplication.shared.delegate as! AppDelegate
                         appDelegate.currentUserAccount.setValue(cookie.value, forKey: "cookie_value")
                         appDelegate.currentUserAccount.setValue(true, forKey: "signed_in")
+                        
+                        
+                        do {
+                            if let json : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as? NSDictionary {
+                                if let user_id = json["user_id"] as? String {
+                                    appDelegate.currentUserAccount.setValue(user_id, forKey: "user_id")
+                                }
+                            }
+                            
+                        } catch {
+                            print("JSON error: \(error.localizedDescription)")
+                        }
+                        appDelegate.saveContext()
                     }
                 }
             }

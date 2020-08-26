@@ -158,6 +158,7 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         }else{
             DispatchQueue.main.async {
                 self.signInView.isHidden = true
+                self.tableView.refreshControl!.beginRefreshing()
                 self.fetchNotifications()
             }
         }
@@ -240,7 +241,6 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         tableView.refreshControl = UIRefreshControl()
         tableView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
         tableView.allowsSelection = false
-        self.tableView.refreshControl!.beginRefreshing()
         
         checkUserSignInStatusAndFetchNotifications()
     }

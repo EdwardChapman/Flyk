@@ -290,11 +290,22 @@ class Home: UIViewController, UICollectionViewDataSource, UICollectionViewDataSo
         generator.impactOccurred()
     }
     
-    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer){
-        let vc = MyProfileVC()
-        //vc.profileUsername = xxxxx //THIS WILL ALLOW US TO REUSE THE SAME VC
-        self.navigationController?.pushViewController(vc, animated: true)
-        self.commentsViewController.dismiss(animated: true, completion: nil)
+    @objc func handleGoToProfileTap(tapGesture: UITapGestureRecognizer) {
+        
+        if let tappedVidCell = tapGesture.view?.superview as? VideoCell {
+            
+            let tappedProfileVC = MyProfileVC()
+            tappedProfileVC.currentProfileData = tappedVidCell.currentVideoData
+            self.navigationController?.pushViewController(tappedProfileVC, animated: true)
+            self.commentsViewController.dismiss(animated: true, completion: nil)
+            
+        } else if let tappedCommentCell = tapGesture.view?.superview as? CommentsTableViewCell {
+            let tappedProfileVC = MyProfileVC()
+            tappedProfileVC.currentProfileData = tappedCommentCell.currentCommentData
+            self.navigationController?.pushViewController(tappedProfileVC, animated: true)
+            self.commentsViewController.dismiss(animated: true, completion: nil)
+            
+        }
     }
     
     

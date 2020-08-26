@@ -12,7 +12,7 @@ import AVFoundation
 
 
 
-class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIImagePickerControllerDelegate {
+class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UINavigationControllerDelegate, UIGestureRecognizerDelegate {
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
         return .lightContent
@@ -23,43 +23,94 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     var currentProfileData: NSMutableDictionary? {
         didSet {
             self.profileHeaderView.currentProfileData = self.currentProfileData
+            
+            // check if creator_id exists else undetermined.
+            // check for
+            // is_followed_by_viewer
+            // username
+            // profile_bio
+            // profile_img_filename
+            // else fetch user data...
             guard let curProfileData = self.currentProfileData,
-                let cur_id = curProfileData["creator_id"] as? String else {
-                // handle exit condition here ...
-                return;
-            }
-            if let signed_in_id = appDelegate.currentUserAccount.value(forKey: "signed_in") as? String {
-                if signed_in_id == cur_id {
-                    if self.profileDisplayStatus != .signedIn {
-                        self.profileDisplayStatus = .signedIn
+                let cur_id = curProfileData["user_id"] as? String else {
+                    // handle exit condition here ...
+                    // Keep profile as undetermined...
+                    print(self.profileDisplayStatus)
+                    if appDelegate.currentUserAccount.value(forKey: "signed_in") as? Bool == true &&
+                        self.profileDisplayStatus == .notSignedIn {
+                        self.setProfileStatus = .signedIn
+                    } else {
+                        print("user_id is not defined. Profile is undetermined")
+                        if self.profileDisplayStatus != .notSignedIn
+                            && self.profileDisplayStatus != .signedIn {
+                            print("SETTING UNDETERMINED")
+                            self.setProfileStatus = .undetermined
+                        }
                     }
-                } 
+                    return;
             }
-           
-           
+            
+            if appDelegate.currentUserAccount.value(forKey: "signed_in") as? Bool == true {
+                if (appDelegate.currentUserAccount.value(forKey: "user_id") as? String) == cur_id {
+                    // MY ACCOUNT
+                    self.setProfileStatus = .signedIn
+                } else { // NOT MY ACCOUNT
+                    if curProfileData["is_followed_by_viewer"] as? Bool == true {
+                        self.setProfileStatus = .following
+                    } else {
+                        self.setProfileStatus = .notFollowing
+                    }
+                }
+                
+            } else {
+                self.setProfileStatus = .notFollowing
+            }
         }
     }
     
+    
+    var setProfileStatus: profileDisplayType {
+        set {
+            if self.profileDisplayStatus != newValue {
+                self.profileDisplayStatus = newValue
+            }
+        }
+        get { return self.profileDisplayStatus }
+    }
    
     
-    var profileDisplayStatus : profileDisplayType = .notSignedIn {
+    var previousProfileDisplayStatus: profileDisplayType?
+    
+    var profileDisplayStatus : profileDisplayType = .undetermined {
+        willSet {
+            self.previousProfileDisplayStatus = self.profileDisplayStatus
+        }
         didSet {
+            self.profileHeaderView.profileDisplayStatus = self.profileDisplayStatus
+            self.tabCollectionView.myProfileVC = self
+            self.tabCollectionView.profileDisplayStatus = self.profileDisplayStatus
+            
             if self.profileDisplayStatus == .notSignedIn {
-                self.profileHeaderView.profileDisplayStatus = .notSignedIn
                 
+                // Do nothing b/c we shouldn't have any data
+                // set posts, drafts, likes to [] then reload collectionviews
                 
             } else if self.profileDisplayStatus == .signedIn {
-                self.profileHeaderView.profileDisplayStatus = .signedIn
-                self.fetchMyProfileData()
+                // Fetch posts, drafts, likes
+                if let prevStatus = self.previousProfileDisplayStatus {
+                    if prevStatus == .notSignedIn {
+                        fetchMyProfileData()
+                    }
+                }
                 
             } else if self.profileDisplayStatus == .following {
-                self.profileHeaderView.profileDisplayStatus = .following
+                // Fetch Posts
+                // Set drafts, likes to [] then reload collectionview
                 
                 
             } else if self.profileDisplayStatus == .notFollowing {
-                self.profileHeaderView.profileDisplayStatus = .notFollowing
-                
-                
+                // Fetch Posts
+                // Set drafts, likes to [] then reload collectionview
             }
         }
     }
@@ -179,18 +230,23 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        
+        /*
+            we set the profileVC for tabCollectionview to give it access to the user_id within our userDataDictionary. viewDidLoad seems to happen after the above didset, so this is pretty pointless as we also set it during the didset.
+        */
+        tabCollectionView.myProfileVC = self
+//        print("tabColView.mYProfileVC = self")
         if let rootVC = self.navigationController?.viewControllers[0] {
-            if rootVC != self {
-                if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
+            if rootVC == self { //If we are the rootVC we are the data source.
+                self.profileHeaderView.settingsImgView.isHidden = false
+                if appDelegate.currentUserAccount.value(forKey: "signed_in") as? Bool == true {
                     //            profileHeaderView.signInButton.isHidden = false
-                    print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
+                    print("USER IS SIGNED IN")
+                    self.setProfileStatus = .signedIn
+                    
                 }else{
                     //            profileHeaderView.signInButton.isHidden = true
-                    print("USER IS SIGNED IN")
-                    if self.profileDisplayStatus == .notSignedIn {
-                        self.profileDisplayStatus = .signedIn
-                    }
+                    print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
+                    self.setProfileStatus = .notSignedIn
                 }
             }
         }
@@ -215,7 +271,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         profileHeaderView.topAnchor.constraint(equalTo: profileScrollView.topAnchor, constant: 0).isActive = true
         
         
-//        profileHeaderView.fetchMyProfile()
+
         
         profileScrollView.refreshControl = UIRefreshControl()
         profileScrollView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
@@ -225,7 +281,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         
         profileScrollView.contentInsetAdjustmentBehavior = .never
         
-        profileHeaderView.profileImageView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleProfileImgTap)))
+
         
         
         
@@ -240,7 +296,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         
         
         
-        tabCollectionView.myProfileVC = self
+        
         
         self.profileScrollView.addSubview(tabCollectionView)
         self.view.layoutIfNeeded()
@@ -270,26 +326,178 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         profileHeaderView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
         
         
-//        profileHeaderView.bioTextView.text = "This is my bio...\nIt can be multiple lines and take up the full space."
-//        profileHeaderView.profileDisplayStatus = .notSignedIn
+
         
+        
+        self.profileHeaderView.followButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleToggleFollow(tapGesture:))))
+        self.profileHeaderView.followingButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleToggleFollow(tapGesture:))))
+        
+        self.profileHeaderView.editProfileButton.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleEditProfileTap(tapGesture:))))
+        
+        
+    }
+    
+    @objc func handleToggleFollow(tapGesture: UITapGestureRecognizer) {
+        print("TOGGLE FOLLOW")
+        
+        let msg = "Sign in to follow\n" + ((self.currentProfileData?["username"] as? String) ?? "user")
+        if self.appDelegate.triggerSignInIfNoAccount(customMessgae: msg) {
+            let generator = UINotificationFeedbackGenerator()
+            generator.notificationOccurred(.success)
+            if self.profileDisplayStatus == .notFollowing {
+                print("Follow")
+//                self.isVideoLiked = true
+                
+                let videoListURL = URL(string: FlykConfig.mainEndpoint+"/user/follow")!
+                
+                var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+                
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                let parameters: NSDictionary = ["userId": self.currentProfileData?["user_id"]]
+                do {
+                    request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                } catch let error {
+                    print(error.localizedDescription)
+                    return;
+                }
+                
+                
+                request.httpMethod = "POST"
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    
+                    if error != nil {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+//                        self.isVideoLiked = false
+                        return
+                    }
+                    guard let response = response as? HTTPURLResponse else {
+                        print("not httpurlresponse...!")
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+                        return;
+                    }
+                    
+                    if(response.statusCode == 200) {
+                        DispatchQueue.main.async {
+                            if let curProfData = self.currentProfileData {
+                                curProfData["is_followed_by_viewer"] = true
+                                self.currentProfileData = curProfData
+                            }
+                        }
+                        //Worked....
+                    }else{
+                        print("Response not 200", response)
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+//                        self.isVideoLiked = false
+                    }
+                    
+                    }.resume()
+                
+            } else if self.profileDisplayStatus == .following {
+                print("Following")
+                
+//                self.isVideoLiked = false
+                
+                let videoListURL = URL(string: FlykConfig.mainEndpoint+"/user/unfollow")!
+                
+                var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+                
+                request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+                 let parameters: NSDictionary = ["userId": self.currentProfileData?["user_id"]]
+                do {
+                    request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+                } catch let error {
+                    print(error.localizedDescription)
+                    return;
+                }
+                
+                
+                request.httpMethod = "POST"
+                URLSession.shared.dataTask(with: request) { data, response, error in
+                    
+                    if error != nil {
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+//                        self.isVideoLiked = true
+                        return
+                    }
+                    guard let response = response as? HTTPURLResponse else {
+                        print("not httpurlresponse...!")
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+                        return;
+                    }
+                    
+                    if(response.statusCode == 200) {
+                        //Worked....
+                        DispatchQueue.main.async {
+                            if let curProfData = self.currentProfileData {
+                                curProfData["is_followed_by_viewer"] = false
+                                self.currentProfileData = curProfData
+                            }
+                        }
+                    }else{
+                        print("Response not 200", response)
+                        let generator = UINotificationFeedbackGenerator()
+                        generator.notificationOccurred(.error)
+//                        self.isVideoLiked = true
+                    }
+                    
+                    }.resume()
+            
+
+            }
+        }
+    }
+    @objc func handleEditProfileTap(tapGesture: UITapGestureRecognizer) {
+        
+        
+        let editProfileNavVC = EditProfileNavController()
+        editProfileNavVC.transitioningDelegate = editProfileNavVC
+        editProfileNavVC.modalPresentationStyle = .custom
+        editProfileNavVC.editProfileRootVC.myProfileVC = self
+        self.present(editProfileNavVC, animated: true, completion: {})
+        
+        
+//        let vc = EditProfileVC()
+//        vc.myProfileVC = self
+//        self.present(vc, animated: true) {
+//
+//        }
     }
     
     override func viewWillAppear(_ animated: Bool) {
         super.viewWillAppear(animated)
         self.addContextObserver()
-        /*
-        if appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
-            //            profileHeaderView.signInButton.isHidden = false
-            print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
-        }else{
-            //            profileHeaderView.signInButton.isHidden = true
-            print("USER IS SIGNED IN")
-            if self.profileDisplayStatus == .notSignedIn {
-                self.profileDisplayStatus = .signedIn
-            }
+        
+        if self.profileDisplayStatus == .signedIn {
+            self.fetchMyProfileData()
+        } else if self.profileDisplayStatus == .following
+            || self.profileDisplayStatus == .notFollowing {
+            self.fetchProfileByUserId()
         }
-        */
+        
+//        if self.appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == true {
+//            print("USER IS SIGNED IN")
+//            if self.profileDisplayStatus == .notSignedIn {
+//                self.setProfileStatus = .signedIn
+//            }
+//        }else{
+//            print("USER IS NOT LOGGED IN, DISPLAYING SIGN IN BUTTON")
+//            if self.profileDisplayStatus == .signedIn {
+//                self.setProfileStatus = .notSignedIn
+//            } else if self.profileDisplayStatus == .following {
+//                self.setProfileStatus = .notFollowing
+//            }
+//        }
+        if self.profileDisplayStatus != .undetermined {
+            let c = self.currentProfileData
+            self.currentProfileData = c
+        }
+        
+ 
     }
     
     var previousInteractivePopGestureDelegate: UIGestureRecognizerDelegate?
@@ -307,18 +515,24 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
             if let rootVC = self.navigationController?.viewControllers[0] {
                 if rootVC != self {
                     previousInteractivePopGestureDelegate = self.navigationController?.interactivePopGestureRecognizer?.delegate
-                    self.navigationController?.interactivePopGestureRecognizer?.delegate = nil
+                    self.navigationController?.interactivePopGestureRecognizer?.delegate = self
                 }
             }
         }
         
     }
     
+    func gestureRecognizer(_ gestureRecognizer: UIGestureRecognizer, shouldRecognizeSimultaneouslyWith otherGestureRecognizer: UIGestureRecognizer) -> Bool {
+        return true
+    }
+    
     override func viewWillDisappear(_ animated: Bool) {
         //We replace the interactive popGesture delegate that was there before.
         self.removeContextObserver()
-        if let prevDel = previousInteractivePopGestureDelegate {
-            self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
+        if animated {
+            if let prevDel = previousInteractivePopGestureDelegate {
+                self.navigationController?.interactivePopGestureRecognizer?.delegate = prevDel
+            }
         }
     }
     
@@ -354,9 +568,15 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         generator.impactOccurred()
         DispatchQueue.main.async {
             //This function will dismiss the refresh control
-//            self.profileHeaderView.fetchMyProfile()
-            self.tabCollectionView.reloadData()
-            self.profileScrollView.refreshControl?.endRefreshing()
+
+            if self.profileDisplayStatus == .signedIn {
+                self.fetchMyProfileData()
+            } else if self.profileDisplayStatus == .following
+                || self.profileDisplayStatus == .notFollowing {
+                self.fetchProfileByUserId()
+            }
+            self.tabCollectionView.profileDisplayStatus = self.profileDisplayStatus
+//            self.profileScrollView.refreshControl?.endRefreshing()
         }
  
     }
@@ -367,73 +587,6 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     
     
     
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    // UIImagePickerControllerDelegate //////////////////////////////////////////////////////////
-    /////////////////////////////////////////////////////////////////////////////////////////////
-    
-    @objc func handleProfileImgTap(tapGesture: UITapGestureRecognizer) {
-        if !appDelegate.triggerSignInIfNoAccount(customMessgae: "Sign in to create a profile photo") {
-            return
-        }
-        let profileImgActionSheet = UIAlertController(title: nil, message: nil, preferredStyle: .actionSheet)
-        
-        profileImgActionSheet.addAction(UIAlertAction(title: "Remove Current Image", style: .destructive, handler:
-            { _ in
-                // Delete current image
-                
-        }
-        ))
-        profileImgActionSheet.addAction(UIAlertAction(title: "Take Photo", style: .default, handler:
-            {_ in
-                // popCamera taking view
-                self.imgFromCamera()
-        }
-        ))
-        profileImgActionSheet.addAction(UIAlertAction(title: "Choose From Photos", style: .default, handler:
-            { _ in
-                // pop photo library
-                self.imgFromPhotos()
-        }
-        ))
-        profileImgActionSheet.addAction(UIAlertAction(title: "Cancel", style: .cancel, handler:
-            { _ in
-                //closes the action sheet.
-        }
-        ))
-        
-        self.present(profileImgActionSheet, animated: true, completion: nil)
-    }
-    
-    func imgFromCamera() {
-        let myPickerController = UIImagePickerController()
-        myPickerController.allowsEditing = true
-        myPickerController.delegate = self;
-        myPickerController.sourceType = UIImagePickerController.SourceType.camera
-        
-        self.present(myPickerController, animated: true, completion: nil)
-        
-    }
-    
-    func imgFromPhotos() {
-        
-        let myPickerController = UIImagePickerController()
-        myPickerController.allowsEditing = true
-        //        myPickerController.preferredContentSize = CGSize(width: 100, height: 100)
-        
-        myPickerController.delegate = self
-        myPickerController.sourceType = UIImagePickerController.SourceType.photoLibrary
-        
-        self.present(myPickerController, animated: true, completion: nil)
-        
-    }
-    
-    func imagePickerController(_ picker: UIImagePickerController, didFinishPickingMediaWithInfo info: [UIImagePickerController.InfoKey : Any]) {
-        if let img =  info[UIImagePickerController.InfoKey.editedImage] as? UIImage {
-            
-            sendProfilePicToServer(newImg: img)
-        }
-        self.dismiss(animated: true, completion: nil)
-    }
     
     
     
@@ -445,7 +598,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     //////////////////////////////////////////////////////////////////////////////////////////////////
     
     func fetchMyProfileData() {
-        
+        print("Fetching profile data")
         let url = URL(string: FlykConfig.mainEndpoint + "/myProfile")!
         var request = URLRequest(url: url)
         request.httpMethod = "POST"
@@ -453,6 +606,9 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         request.addValue("application/json", forHTTPHeaderField: "Accept")
         
         URLSession.shared.dataTask(with: request) { data, response, error in
+            DispatchQueue.main.async {
+                self.profileScrollView.refreshControl?.endRefreshing()
+            }
             
             if error != nil || data == nil {
                 print("Client error!")
@@ -471,64 +627,89 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
             
             do {
                 if let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as? NSDictionary {
-                    self.currentProfileData = myProfileData.mutableCopy() as? NSMutableDictionary
+                    if let c = self.currentProfileData {
+                        if let keys = myProfileData.allKeys as? [String] {
+                            for key in keys {
+                                c[key] = myProfileData[key]
+                            }
+                        }
+                        self.currentProfileData = c
+                    } else {
+                        self.currentProfileData = myProfileData.mutableCopy() as? NSMutableDictionary
+                    }
                 }
                 
             } catch {
                 print("JSON error: \(error.localizedDescription)")
             }
             
-            }.resume()
+        }.resume()
     }
     
-    
-    
-    
-    
-    func sendProfilePicToServer(newImg : UIImage) {
+    func fetchProfileByUserId() {
+        print("Fetching profile data")
+        
+        let videoListURL = URL(string: FlykConfig.mainEndpoint+"/user")!
+        
+        var request = URLRequest(url: videoListURL, cachePolicy: .reloadIgnoringLocalCacheData)
+        
+        request.addValue("application/json", forHTTPHeaderField: "Content-Type")
+        let parameters: NSDictionary = ["userId": self.currentProfileData?["user_id"]]
+        do {
+            request.httpBody = try JSONSerialization.data(withJSONObject: parameters)
+        } catch let error {
+            print(error.localizedDescription)
+            return;
+        }
         
         
-        let endPointURL = FlykConfig.uploadEndpoint+"/upload/profilePhoto"
-        
-        let dataOpt: Data? = newImg.jpegData(compressionQuality: 1)
-        guard let dataNotConverted = dataOpt else { return }
-        let data = NSData(data: dataNotConverted)
-        
-        
-        let boundary = "?????"
-        var request = URLRequest(url: URL(string: endPointURL)!)
-        request.timeoutInterval = 30
+        request.addValue("application/json", forHTTPHeaderField: "Accept")
         request.httpMethod = "POST"
-        request.httpBody = MultiPartPost_2.photoDataToFormData(data: data, boundary: boundary, fileName: "profilePhoto") as Data
-        request.addValue("multipart/form-data;boundary=\"" + boundary+"\"",
-                         forHTTPHeaderField: "Content-Type")
-        request.addValue("image/jpeg", forHTTPHeaderField: "mimeType")
-        request.addValue(String((request.httpBody! as NSData).length), forHTTPHeaderField: "Content-Length")
-        
-        request.addValue("text/plain", forHTTPHeaderField: "Accept")
-        
-        let task = URLSession.shared.dataTask(with: request) { data, response, error in
-//            print(data, response)
+        URLSession.shared.dataTask(with: request) { data, response, error in
+            
+            DispatchQueue.main.async {
+                self.profileScrollView.refreshControl?.endRefreshing()
+            }
+            
             if error != nil || data == nil {
                 print("Client error!")
                 return
             }
             
-            guard let res = response as? HTTPURLResponse, (200...299).contains(res.statusCode) else {
+            guard let response = response as? HTTPURLResponse, (200...299).contains(response.statusCode) else {
                 print("Server error!")
-                //                    print(data, response, error)
                 return
             }
-            DispatchQueue.main.async {
-//                self.profileHeaderView.fetchMyProfile()
+            
+            guard let mime = response.mimeType, mime == "application/json" else {
+                print("Wrong MIME type!")
+                return
             }
-            print("SUCCESS")
-        }
-        
-        print("Upload Started")
-        task.resume()
-        
+            
+            do {
+                if let myProfileData : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as? NSDictionary {
+                    if let c = self.currentProfileData {
+                        if let keys = myProfileData.allKeys as? [String] {
+                            for key in keys {
+                                c[key] = myProfileData[key]
+                            }
+                        }
+                        self.currentProfileData = c
+                    } else {
+                        self.currentProfileData = myProfileData.mutableCopy() as? NSMutableDictionary
+                    }
+                }
+                
+            } catch {
+                print("JSON error: \(error.localizedDescription)")
+            }
+            
+        }.resume()
     }
+    
+    
+    
+    
     
     
     /////////////////////////////////////////////////////////////////////////////////////////////
@@ -538,17 +719,19 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     var contextObserverObj: NSObjectProtocol?
     func addContextObserver() {
         self.contextObserverObj = NotificationCenter.default.addObserver(forName: NSNotification.Name.NSManagedObjectContextObjectsDidChange, object: context, queue: .main){ [unowned self] notification in
-            //Add Actions to do when context changes....
-            if self.profileDisplayStatus == .notSignedIn {
-                if self.appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == true {
-                    self.profileDisplayStatus = .signedIn
-                }
-            } else if self.profileDisplayStatus == .signedIn {
-                if self.appDelegate.currentUserAccount.value(forKey: "signed_in") as! Bool == false {
-                    self.profileDisplayStatus = .notSignedIn
+            
+            guard let userInfo = notification.userInfo else { return }
+            
+            if let updates = userInfo[NSUpdatedObjectsKey] as? Set<NSManagedObject>, updates.count > 0
+            {
+                if updates.first?.entity.name == "Accounts" {
+                    //Add Actions to do when context changes....
+                    if self.profileDisplayStatus != .undetermined {
+                        let c = self.currentProfileData
+                        self.currentProfileData = c
+                    }
                 }
             }
-            
         }
     }
     func removeContextObserver() {
