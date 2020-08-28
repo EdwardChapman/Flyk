@@ -68,7 +68,7 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         
         self.backgroundColor = .flykLightBlack
         
-        
+        self.showsHorizontalScrollIndicator = false
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .horizontal
         flowLayout.minimumLineSpacing = 0
@@ -223,9 +223,22 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
         
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-//        print("SCROLL")
-        self.myProfileVC?.tabScrollBarLeadingAnchor.constant = scrollView.contentOffset.x/3
-        self.superview?.layoutIfNeeded()
+        if scrollView == self {
+            self.myProfileVC?.tabScrollBarLeadingAnchor.constant = scrollView.contentOffset.x/3
+            self.superview?.layoutIfNeeded()
+        } else {
+            /*
+            let pastBotHeight = scrollView.contentOffset.y + scrollView.frame.height + 55 - scrollView.contentSize.height
+            let pcv = (self.collectionViewsList[0] as! PostsCollectionView)
+            print(pastBotHeight)
+            if pastBotHeight > -45 {
+                pcv.setContentOffset(CGPoint(x: 0, y: pcv.contentOffset.y + pastBotHeight), animated: false)
+                scrollView.contentOffset.y -= pastBotHeight
+            }
+            */
+        }
+        
+        
     }
     
     

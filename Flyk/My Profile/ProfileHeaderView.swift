@@ -68,7 +68,7 @@ class ProfileHeaderView: UIView {
             
             if let profile_bio = currentProfileData["profile_bio"] as? String {
                 DispatchQueue.main.async {
-                    self.bioTextView.text = profile_bio
+                    self.bioTextView.text = profile_bio.decodeHTML()
                 }
             }
             

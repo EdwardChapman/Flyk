@@ -9,7 +9,7 @@
 import UIKit
 import AVFoundation
 
-class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate, UISearchBarDelegate, UITableViewDelegate, UITableViewDataSource {
+class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICollectionViewDelegateFlowLayout, UICollectionViewDelegate {
     
     
     override var preferredStatusBarStyle: UIStatusBarStyle {
@@ -21,107 +21,27 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     let collectionView: UICollectionView = UICollectionView(frame: .zero, collectionViewLayout: UICollectionViewFlowLayout())
     var videoDataList : [NSMutableDictionary] = [] { didSet { DispatchQueue.main.async { self.collectionView.reloadData() } } }
     
-    let searchBar = UISearchBar()
-    
-    lazy var searchTableView: UITableView = {
-        let tableView = UITableView(frame: .zero, style: .plain)
-        tableView.delegate = self
-        
-        tableView.delegate = self
-        tableView.dataSource = self
-        tableView.backgroundColor = .flykDarkGrey
-        tableView.separatorStyle = UITableViewCell.SeparatorStyle.none
-        tableView.register(NoticationCell.self, forCellReuseIdentifier: "searchCell")
-        
-        tableView.rowHeight = UITableView.automaticDimension
-        tableView.estimatedRowHeight = 70
-        tableView.allowsSelection = false
-        
-        return tableView
+    let searchBar: DiscoverSearchBar = {
+        let s = DiscoverSearchBar()
+        s.styleSearchBar()
+        s.delegate = s
+        return s
     }()
     
-    var searchResultsList: [NSMutableDictionary] = [NSMutableDictionary(objects: ["First Result"], forKeys: ["message" as NSCopying])]
-    
-    // number of rows in table view
-    func tableView(_ tableView: UITableView, numberOfRowsInSection section: Int) -> Int {
-        return self.searchResultsList.count
-    }
-    
-    // create a cell for each table view row
-    func tableView(_ tableView: UITableView, cellForRowAt indexPath: IndexPath) -> UITableViewCell {
-        
-        // create a new cell if needed or reuse an old one
-        let cell = (self.searchTableView.dequeueReusableCell(withIdentifier: "searchCell") as! NoticationCell?)!
-        
-        // set the text from the data model
-        //        cell.backgroundColor = .flykDarkGrey
-        cell.notificationLabel.text = self.searchResultsList[indexPath.row]["message"] as! String
-        //        cell.textLabel?.textColor = .white
-        return cell
-    }
-    
-    // method to run when table view cell is tapped
-    func tableView(_ tableView: UITableView, didSelectRowAt indexPath: IndexPath) {
-        print("You tapped cell number \(indexPath.row).")
-    }
     
     
     
     
-    var searchTableViewBottomAnchorTall: NSLayoutConstraint?
     
     
     
-    /*
-    var keyboardHeight: CGFloat? {
-        didSet {
-            if let keyboardHeight = self.keyboardHeight {
-                searchTableViewBottomAnchorTall!.constant = -(keyboardHeight)
-            }else{
-                searchTableViewBottomAnchorTall!.constant = 0
-            }
-            self.view.layoutIfNeeded()
-        }
-    }
-    
-    @objc fileprivate func keyboardWillShow(notification:NSNotification) {
-        if let keyboardRectValue = (notification.userInfo?[UIResponder.keyboardFrameEndUserInfoKey] as? NSValue)?.cgRectValue {
-            self.keyboardHeight = keyboardRectValue.height
-            print("KEYBOARD WILL Show")
-        }
-    }
-    
-    @objc fileprivate func keyboardWillHide(notification: NSNotification) {
-        print("KEYBOARD WILL HIDE")
-        self.keyboardHeight = nil
-    }
-    
-    func addKeyboardObserver(){
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillShow(notification:)), name: UIResponder.keyboardWillShowNotification, object: nil)
-        
-        NotificationCenter.default.addObserver(self, selector: #selector(keyboardWillHide(notification:)), name: UIResponder.keyboardWillHideNotification, object: nil)
-    }
-    func removeKeyboardObserver(){
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillShowNotification , object: nil)
-        NotificationCenter.default.removeObserver(self, name: UIResponder.keyboardWillHideNotification , object: nil)
-    }
-    
- 
     
     
-    override func viewWillAppear(_ animated: Bool) {
-        super.viewWillAppear(animated)
-        addKeyboardObserver()
-    }
-    override func viewWillDisappear(_ animated: Bool) {
-        super.viewWillDisappear(animated)
-        removeKeyboardObserver()
-    }
-    */
     
     override func viewDidLoad() {
         super.viewDidLoad()
         fetchVideoList() // THIS IS DISABLED FOR TESTING
+        self.searchBar.discoverVC = self
         let flowLayout = collectionView.collectionViewLayout as! UICollectionViewFlowLayout
         flowLayout.scrollDirection = .vertical
         flowLayout.minimumLineSpacing = 0
@@ -135,12 +55,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
         
         self.view.addSubview(searchBar)
-        searchBar.searchBarStyle = .minimal
-        searchBar.tintColor = .flykDarkWhite
-        searchBar.barStyle = .black
-        searchBar.delegate = self
-        searchBar.placeholder = "Search"
-        searchBar.keyboardAppearance = .dark
+
         
         
         self.view.layoutIfNeeded()
@@ -149,34 +64,6 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         searchBar.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
         searchBar.heightAnchor.constraint(equalToConstant: searchBar.intrinsicContentSize.height).isActive = true
-        
-//        collectionView.contentInsetAdjustmentBehavior = .never
-//        let searchResultsVC = UIViewController()
-//        searchResultsVC.view.backgroundColor = .blue
-//        let searchController = DiscoverSearchController(searchResultsController: searchResultsVC)
-//
-//        searchController.styleSearchBar()
-////        let searchBar = searchController.searchBar
-//        self.view.addSubview(searchController.searchBar)
-//
-//        self.view.layoutIfNeeded()
-//        searchController.searchBar.translatesAutoresizingMaskIntoConstraints = false
-//        searchController.searchBar.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
-//        searchController.searchBar.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
-//        searchController.searchBar.topAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.topAnchor).isActive = true
-//        searchController.searchBar.heightAnchor.constraint(equalToConstant: searchController.searchBar.intrinsicContentSize.height).isActive = true
-//
-////        searchController.isActive = true
-////        searchBar.delegate = self
-////        searchController.delegate = self // THIS IS FUCKED....
-//        searchController.obscuresBackgroundDuringPresentation = false
-//
-//        searchController.delegate = self
-//        searchController.searchResultsUpdater = searchController
-//        searchController.searchBar.autocapitalizationType = .none
-//        searchController.dimsBackgroundDuringPresentation = false
-//        searchController.searchBar.delegate = self // Monitor when the search button is tapped.
-        
         
         
         
@@ -189,18 +76,16 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         collectionView.topAnchor.constraint(equalTo: searchBar.bottomAnchor).isActive = true
         collectionView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         
-//        collectionView.decelerationRate = .fast
+
         self.view.backgroundColor = UIColor.flykDarkGrey
         collectionView.backgroundColor = UIColor.flykDarkGrey
         
         
         collectionView.refreshControl = UIRefreshControl()
         collectionView.refreshControl!.addTarget(self, action: #selector(handleRefreshControl), for: .valueChanged)
-//        collectionView.refreshControl!.translatesAutoresizingMaskIntoConstraints = false
-//        collectionView.refreshControl!.topAnchor.constraint(equalTo: collectionView.topAnchor, constant: 10).isActive = true
-//        collectionView.refreshControl!.centerXAnchor.constraint(equalTo: self.view.centerXAnchor).isActive = true
+
         
-        
+        let searchTableView = self.searchBar.searchTableView
         
         self.view.addSubview(searchTableView)
         
@@ -208,43 +93,14 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         searchTableView.leadingAnchor.constraint(equalTo: collectionView.leadingAnchor).isActive = true
         searchTableView.trailingAnchor.constraint(equalTo: collectionView.trailingAnchor).isActive = true
         searchTableView.topAnchor.constraint(equalTo: collectionView.topAnchor).isActive = true
-        self.searchTableViewBottomAnchorTall = searchTableView.bottomAnchor.constraint(equalTo: self.collectionView.bottomAnchor)
-        self.searchTableViewBottomAnchorTall!.isActive = true
+        searchTableView.bottomAnchor.constraint(equalTo: self.collectionView.bottomAnchor).isActive = true
         
-        searchTableView.isHidden = true
+        
         
 //        loadingPlaceholderSetup()
     }
     
     
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    //SearchBarDelegate ////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    
-    func searchBar(_ searchBar: UISearchBar, textDidChange searchText: String){
-        // THIS IS WHERE WE QUERY WITH THE SEARCH TEXT
-        let trimmedSearch = searchText.trimmingCharacters(in: .whitespacesAndNewlines)
-        print(trimmedSearch)
-        // DO THE SEARCH FETCH HERE.....
-    }
-    
-    func searchBarTextDidBeginEditing(_ searchBar: UISearchBar) {
-        searchTableView.isHidden = false
-        searchBar.setShowsCancelButton(true, animated: true)
-        print("searchbar did begin editing")
-    }
-    func searchBarCancelButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.setShowsCancelButton(false, animated: true)
-        searchBar.text = ""
-        searchBar.endEditing(true)
-        print("searchbar cancel button clicked.")
-        searchTableView.isHidden = true
-    }
-    
-    func searchBarSearchButtonClicked(_ searchBar: UISearchBar) {
-        searchBar.endEditing(true)
-        print("Search bar button clicked.")
-    }
     
     
     
@@ -334,22 +190,12 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     }
     
     func collectionView(_ collectionView: UICollectionView, layout collectionViewLayout: UICollectionViewLayout, sizeForItemAt indexPath: IndexPath) -> CGSize {
-//        return CGSize(width: self.view.frame.width, height: self.view.frame.height-self.view.safeAreaInsets.bottom)
         return CGSize(width: (self.view.frame.width/3), height: (self.view.frame.width/3)*(16/9))
     }
     
     func collectionView(_ collectionView: UICollectionView, willDisplay cell: UICollectionViewCell, forItemAt indexPath: IndexPath) {
         
-        
-//        let videoCell = cell as! VideoCell
-//        if let currentCell = self.currentCell {
-//            currentCell.player.pause()
-//            currentCell.player.seek(to: .zero)
-//            self.currentCell = videoCell
-//        }else{
-//            self.currentCell = videoCell
-//            self.currentCell?.player.play()
-//        }
+
         
         if videoDataList.count > 0 && indexPath.row > (videoDataList.count - 2) {
             print("FETCH NEW ITEMS HERE")
@@ -375,22 +221,19 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
     
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         // push view controller with swipe collectionview
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 0
-        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, videoDataList: self.videoDataList, startingIndexPath: indexPath)
         
+        self.navigationController?.pushViewController(
+            Home(
+                startingIndex: indexPath.row,
+                videoDataList: self.videoDataList,
+                presentingVC: self,
+                refreshFunction: {(cb) in
+                    cb(nil)
+                }
+            ),
+            animated: true
+        )
         
-        
-        newVC.view.layoutIfNeeded()
-        newVC.collectionView.setContentOffset(CGPoint(x: .zero, y: (self.view.frame.height - (self.tabBarController?.tabBar.frame.height)!) * CGFloat(indexPath.row)), animated: false)
-//        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
-        
-        
-        
-        
-        self.navigationController?.pushViewController(newVC, animated: true)
         return false
     }
     
@@ -413,9 +256,7 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         
     }
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        if !scrollView.isDecelerating && scrollView == self.searchTableView {
-            self.view.endEditing(true)
-        }
+
     }
     
     
@@ -454,31 +295,6 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
             
             }.resume()
     }
-    
-    
-    
-    
-    
-    
-    
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    // OBSERVERS /////////////////////////////////////////////////////////////////////////////////////
-    //////////////////////////////////////////////////////////////////////////////////////////////////
-    func addReturnToForegroundObserver(){
-//        returnToForegroundObserver = NotificationCenter.default.addObserver(forName: UIApplication.willEnterForegroundNotification, object: nil, queue: .main) { [unowned self] notification in
-//            self.currentCell?.player.play()
-//        }
-    }
-    func removeReturnToForegroundObserver(){
-//        if let returnToForegroundObserver = returnToForegroundObserver {
-//            NotificationCenter.default.removeObserver(returnToForegroundObserver)
-//        }
-    }
-    
-    
-    
-    
-    
     
 }
 

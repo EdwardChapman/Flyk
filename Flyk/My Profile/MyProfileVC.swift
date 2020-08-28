@@ -259,7 +259,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         profileScrollView.leadingAnchor.constraint(equalTo: self.view.leadingAnchor).isActive = true
         profileScrollView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
         profileScrollView.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
-        profileScrollView.bottomAnchor.constraint(equalTo: self.view.bottomAnchor).isActive = true
+        profileScrollView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor, constant: 100).isActive = true
         
         
         profileScrollView.addSubview(profileHeaderView)
@@ -282,7 +282,9 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         profileScrollView.contentInsetAdjustmentBehavior = .never
         
 
-        
+        profileScrollView.showsVerticalScrollIndicator = false
+        profileScrollView.delegate = tabCollectionView
+        profileScrollView.contentInset = UIEdgeInsets(top: 0, left: 0, bottom: -100, right: 0)
         
         
         
@@ -320,7 +322,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         
         self.profileScrollView.contentSize = CGSize(
             width: self.view.frame.width,
-            height: tabColViewHeight+colTabsHeight+profileViewHeight-45
+            height: tabColViewHeight+colTabsHeight+profileViewHeight-45+100
         )
 
         profileHeaderView.settingsImgView.addGestureRecognizer(UITapGestureRecognizer(target: self, action: #selector(handleSettingsTap(tapGesture:))))
@@ -340,7 +342,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
     @objc func handleToggleFollow(tapGesture: UITapGestureRecognizer) {
         print("TOGGLE FOLLOW")
         
-        let msg = "Sign in to follow\n" + ((self.currentProfileData?["username"] as? String) ?? "user")
+        let msg = "Sign In To Follow\n" + ((self.currentProfileData?["username"] as? String) ?? "user")
         if self.appDelegate.triggerSignInIfNoAccount(customMessgae: msg) {
             let generator = UINotificationFeedbackGenerator()
             generator.notificationOccurred(.success)
@@ -452,7 +454,7 @@ class MyProfileVC: UIViewController, UICollectionViewDelegateFlowLayout, UIColle
         }
     }
     @objc func handleEditProfileTap(tapGesture: UITapGestureRecognizer) {
-        
+        guard let _ = self.currentProfileData else { return }
         
         let editProfileNavVC = EditProfileNavController()
         editProfileNavVC.transitioningDelegate = editProfileNavVC

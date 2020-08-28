@@ -51,6 +51,8 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         
         
 //        self.backgroundColor = .flykDarkGrey
+        self.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+        self.scrollIndicatorInsets = UIEdgeInsets(top: -100, left: 0, bottom: 0, right: 0)
         
         self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
         self.delegate = self
@@ -283,39 +285,41 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
             let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
             
             
+            
             if scrollView.contentOffset.y > 0 && scrollDif < -1 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY > maxOffset {
                     newY = maxOffset
                 }
                 
+                
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
                 
                 // removed this to stop jumping content inset on return from push.
                 // scrollView.contentOffset = CGPoint.zero
-                scrollView.contentOffset = CGPoint(
-                    x: scrollView.contentOffset.x,
-                    y: scrollView.contentOffset.y / 2.3
-                )
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.3
                 
                 
                 /* This is drag to top when top of profile is hidden */
             } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY < 0 {
                     newY = 0
                 }
                 
-                profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-                scrollView.contentOffset = CGPoint(
-                    x: scrollView.contentOffset.x,
-                    y: scrollView.contentOffset.y / 2.3
-                )
+                
+                profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.5
                 
                 
                 /* This is drag to top when top of profile is fully shown */
             } else if scrollView.contentOffset.y < 0 {
-                scrollView.contentOffset = CGPoint.zero
+                
+                scrollView.setContentOffset(.zero, animated: false)
+                
+                
             }
         }
         

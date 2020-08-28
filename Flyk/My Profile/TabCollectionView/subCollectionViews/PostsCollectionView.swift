@@ -39,6 +39,8 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         flowLayout.minimumLineSpacing = 0
         flowLayout.minimumInteritemSpacing = 0
         
+        self.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+        self.scrollIndicatorInsets = UIEdgeInsets(top: -100, left: 0, bottom: 0, right: 0)
         
 //        self.backgroundColor = .flykDarkGrey
         
@@ -136,21 +138,20 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         // push view controller with swipe collectionview
         guard let myProfileVC = self.myProfileVC else {return false}
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 0
-        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, videoDataList: self.videoDataList, startingIndexPath: indexPath)
         
-
-//        newVC.view.layoutIfNeeded()
-//        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
+        self.myProfileVC?.navigationController?.pushViewController(
+            Home(
+                startingIndex: indexPath.row,
+                videoDataList: self.videoDataList,
+                presentingVC: myProfileVC,
+                refreshFunction: {(cb) in
+                    cb(nil)
+                }
+            ),
+            animated: true
+        )
         
-        newVC.view.layoutIfNeeded()
-        newVC.collectionView.setContentOffset(CGPoint(x: .zero, y: (myProfileVC.view.frame.height - myProfileVC.tabBarController!.tabBar.frame.height) * CGFloat(indexPath.row)), animated: false)
         
-        
-        self.myProfileVC?.navigationController?.pushViewController(newVC, animated: true)
         return false
     }
     
@@ -184,9 +185,17 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         
     }
     */
+    /*
+    @objc func addedPanGestureRecFunc(panGesuture: UIPanGestureRecognizer){
+        let a = panGesuture.translation(in: self).y
+//        self.myProfileVC?.profileScrollView.contentOffset.y -= a
+//        panGesuture.setTranslation(.zero, in: self)
+    self.myProfileVC?.profileScrollView.panGestureRecognizer.setTranslation(panGesuture.translation(in: self), in: self.myProfileVC?.profileScrollView)
+        
+    }
+    */
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
         if let myProfileVC = self.myProfileVC {
 
             let profileScrollView = myProfileVC.profileScrollView
@@ -207,7 +216,7 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                     newY = maxOffset
                 }
                 
-
+                
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
                 
                 // removed this to stop jumping content inset on return from push.
@@ -225,13 +234,14 @@ class PostsCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
                 
 
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
-                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.3
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.5
 
                 
                 /* This is drag to top when top of profile is fully shown */
             } else if scrollView.contentOffset.y < 0 {
                 
-                scrollView.contentOffset = CGPoint.zero
+//                scrollView.contentOffset = CGPoint.zero
+                scrollView.setContentOffset(.zero, animated: false)
                 
                 
             }

@@ -5,6 +5,7 @@
 //  Created by Edward Chapman on 8/9/20.
 //  Copyright © 2020 Edward Chapman. All rights reserved.
 //
+/*
 
 import UIKit
 import AVFoundation
@@ -337,3 +338,5 @@ class PostsCarouselCollectionVC: UICollectionViewController, UICollectionViewDel
     */
 
 }
+
+*/

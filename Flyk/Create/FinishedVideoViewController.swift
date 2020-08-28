@@ -581,7 +581,9 @@ class FinishedVideoViewController : UIViewController, UITextViewDelegate, URLSes
         
         var session = URLSession(configuration: URLSessionConfiguration.default, delegate: self, delegateQueue: OperationQueue.main)
         session = URLSession.shared
-        let uploadTask = session.uploadTask(with: request, from: MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data) { data, response, error in
+        let uploadTask = session.uploadTask(with: request, from: MultiPartPost.photoDataToFormData(data: data, boundary: boundary, fileName: "video", allowComments: allowComments, allowReactions: allowReactions, videoDescription: videoDescription) as Data)
+        
+        { data, response, error in
 //            print(data, response)
             if error != nil || data == nil {
                 print("Client error!")

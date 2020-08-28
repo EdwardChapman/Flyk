@@ -267,8 +267,9 @@ class NotificationViewController: UIViewController, UITableViewDelegate, UITable
         
         // set the text from the data model
 //        cell.backgroundColor = .flykDarkGrey
-        cell.notificationLabel.text = self.notificationList[indexPath.row]["message"] as! String
-//        cell.textLabel?.textColor = .white
+        if let notiMsg = self.notificationList[indexPath.row]["message"] as? String {
+            cell.notificationLabel.text?.decodeHTML()
+        }
         return cell
     }
     

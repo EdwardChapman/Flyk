@@ -302,6 +302,8 @@ class EditProfileVC: UIViewController, UIImagePickerControllerDelegate, UINaviga
         scrollyBottomAnchor.isActive = true
         scrolly.topAnchor.constraint(equalTo: self.view.topAnchor).isActive = true
         
+        scrolly.alwaysBounceVertical = true
+        
         let contentView = UIView()
         scrolly.addSubview(contentView)
         contentView.translatesAutoresizingMaskIntoConstraints = false
@@ -434,7 +436,7 @@ class EditProfileVC: UIViewController, UIImagePickerControllerDelegate, UINaviga
             }
             
             if let profile_bio = currentProfileData["profile_bio"] as? String {
-                self.bioTextView.text = profile_bio
+                self.bioTextView.text = profile_bio.decodeHTML()
                 self.bioTextViewHeightAnchor.constant = self.bioTextView.contentSize.height
                 self.view.layoutIfNeeded()
                 
@@ -562,7 +564,6 @@ class EditProfileVC: UIViewController, UIImagePickerControllerDelegate, UINaviga
                 //closes the action sheet.
         }
         ))
-        
         self.present(profileImgActionSheet, animated: true, completion: nil)
     }
     
@@ -606,14 +607,14 @@ class EditProfileVC: UIViewController, UIImagePickerControllerDelegate, UINaviga
 // PresentationController ///////////////////////////////////////////////////////////////////////
 /////////////////////////////////////////////////////////////////////////////////////////////////
 class EditProfilePresentationController: UIPresentationController {
-    let blurEffectView: UIVisualEffectView!
+    let blurEffectView = UIVisualEffectView(effect: UIBlurEffect(style: UIBlurEffect.Style.dark))
     var tapGestureRecognizer: UITapGestureRecognizer = UITapGestureRecognizer()
 //    @objc func dismiss(){
 //        self.presentedViewController.dismiss(animated: true, completion: nil)
 //    }
     override init(presentedViewController: UIViewController, presenting presentingViewController: UIViewController?) {
-        let blurEffect = UIBlurEffect(style: UIBlurEffect.Style.dark)
-        blurEffectView = UIVisualEffectView(effect: blurEffect)
+        
+        
         super.init(presentedViewController: presentedViewController, presenting: presentingViewController)
 //        tapGestureRecognizer = UITapGestureRecognizer(target: self, action: #selector(self.dismiss))
         blurEffectView.autoresizingMask = [.flexibleWidth, .flexibleHeight]

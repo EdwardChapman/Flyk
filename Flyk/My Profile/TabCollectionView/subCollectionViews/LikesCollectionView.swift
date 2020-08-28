@@ -32,7 +32,7 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     init(frame: CGRect){
         super.init(frame: frame, collectionViewLayout: UICollectionViewFlowLayout())
 //        print("PostsCollecitonview init")
-
+        
         
         
         let flowLayout = self.collectionViewLayout as! UICollectionViewFlowLayout
@@ -40,6 +40,9 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
         flowLayout.minimumLineSpacing = 0
         flowLayout.minimumInteritemSpacing = 0
         
+        
+        self.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
+        self.scrollIndicatorInsets = UIEdgeInsets(top: -100, left: 0, bottom: 0, right: 0)
         
 //        self.backgroundColor = .flykDarkGrey
         
@@ -166,22 +169,19 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     func collectionView(_ collectionView: UICollectionView, shouldSelectItemAt indexPath: IndexPath) -> Bool {
         // push view controller with swipe collectionview
         guard let myProfileVC = self.myProfileVC else {return false}
-        let flowLayout = UICollectionViewFlowLayout()
-        flowLayout.scrollDirection = .vertical
-        flowLayout.minimumInteritemSpacing = 0
-        flowLayout.minimumLineSpacing = 0
-        let newVC = PostsCarouselCollectionVC(collectionViewLayout: flowLayout, videoDataList: self.videoDataList, startingIndexPath: indexPath)
         
+        self.myProfileVC?.navigationController?.pushViewController(
+            Home(
+                startingIndex: indexPath.row,
+                videoDataList: self.videoDataList,
+                presentingVC: myProfileVC,
+                refreshFunction: {(cb) in
+                    cb(nil)
+                }
+            ),
+            animated: true
+        )
         
-//        newVC.view.layoutIfNeeded()
-//        newVC.collectionView.scrollToItem(at: indexPath, at: .top, animated: false)
-        newVC.view.layoutIfNeeded()
-        newVC.collectionView.setContentOffset(CGPoint(x: .zero, y: (myProfileVC.view.frame.height - myProfileVC.tabBarController!.tabBar.frame.height) * CGFloat(indexPath.row)), animated: false)
-        
-        
-        
-        
-        self.myProfileVC?.navigationController?.pushViewController(newVC, animated: true)
         return false
     }
     
@@ -238,7 +238,6 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
     }
     
     func scrollViewDidScroll(_ scrollView: UIScrollView) {
-        
         if let myProfileVC = self.myProfileVC {
             
             let profileScrollView = myProfileVC.profileScrollView
@@ -251,39 +250,42 @@ class LikesCollectionView: UICollectionView, UICollectionViewDataSource, UIColle
             let scrollDif = profileScrollView.contentOffset.y.rounded(.down) - maxOffset.rounded(.down)
             
             
+            
             if scrollView.contentOffset.y > 0 && scrollDif < -1 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY > maxOffset {
                     newY = maxOffset
                 }
                 
+                
                 profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
                 
                 // removed this to stop jumping content inset on return from push.
                 // scrollView.contentOffset = CGPoint.zero
-                scrollView.contentOffset = CGPoint(
-                    x: scrollView.contentOffset.x,
-                    y: scrollView.contentOffset.y / 2.3
-                )
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.3
                 
                 
                 /* This is drag to top when top of profile is hidden */
             } else if scrollView.contentOffset.y < 0 && profileScrollView.contentOffset.y.rounded(.down) > 0 {
+                
                 var newY = profileScrollView.contentOffset.y + scrollView.contentOffset.y
                 if newY < 0 {
                     newY = 0
                 }
                 
-                profileScrollView.contentOffset = CGPoint(x: 0, y: newY)
-                scrollView.contentOffset = CGPoint(
-                    x: scrollView.contentOffset.x,
-                    y: scrollView.contentOffset.y / 2.3
-                )
+                
+                profileScrollView.setContentOffset(CGPoint(x: 0, y: newY), animated: false)
+                scrollView.contentOffset.y = scrollView.contentOffset.y / 2.5
                 
                 
                 /* This is drag to top when top of profile is fully shown */
             } else if scrollView.contentOffset.y < 0 {
-                scrollView.contentOffset = CGPoint.zero
+                
+                //                scrollView.contentOffset = CGPoint.zero
+                scrollView.setContentOffset(.zero, animated: false)
+                
+                
             }
         }
         

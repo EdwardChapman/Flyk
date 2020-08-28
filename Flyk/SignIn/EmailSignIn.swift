@@ -481,13 +481,25 @@ class SendCreateAccountViewController: UIViewController {
                 }
             }
             
-            if response.statusCode == 500 {
+            else if response.statusCode == 500 {
                 print("Server Error")
-                //PRINT OUT THE RESPONSE HERE
-                // ??? maybey a warning lol
+                DispatchQueue.main.async {
+                    let first = self.navigationController?.viewControllers.first(where: {
+                        vc in
+                        if let esiVC = vc as? EmailSignInViewController {
+                            return true
+                        } else {
+                            return false
+                        }
+                    })
+                    if let firstEmailSignIn = first as? EmailSignInViewController {
+                        firstEmailSignIn.inputErrs = ["Server error"]
+                        self.navigationController?.popToViewController(firstEmailSignIn, animated: true)
+                    }
+                }
             }
             
-            if response.statusCode == 400 {
+            else if response.statusCode == 400 {
                 print("Client Error")
                 //PRINT OUT THE RESPONSE HERE
                 // pop to input page and display errors
@@ -498,8 +510,23 @@ class SendCreateAccountViewController: UIViewController {
                 
                 do {
                     let json : NSDictionary = try JSONSerialization.jsonObject(with: data!, options: []) as! NSDictionary
-                    print(json)
-                    print(json["errors"])
+
+                    DispatchQueue.main.async {
+                        let first = self.navigationController?.viewControllers.first(where: {
+                            vc in
+                            if let esiVC = vc as? EmailSignInViewController {
+                                return true
+                            } else {
+                                return false
+                            }
+                        })
+                        if let firstEmailSignIn = first as? EmailSignInViewController {
+                            if let errors = json["errors"] as? [String] {
+                                firstEmailSignIn.inputErrs = errors
+                            }
+                            self.navigationController?.popToViewController(firstEmailSignIn, animated: true)
+                        }
+                    }
                 } catch let err {
                     print("JSON error: \(err.localizedDescription)")
                 }

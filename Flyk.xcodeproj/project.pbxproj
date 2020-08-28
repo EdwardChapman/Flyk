@@ -52,6 +52,7 @@
 		92DFF57624D5C82B00ED5CEA /* PostsCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */; };
 		92DFF57824D6291F00ED5CEA /* SettingsViewController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57724D6291F00ED5CEA /* SettingsViewController.swift */; };
 		92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92DFF57924D7600400ED5CEA /* FlykConfig.swift */; };
+		92E0281124F72B11004574AA /* SearchTableViewCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E0281024F72B11004574AA /* SearchTableViewCell.swift */; };
 		92E196F324F3559400A0999D /* EditProfileVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E196F224F3559400A0999D /* EditProfileVC.swift */; };
 		92E2977124EB47E500CF18C9 /* CarouselCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */; };
 		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
@@ -128,6 +129,7 @@
 		92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsCollectionView.swift; sourceTree = "<group>"; };
 		92DFF57724D6291F00ED5CEA /* SettingsViewController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsViewController.swift; sourceTree = "<group>"; };
 		92DFF57924D7600400ED5CEA /* FlykConfig.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FlykConfig.swift; sourceTree = "<group>"; };
+		92E0281024F72B11004574AA /* SearchTableViewCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SearchTableViewCell.swift; sourceTree = "<group>"; };
 		92E196F224F3559400A0999D /* EditProfileVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = EditProfileVC.swift; sourceTree = "<group>"; };
 		92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselCollectionView.swift; sourceTree = "<group>"; };
 		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
@@ -287,6 +289,7 @@
 			children = (
 				927BB61624AD590D002445B9 /* DiscoverViewController.swift */,
 				92DD6F5E24C6555C008CBCEA /* DiscoverSearchBar.swift */,
+				92E0281024F72B11004574AA /* SearchTableViewCell.swift */,
 			);
 			path = Discover;
 			sourceTree = "<group>";
@@ -528,6 +531,7 @@
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
 				927BB64524AD5DFD002445B9 /* NotificationViewController.swift in Sources */,
 				92B74A1424CFB9750051FEA9 /* CommentsPresentationController.swift in Sources */,
+				92E0281124F72B11004574AA /* SearchTableViewCell.swift in Sources */,
 				9298485024C18D8F005AA6F0 /* SwipeBackNavigationController.swift in Sources */,
 				92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */,
 				928242D524BBD6BE0000C44A /* SetDurationView.swift in Sources */,

@@ -36,6 +36,67 @@ class VideoCell: UICollectionViewCell {
         return p
     }()
     
+    lazy var moreOptions: UIView = {
+        let v = UIView()
+        self.addSubview(v)
+        let a = UIView()
+        let b = UIView()
+        let c = UIView()
+        
+        v.addSubview(a)
+        v.addSubview(b)
+        v.addSubview(c)
+        let dotWidth: CGFloat = 5
+        
+        let blackBorder = UIColor(red: 0, green: 0, blue: 0, alpha: 0.4).cgColor
+        
+        a.layer.cornerRadius = dotWidth/2
+        a.backgroundColor = UIColor.flykDarkWhite
+        a.alpha = 1
+//        a.layer.borderColor = blackBorder
+//        a.layer.borderWidth = 1
+        
+        
+        b.layer.cornerRadius = dotWidth/2
+        b.backgroundColor = UIColor.flykDarkWhite
+        b.alpha = 1
+//        b.layer.borderColor = blackBorder
+//        b.layer.borderWidth = 1
+        
+        c.layer.cornerRadius = dotWidth/2
+        c.backgroundColor = UIColor.flykDarkWhite
+        c.alpha = 1
+//        c.layer.borderColor = blackBorder
+//        c.layer.borderWidth = 1
+        
+        a.translatesAutoresizingMaskIntoConstraints = false
+        a.heightAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        a.widthAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        a.centerXAnchor.constraint(equalTo: v.centerXAnchor).isActive = true
+        a.topAnchor.constraint(equalTo: v.topAnchor).isActive = true
+        
+        b.translatesAutoresizingMaskIntoConstraints = false
+        b.heightAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        b.widthAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        b.centerXAnchor.constraint(equalTo: v.centerXAnchor).isActive = true
+        b.topAnchor.constraint(equalTo: a.bottomAnchor, constant: 5).isActive = true
+
+        c.translatesAutoresizingMaskIntoConstraints = false
+        c.heightAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        c.widthAnchor.constraint(equalToConstant: dotWidth).isActive = true
+        c.centerXAnchor.constraint(equalTo: v.centerXAnchor).isActive = true
+        c.topAnchor.constraint(equalTo: b.bottomAnchor, constant: 5).isActive = true
+        
+        
+        v.translatesAutoresizingMaskIntoConstraints = false
+        v.topAnchor.constraint(equalTo: self.profileImg.bottomAnchor, constant: 15).isActive = true
+        v.leadingAnchor.constraint(equalTo: self.profileImg.leadingAnchor).isActive = true
+        v.widthAnchor.constraint(equalToConstant: 25).isActive = true
+        v.heightAnchor.constraint(equalToConstant: 30).isActive = true
+        v.isHidden = true
+        return v
+    }()
+    
     var share = UIImageView(image: UIImage(named: "newShareV1"))
     
     
@@ -78,6 +139,9 @@ class VideoCell: UICollectionViewCell {
     
     
     func setupNewVideo(fromDict videoData: NSMutableDictionary) {
+        
+        self.playerLayer.frame = self.bounds
+        
         currentVideoData = videoData
         let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
         let videoFilename =  videoData["video_filename"] as! String
@@ -140,7 +204,7 @@ class VideoCell: UICollectionViewCell {
         }
         
         if let descriptionText = videoData["video_description"] as? String {
-             self.descriptionTextView.text = descriptionText
+             self.descriptionTextView.text = descriptionText.decodeHTML()
         }
 //        print(self.descriptionTextView.attributedText!.size())
 //        self.descriptionTextView.frame.size = self.descriptionTextView.attributedText!.size()
@@ -159,8 +223,7 @@ class VideoCell: UICollectionViewCell {
             }).resume()
             
         }else{
-            print("PROFILE IMG FILENAME DNE")
-            // LOAD DEFAULT
+            self.profileImg.image = FlykConfig.defaultProfileImage
         }
         
         if let comments_count = videoData["comments_count"] as? Int {
@@ -200,6 +263,13 @@ class VideoCell: UICollectionViewCell {
                 }else{
                     self.likeCounterCenterYConstraint.constant = -3
                 }
+            }
+        }
+        
+        if let user_id = videoData["user_id"] as? String {
+            let appDelegate = UIApplication.shared.delegate as! AppDelegate
+            if (appDelegate.currentUserAccount.value(forKey: "user_id") as? String) == user_id {
+                self.moreOptions.isHidden = false
             }
         }
     }
@@ -518,19 +588,24 @@ class VideoCell: UICollectionViewCell {
         super.prepareForReuse()
         self.removeDidEndObserver()
         self.player.replaceCurrentItem(with: nil)
-//        if let gestRecList = self.gestureRecognizers {
-//            for gestureRec in gestRecList {
-//                self.removeGestureRecognizer(gestureRec)
-//            }
-//        }
-        if let gestRecList = self.profileImg.gestureRecognizers {
-            for gestureRec in gestRecList {
-                self.profileImg.removeGestureRecognizer(gestureRec)
-            }
-        }
-        if let gestRecList = self.usernameLabel.gestureRecognizers {
-            for gestureRec in gestRecList {
-                self.usernameLabel.removeGestureRecognizer(gestureRec)
+        self.usernameLabel.text = ""
+        self.descriptionTextView.text = ""
+        self.likeCounter.text = ""
+        self.commentsCounter.text = ""
+        self.postDateLabel.text = ""
+        self.profileImg.image = nil
+        self.moreOptions.isHidden = true
+
+
+        
+        for v in [
+            self.usernameLabel,
+            self.profileImg,
+            self.share,
+            self.comments,
+            self.moreOptions ] {
+            for gestRec in v.gestureRecognizers ?? [] {
+                v.removeGestureRecognizer(gestRec)
             }
         }
         
