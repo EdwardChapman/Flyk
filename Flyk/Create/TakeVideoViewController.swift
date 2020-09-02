@@ -1,5 +1,5 @@
 //
-//  ThirdViewController.swift
+//  TakeVideoViewController.swift
 //  DripDrop
 //
 //  Created by Edward Chapman on 7/1/20.
@@ -8,11 +8,6 @@
 
 import UIKit
 import AVFoundation
-
-
-
-
-
 
 
 class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDelegate {
@@ -38,6 +33,20 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         }
         return nil
     }()
+    
+    
+    lazy var focusIndicatorView: UIView = {
+        let l = UIView()
+        self.view.addSubview(l)
+        let lHeight: CGFloat = 25
+        l.frame.size = CGSize(width: lHeight, height: lHeight)
+        l.layer.cornerRadius = lHeight/2
+        l.layer.borderColor = UIColor.flykBlue.cgColor
+        l.layer.borderWidth = 2
+        l.isHidden = true
+        return l
+    }()
+    
     
     let movieOutput = AVCaptureMovieFileOutput()
     
@@ -82,6 +91,20 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
             captureSession.beginConfiguration()
             if captureSession.canAddInput(backCamVideoInput) {
                 captureSession.addInput(backCamVideoInput)
+                
+                let device = backCamVideoInput.device
+                do {
+                    try device.lockForConfiguration()
+                    if device.isFocusModeSupported(.continuousAutoFocus) {
+                        device.focusMode = .continuousAutoFocus
+                    }
+                    if device.isExposureModeSupported(.continuousAutoExposure) {
+                        device.exposureMode = .continuousAutoExposure
+                    }
+                    device.unlockForConfiguration()
+                } catch {
+                    print(error)
+                }
             }
             captureSession.commitConfiguration()
         }
@@ -125,9 +148,103 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         previewView.bottomAnchor.constraint(equalTo: self.view.safeAreaLayoutGuide.bottomAnchor).isActive = true
         previewView.trailingAnchor.constraint(equalTo: self.view.trailingAnchor).isActive = true
     }
+    @objc func handleOverlayFocusTap(tapGesture: UITapGestureRecognizer){
+        let tapLocation = tapGesture.location(in: self.view)
+        let focusPoint = CGPoint(
+            x: tapLocation.y / self.view.frame.height,
+            y: 1 - (tapLocation.x / self.view.frame.width)
+        )
+        
+        self.focusIndicatorView.center = tapLocation
+        self.focusIndicatorView.isHidden = false
+        UIView.animate(withDuration: 0.5, animations: {
+            self.focusIndicatorView.alpha = 0
+        }) { (finished) in
+            self.focusIndicatorView.isHidden = true
+            self.focusIndicatorView.alpha = 1
+        }
+        
+        if let backCamVideoInput = self.backCamVideoInput,
+            let selfieCamInput = self.selfieCamVideoInput {
+            
+            if captureSession.inputs.contains(backCamVideoInput) {
+                
+                let device = backCamVideoInput.device
+                do {
+                    print("REFOCUSING")
+                    try device.lockForConfiguration()
+                    
+                    
+                    if device.isFocusPointOfInterestSupported {
+                        device.focusPointOfInterest = focusPoint
+                        if device.isFocusModeSupported(.continuousAutoFocus) {
+                            device.focusMode = .continuousAutoFocus
+                        } else if device.isFocusModeSupported(.autoFocus) {
+                            device.focusMode = .autoFocus
+                        }
+                    }
+                    
+                    if device.isExposurePointOfInterestSupported {
+                        device.exposurePointOfInterest = focusPoint
+                        if device.isExposureModeSupported(.continuousAutoExposure) {
+                            device.exposureMode = .continuousAutoExposure
+                        } else if device.isExposureModeSupported(.autoExpose) {
+                            device.exposureMode = .autoExpose
+                        }
+                    }
+                    
+
+                    device.unlockForConfiguration()
+                }catch {
+                    print(error)
+                }
+                
+            } else if captureSession.inputs.contains(selfieCamInput){
+                
+                let device = selfieCamInput.device
+                do {
+                    try device.lockForConfiguration()
+
+                    if device.isFocusPointOfInterestSupported {
+                        device.focusPointOfInterest = focusPoint
+                        if device.isFocusModeSupported(.continuousAutoFocus) {
+                            device.focusMode = .continuousAutoFocus
+                        } else if device.isFocusModeSupported(.autoFocus) {
+                            device.focusMode = .autoFocus
+                        }
+                    }
+                    
+                    if device.isExposurePointOfInterestSupported {
+                        device.exposurePointOfInterest = focusPoint
+                        if device.isExposureModeSupported(.continuousAutoExposure) {
+                            device.exposureMode = .continuousAutoExposure
+                        } else if device.isExposureModeSupported(.autoExpose) {
+                            device.exposureMode = .autoExpose
+                        }
+                    }
+                    
+                    device.unlockForConfiguration()
+                }catch {
+                    print(error)
+                }
+                
+            }
+        }
+    }
     
-    
-    func overlaySetup(){
+    func overlaySetup() {
+        
+        // Switches the cameras
+        let doubleTap = UITapGestureRecognizer(target: self, action: #selector(handleCameraTypeTap(tapGesture:)))
+        doubleTap.numberOfTapsRequired = 2
+        self.view.addGestureRecognizer(doubleTap)
+        
+        // sets focus & exposure
+        let singleTap = UITapGestureRecognizer(target: self, action: #selector(handleOverlayFocusTap(tapGesture:)))
+        singleTap.numberOfTapsRequired = 1
+        self.view.addGestureRecognizer(singleTap)
+        singleTap.require(toFail: doubleTap)
+        
         
         let widthAndHeight = CGFloat(85)
 
@@ -369,14 +486,27 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     }
     
     // SWITCH CAMERA TAP
-    @objc func handleCameraTypeTap(tapGesture: UITapGestureRecognizer){
+    @objc func handleCameraTypeTap(tapGesture: UITapGestureRecognizer) {
         captureSession.beginConfiguration()
         if let backCamVideoInput = self.backCamVideoInput, let selfieCamInput = self.selfieCamVideoInput {
             if captureSession.inputs.contains(backCamVideoInput) {
                 captureSession.removeInput(backCamVideoInput)
                 if captureSession.canAddInput(selfieCamInput) {
                     captureSession.addInput(selfieCamInput)
-                    
+                    do {
+                        let device = selfieCamInput.device
+                        try device.lockForConfiguration()
+                        
+                        if device.isFocusModeSupported(.continuousAutoFocus) {
+                            device.focusMode = .continuousAutoFocus
+                        }
+                        if device.isExposureModeSupported(.continuousAutoExposure) {
+                            device.exposureMode = .continuousAutoExposure
+                        }
+                        device.unlockForConfiguration()
+                    } catch {
+                        print(error)
+                    }
                     if let tapImgView = tapGesture.view as? UIImageView {
                         tapImgView.image = UIImage(named: "backCam")
                     }
@@ -387,6 +517,21 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
                 captureSession.removeInput(selfieCamInput)
                 if captureSession.canAddInput(backCamVideoInput) {
                     captureSession.addInput(backCamVideoInput)
+                    
+                    do {
+                        let device = backCamVideoInput.device
+                        try device.lockForConfiguration()
+                        if device.isFocusModeSupported(.continuousAutoFocus) {
+                            device.focusMode = .continuousAutoFocus
+                        }
+                        if device.isExposureModeSupported(.continuousAutoExposure) {
+                            device.exposureMode = .continuousAutoExposure
+                        }
+                        device.unlockForConfiguration()
+                    } catch {
+                        print(error)
+                    }
+                    
                     if let tapImgView = tapGesture.view as? UIImageView {
                         tapImgView.image = UIImage(named: "selfieCam")
                     }
@@ -422,6 +567,7 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
         if movieOutput.isRecording {
             movieOutput.stopRecording()
         }else{
+            print("START RECORDING")
             let fileName = NSTemporaryDirectory() + NSUUID().uuidString + ".MOV"
             movieOutput.startRecording(to: URL(fileURLWithPath: fileName), recordingDelegate: self)
         }
@@ -434,9 +580,9 @@ class TakeVideoViewController: UIViewController, AVCaptureFileOutputRecordingDel
     
     
     
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
-    // AVCaptureFileOutputRecordingDelegate ////////////////////////////////////////////////////////////////////
-    ////////////////////////////////////////////////////////////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
+    // AVCaptureFileOutputRecordingDelegate /////////////////////////////////////////////////////
+    /////////////////////////////////////////////////////////////////////////////////////////////
     
     //DID FINISH RECORDING //I thought this wasn't on main thread but it seems to be?
     func fileOutput(_ output: AVCaptureFileOutput, didFinishRecordingTo outputFileURL: URL, from connections: [AVCaptureConnection], error: Error?){

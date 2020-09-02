@@ -145,6 +145,12 @@ class TabCollectionView: UICollectionView, UICollectionViewDataSource, UICollect
             for p in postCells {
                 p.gifImageView?.startAnimating()
             }
+        } else
+        if let draftCells = cellCollectionView.visibleCells as? [DraftsCell] {
+            for d in draftCells {
+                d.gifImgView.startAnimating()
+                print("ADD ANIMATION HERE")
+            }
         }
         
         

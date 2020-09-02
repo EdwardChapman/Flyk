@@ -54,7 +54,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         self.contentInset = UIEdgeInsets(top: 100, left: 0, bottom: 0, right: 0)
         self.scrollIndicatorInsets = UIEdgeInsets(top: -100, left: 0, bottom: 0, right: 0)
         
-        self.register(UICollectionViewCell.self, forCellWithReuseIdentifier: "postsCollectionView")
+        self.register(DraftsCell.self, forCellWithReuseIdentifier: "postsCollectionView")
         self.delegate = self
         self.dataSource = self
         self.contentInsetAdjustmentBehavior = .never
@@ -94,24 +94,11 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
     
     func collectionView(_ collectionView: UICollectionView, cellForItemAt indexPath: IndexPath) -> UICollectionViewCell {
         
-        let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath)
-        cell.backgroundColor = .flykMediumGrey
+        let cell = self.dequeueReusableCell(withReuseIdentifier: "postsCollectionView", for: indexPath) as! DraftsCell
         
-        let savedURL = savedVideosData[indexPath.row].value(forKey: "filename") as! String
-        let documentsUrl =  FileManager.default.urls(for: .documentDirectory, in: .userDomainMask).first!
-            .appendingPathComponent(savedURL)
-        
-        let uploadStatus = savedVideosData[indexPath.row].value(forKey: "uploadStatus") as! String
+        cell.setupNewDraft(newDraft: savedVideosData[indexPath.row])
         
         
-        let videoAsset = AVAsset(url: documentsUrl)
-        
-        let newPlayer = AVPlayer(url: documentsUrl)
-        let playerLayer = AVPlayerLayer()
-        playerLayer.player = newPlayer
-        playerLayer.videoGravity = .resizeAspectFill
-        playerLayer.frame = cell.layer.bounds
-        cell.layer.addSublayer(playerLayer)
         
         
         
@@ -195,7 +182,7 @@ class DraftsCollectionView: UICollectionView, UICollectionViewDataSource, UIColl
         }
         */
         
-        newPlayer.play()
+        
         return cell
         
     }
