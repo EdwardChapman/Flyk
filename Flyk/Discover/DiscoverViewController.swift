@@ -171,19 +171,30 @@ class DiscoverViewController: UIViewController, UICollectionViewDataSource, UICo
         let cell = collectionView.dequeueReusableCell(withReuseIdentifier: "discoverCell", for: indexPath) as! PostsCell
         
         /* APNG/GIF SETUP */
-        let targetPath = FlykConfig.mainEndpoint+"/video/animatedThumbnail/"
-        if let apngFilename = videoDataList[indexPath.row]["apng_filename"] as? String {
-            let apngUrl = URL(string: targetPath + apngFilename)
-            
+        if let thumbnail_url = videoDataList[indexPath.row]["thumbnail_url"] as? String {
+
+            let apngUrl = URL(string: thumbnail_url)
             if let apngTestImgView = UIImageView.fromGif(frame: cell.frame, assetUrl: apngUrl, autoReverse: true) {
                 apngTestImgView.frame = cell.bounds
                 
                 cell.swapUIImageGifView(newGifView: apngTestImgView)
-                
             }
+            
+        } else {
+            /*
+            let targetPath = FlykConfig.mainEndpoint+"/video/animatedThumbnail/"
+            if let apngFilename = videoDataList[indexPath.row]["apng_filename"] as? String {
+                let apngUrl = URL(string: targetPath + apngFilename)
+                
+                if let apngTestImgView = UIImageView.fromGif(frame: cell.frame, assetUrl: apngUrl, autoReverse: true) {
+                    apngTestImgView.frame = cell.bounds
+                    
+                    cell.swapUIImageGifView(newGifView: apngTestImgView)
+                    
+                }
+            }
+            */
         }
-        
-        
         
         
         return cell

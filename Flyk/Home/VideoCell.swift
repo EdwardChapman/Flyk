@@ -143,15 +143,22 @@ class VideoCell: UICollectionViewCell {
         self.playerLayer.frame = self.bounds
         
         currentVideoData = videoData
-        let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
-        let videoFilename =  videoData["video_filename"] as! String
-        let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
-        let remoteAsset = AVAsset(url: remoteAssetUrl)
         
+        if let video_url = videoData["video_url"] as? String {
+            let remoteAsset = AVAsset(url: URL(string: video_url)!)
+            let newPlayer = AVPlayerItem(asset: remoteAsset)
+            self.player.replaceCurrentItem(with: newPlayer)
+        } else {
+            print("There is no video_url so we are fetching form server.")
+            let targetEndpointString = FlykConfig.mainEndpoint+"/video/"
+            let videoFilename =  videoData["video_filename"] as! String
+            let remoteAssetUrl = URL(string: targetEndpointString + videoFilename)!
+            let remoteAsset = AVAsset(url: remoteAssetUrl)
+            
+            let newPlayer = AVPlayerItem(asset: remoteAsset)
+            self.player.replaceCurrentItem(with: newPlayer)
+        }
         
-        
-        let newPlayer = AVPlayerItem(asset: remoteAsset)
-        self.player.replaceCurrentItem(with: newPlayer)
         
         if let username = videoData["username"] as? String {
             self.usernameLabel.text = username

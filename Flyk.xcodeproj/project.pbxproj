@@ -57,7 +57,6 @@
 		92E2977124EB47E500CF18C9 /* CarouselCollectionView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */; };
 		92EAE77024C11DE000E5FB72 /* ColorPalette.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */; };
 		92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92F87D0624BFB1B1002F75FD /* VideoCell.swift */; };
-		92FE63B724E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift in Sources */ = {isa = PBXBuildFile; fileRef = 92FE63B624E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -134,7 +133,6 @@
 		92E2977024EB47E500CF18C9 /* CarouselCollectionView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CarouselCollectionView.swift; sourceTree = "<group>"; };
 		92EAE76F24C11DE000E5FB72 /* ColorPalette.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPalette.swift; sourceTree = "<group>"; };
 		92F87D0624BFB1B1002F75FD /* VideoCell.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = VideoCell.swift; sourceTree = "<group>"; };
-		92FE63B624E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PostsCarouselCollectionVC.swift; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -353,7 +351,6 @@
 			isa = PBXGroup;
 			children = (
 				92DFF57524D5C82B00ED5CEA /* PostsCollectionView.swift */,
-				92FE63B624E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift */,
 				9238E35D24DCB48000B9C8D9 /* DraftsCollectionView.swift */,
 				92A3258924DF56F8005E65A5 /* LikesCollectionView.swift */,
 			);
@@ -525,7 +522,6 @@
 				928242CA24BAAEAE0000C44A /* TextEditorView.swift in Sources */,
 				9223BDC124CDE1F00075C0D4 /* TabBarIsHiddenExtension.swift in Sources */,
 				9290A4A924BE407C002B6F96 /* FinishedVideoViewController.swift in Sources */,
-				92FE63B724E0D5E300B6B4BF /* PostsCarouselCollectionVC.swift in Sources */,
 				92DFF57A24D7600400ED5CEA /* FlykConfig.swift in Sources */,
 				921B556924EB37480051C97B /* CommentsTableViewCell.swift in Sources */,
 				92F87D0724BFB1B1002F75FD /* VideoCell.swift in Sources */,
